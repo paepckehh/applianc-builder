@@ -1,0 +1,4 @@
+#!/bin/sh
+mv /tmp/libfuse/usr/local/libdata/pkgconfig/* /tmp/libfuse/usr/libdata/pkgconfig/
+mv /tmp/libfuse/usr/local/* /tmp/libfuse/usr/
+sed -i '' -e 's/usr\/local/usr/g' /tmp/libfuse/usr/libdata/pkgconfig/*

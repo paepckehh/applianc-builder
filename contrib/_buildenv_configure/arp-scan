@@ -1,0 +1,7 @@
+#!/bin/sh
+autoreconf -if
+sh ./configure \
+	--host=$CCT \
+	--target=$CCT \
+	--prefix=/usr \
+	cross_compiling=yes

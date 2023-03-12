@@ -1,0 +1,8 @@
+#!/bin/sh
+sh ./bootstrap
+sh ./configure \
+	--host=$CCT \
+	--prefix=/usr/local \
+	--disable-rpath \
+	--disable-nls \
+	--enable-threads=posix

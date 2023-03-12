@@ -1,0 +1,4 @@
+#!/bin/sh
+echo "LTELOG: $LTELOG"
+echo "LTELOG: $LTELOG" >> $LTELOG
+cat /dev/lte0 | grep -A 3 ':' >> $LTELOG

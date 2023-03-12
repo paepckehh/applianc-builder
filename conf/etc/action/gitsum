@@ -1,0 +1,13 @@
+#!/bin/sh
+RAW="$(/etc/action/doasgit --no-replace-objects cat-file commit HEAD)"
+PRE=$(printf "commit %s\0" $(/usr/bin/echo "$RAW" | wc -c))
+MSG=$(echo "$PRE$RAW")
+SIG=$(echo "$MSG" | /usr/bin/sha1sum)
+echo "### PREFIX"
+echo "$PRE"
+echo "### RAW:"
+echo "$RAW"
+echo "### SIGNABLE COMMIT MESSAGE:"
+echo "$MSG"
+echo "### MESSAGE SHA1:"
+echo "$SIG"

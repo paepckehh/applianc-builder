@@ -1,0 +1,10 @@
+usr/bin/fish_*
+usr/etc
+usr/libexec
+usr/sbin
+usr/share/applications
+usr/share/doc
+usr/share/fish/man
+usr/share/fish/tools
+usr/share/man
+usr/share/pixmaps

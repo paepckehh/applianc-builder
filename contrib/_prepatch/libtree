@@ -1,0 +1,21 @@
+### ( 2023-03-12 ) ( 1678605360 ) ### DO NOT EDIT ### auto-generated file / patchset by <appliance-builder/enhanced> ###
+--- ./Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./Makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -1,8 +1,3 @@
+-ifeq (exists, $(shell [ -e $(CURDIR)/Make.user ] && echo exists ))
+-include $(CURDIR)/Make.user
+-endif
+-
+-# we're using fileno and getline gnu extensions
+ LIBTREE_CFLAGS := -Wall -O2 -std=gnu99 -D_FILE_OFFSET_BITS=64 $(CFLAGS)
+ 
+ all: libtree
+@@ -20,4 +15,8 @@
+ 
+ clean:
+ 	rm -f *.o libtree
++
++install:
++	install -d $(DESTDIR)${PREFIX}/bin
++	install -s -m 755 libtree $(DESTDIR)${PREFIX}/bin/libtree
+ 

@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="github.com/go-critic/go-critic/checkers/rules" goo $*

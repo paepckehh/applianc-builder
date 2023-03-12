@@ -1,0 +1,2 @@
+#!/bin/sh
+GITSTORE="/usr/store/git" /etc/goo/goo.gitkeys check

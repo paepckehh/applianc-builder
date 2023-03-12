@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="github.com/matrix-org/dendrite/cmd/dendrite-monolith-server" goo $*

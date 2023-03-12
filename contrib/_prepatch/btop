@@ -1,0 +1,12 @@
+### ( 20211228 ) ### DO NOT EDIT ### auto-generated file / patchset by appliance-builder enhance env ###
+--- ./Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./Makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -116,7 +116,7 @@
+ #? Flags, Libraries and Includes
+ override REQFLAGS   := -std=c++20
+ WARNFLAGS			:= -Wall -Wextra -pedantic
+-OPTFLAGS			?= -O2 -ftree-loop-vectorize -flto=$(THREADS)
++OPTFLAGS			?= $(CFLAGS)
+ LDCXXFLAGS			:= -pthread -D_FORTIFY_SOURCE=2 -D_GLIBCXX_ASSERTIONS $(GOODFLAGS) $(ADDFLAGS)
+ override CXXFLAGS	+= $(REQFLAGS) $(LDCXXFLAGS) $(OPTFLAGS) $(WARNFLAGS)
+ override LDFLAGS	+= $(LDCXXFLAGS) $(OPTFLAGS) $(WARNFLAGS)

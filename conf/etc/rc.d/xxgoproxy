@@ -1,0 +1,91 @@
+#!/bin/sh
+# PROVIDE: xxgoproxy
+# REQUIRE: FILESYSTEMS NETWORKING DAEMON SERVERS LOGIN var tmp jail xxworker
+
+. /etc/rc.subr
+. /etc/rc.conf
+name="xxgoproxu"
+desc="Go Module Proxy"
+start_cmd="goproxy_start"
+stop_cmd="goproxy_stop"
+save_cmd="goproxy_save"
+extra_commands="save"
+rcvar="xxgoproxy_enable"
+worker="goproxy"
+load_rc_config $name
+MODSTORE="/.worker/goproxy/var/goproxy/mnt/gomod"
+TMPSTORE="/var/gomod.overlay"
+SSLSTORE="/.worker/goproxy/var/goproxy/etc/ssl"
+
+goproxy_rebuild() {
+	pkill fastgoproxy
+	service xxsquid onestop
+	service xxdnscrypt onestop
+	service xxnpad onestop
+	service xxgpstime onestop
+	service xxrtimesrv onestop
+	sh /etc/action/store drop.golang
+	sh /etc/action/store drop.golang
+	sh /etc/action/store drop.bsd
+	mkdir -p $BSD_PKG/.store/all/.attic && mv -f $BSD_PKG/.store/all/gomod* $BSD_PKG/.store/all/.attic/
+	IMG="$BSD_PKG/.store/all/gomod.$(date "+%Y%m%d").img"
+	sh /etc/action/create.img $IMG $MODSTORE ffs1 none gomod
+	cd $BSD_PKG && ln -fs $IMG all/gomod
+	sh /etc/action/store umount
+}
+goproxy_mount() {
+	sh /etc/action/store mount
+	if [ ! -x /usr/store/eXchange ]; then
+		rm -f /var/lock.init.goproxy
+		echo "unable to mount store, exit" && exit 1
+	fi
+	mkdir -p $TMPSTORE $MODSTORE $SSLSTORE
+	if [ -e $BSD_PKG/all/gomod ]; then
+		mdconfig -u $BSD_MD_GOMOD -f $BSD_PKG/all/gomod
+		mount -o ro /dev/md942 $MODSTORE
+	fi
+	mount -t unionfs $TMPSTORE $MODSTORE
+	mount -t nullfs /etc/ssl $SSLSTORE
+	chown goproxy:goproxy $MODSTORE
+}
+goproxy_umount() {
+	umount -f $MODSTORE $SSLSTORE > /dev/null 2>&1
+	umount -f $MODSTORE $SSLSTORE > /dev/null 2>&1
+	mdconfig -d -u $BSD_MD_GOMOD | logger
+}
+goproxy_save() {
+	. /etc/.bsdconf
+	goproxy_rebuild
+	goproxy_stop
+}
+goproxy_stop() {
+	. /etc/.bsdconf
+	echo "Stopping [xx] goproxy [worker:goproxy]."
+	pkill fastgoproxy
+	goproxy_umount
+	/usr/sbin/service jail onestop goproxy
+	rm -f /var/lock.init.goproxy
+}
+goproxy_start() {
+	. /etc/.bsdconf
+	echo "Starting [xx] goproxy [worker:goproxy]."
+	if [ -e /var/lock.init.goproxy ]; then echo "[goproxy] already running, exit" && exit 1; fi
+	touch /var/lock.init.goproxy
+	/usr/sbin/service jail onestart goproxy
+	export SSL_CERT_DIR="/etc/ssl"
+	export SSL_CERT_FILE="/etc/ssl/rootCA.pem"
+	export HTTPS_PROXY="127.0.0.80:8080"
+	export HTTP_PROXY="127.0.0.80:8080"
+	export GOPROXY="direct,https://proxy.golang.org"
+	export GOMODCACHE="/mnt/gomod"
+	while [ ! -e /var/lock.worker.goproxy ]; do sleep 0.2; done
+	goproxy_mount
+	GOPREPONLY=true sh /etc/goo/goo.fastgoproxy
+	/usr/sbin/jexec goproxy sh /etc/goo/goo.fastproxy &
+}
+
+run_rc_command "$1"
+
+####################################
+###  EXTERNAL COMMAND INTERFACE  ###
+####################################

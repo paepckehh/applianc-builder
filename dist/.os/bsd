@@ -1,0 +1,433 @@
+#!/bin/sh
+
+######################################
+# FreeBSD OS specific KERNEL DEVICES #
+######################################
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE md xz crypto pty"
+export BSD_KERNCONF_DEVICE_SND="$BSD_KERNCONF_DEVICE_SND sound"
+export BSD_KERNCONF_DEVICE_IOD="$BSD_KERNCONF_DEVICE_IOD"
+export BSD_KERNCONF_DEVICE_GFX="$BSD_KERNCONF_DEVICE_GFX"
+export BSD_KERNCONF_DEVICE_WNIC="$BSD_KERNCONF_DEVICE_WNIC wlan"
+
+
+######################################
+# FreeBSD OS specific KERNEL OPTIONS #
+######################################
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS GEOM_LABEL GEOM_PART_GPT GEOM_UZIP" 
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS TMPFS FFS NO_FFS_SNAPSHOT SOFTUPDATES ZSTDIO" 
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS PREEMPTION _KPOSIX_PRIORITY_SCHEDULING"
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS KBD_DISABLE_KEYMAP_LOAD HZ=1000 PRINTF_BUFR_SIZE=128"
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS COMPAT_FREEBSD13" 
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS BOOTVERBOSE=1"
+
+###########################################
+# FreeBSD OS specific RC StartUp scripts  #
+###########################################
+export BSD_DIST_RC="$BSD_DIST_RC DAEMON FILESYSTEMS LOGIN SERVERS NETWORKING"
+export BSD_DIST_RC="$BSD_DIST_RC dmesg ldconfig mdconfig mdconfig2 newsyslog random syslogd sysctl tmp var devfs"
+export BSD_DIST_RC="$BSD_DIST_RC xxtmproot"
+
+#########################################
+# FreeBSD OS specific src.conf defaults #
+#########################################
+# ls -I $SRC/tools/build/options | while read line; do ; echo "export $(echo $line | sed -e 's/WITH_/WITHOUT/g')=true" ; done 
+export WITHOUT_APM=true
+export WITHOUT_ACCT=true
+export WITHOUT_ASSERT_DEBUG=true
+export WITHOUT_AT=true
+export WITHOUT_ATM=true
+export WITHOUT_AUDIT=true
+export WITHOUT_AUTHPF=true
+export WITHOUT_AUTOFS=true
+export WITHOUT_AUDIO=true
+export WITHOUT_BEARSSL=true
+export WITHOUT_BHYVE=true
+export WITHOUT_BHYVE_SNAPSHOT=true
+export WITHOUT_BIND_NOW=true
+export WITHOUT_BLACKLIST=true
+export WITHOUT_BLACKLIST_SUPPORT=true
+export WITHOUT_BLUETOOTH=true
+export WITHOUT_BOOTPARAMD=true
+export WITHOUT_BOOTPD=true
+export WITHOUT_BSDINSTALL=true
+export WITHOUT_BSD_CPIO=true
+export WITHOUT_BSNMP=true
+export WITHOUT_BZIP2=true
+export WITHOUT_BZIP2_SUPPORT=true
+export WITHOUT_CAROOT=true
+export WITHOUT_CALENDAR=true
+export WITHOUT_CAPSICUM=true
+export WITHOUT_CASPER=true
+export WITHOUT_CCD=true
+export WITHOUT_CDDL=true
+export WITHOUT_CLANG=true 
+export WITHOUT_CLANG_BOOTSTRAP=true
+export WITHOUT_CLEAN=true
+export WITHOUT_CROSS_COMPILER=true
+export WITHOUT_CLANG_BOOTSTRAP=true
+export WITHOUT_LLD_BOOTSTRAP=true
+export WITHOUT_LSX=true
+export WITHOUT_CTF=true
+export WITHOUT_CTM=true
+export WITHOUT_CUSE=true
+export WITHOUT_CXGBETOOL=true
+export WITHOUT_DEVD=true
+export WITHOUT_DEBUG_FILES=true
+export WITHOUT_DIALOG=true
+export WITHOUT_DICT=true
+export WITHOUT_DOCCOMPRESS=true
+export WITHOUT_DTRACE_TEST=true
+export WITHOUT_DMAGENT=true
+export WITHOUT_DHCP=true
+export WITHOUT_EE=true
+export WITHOUT_ELFTOOLCHAIN_BOOTSTRAP=true
+export WITHOUT_EXAMPLES=true
+export WITHOUT_EXPERIMENTAL=true
+export WITHOUT_FIB=true
+export WITHOUT_FILE=true
+export WITHOUT_FINGER=true
+export WITHOUT_FLOPPY=true
+export WITHOUT_FORTH=true
+export WITHOUT_FREEBSD_UPDATE=true
+export WITHOUT_FTP=true
+export WITHOUT_GPIO=true
+export WITHOUT_GAMES=true
+export WITHOUT_GH_BC=true
+export WITHOUT_GCOV=true
+export WITHOUT_GDB=true
+export WITHOUT_GDB_LIBEXEC=true
+export WITHOUT_GOOGLETEST=true
+export WITHOUT_GSSAPPI=true
+export WITHOUT_HAST=true
+export WITHOUT_HTML=true
+export WITHOUT_HTTPD=true
+export WITHOUT_HYPERV=true
+export WITHOUT_INCLUDES=true
+export WITHOUT_INETD=true
+export WITHOUT_INET=true
+export WITHOUT_INET_SUPPORT=true
+export WITHOUT_INET6=true
+export WITHOUT_INET6_SUPPORT=true
+export WITHOUT_IPFILTER=true
+export WITHOUT_IPSEC_SUPPORT=true
+export WITHOUT_ISCSI=true
+export WITHOUT_IPFW=true
+export WITHOUT_JAIL=true
+export WITHOUT_KDUMP=true
+export WITHOUT_KERBEROS=true
+export WITHOUT_KERBEROS_SUPPORT=true
+export WITHOUT_KERNEL_RETPOLINE=true
+export WITHOUT_KERNEL_SYMBOLS=true
+export WITHOUT_KVM=true
+export WITHOUT_KVM_SUPPORT=true
+export WITHOUT_LDD_BOOTSTRAP=true
+export WITHOUT_LDNS=true
+export WITHOUT_LDNS_UTILS=true
+export WITHOUT_LIB32=true
+export WITHOUT_LIBSOFT=true
+export WITHOUT_LIBSTATS=true
+export WITHOUT_LLDB=true
+export WITHOUT_LLD=true
+export WITHOUT_LLD_BOOTSTRAP=true
+export WITHOUT_LLVM_ASSERTIONS=true
+export WITHOUT_LLVM_COV=true
+export WITHOUT_LLVM_BINUTILS=true
+export WITHOUT_LOCALES=true
+export WITHOUT_LOCATE=true
+export WITHOUT_LPR=true
+export WITHOUT_MAKE=true
+export WITHOUT_MAIL=true
+export WITHOUT_MAILWRAPPER=true
+export WITHOUT_MAN=true
+export WITHOUT_MANCOMPRESS=true
+export WITHOUT_MLX5TOOL=true
+export WITHOUT_NETGRAPH=true
+export WITHOUT_NETGRAPH_SUPPORT=true
+export WITHOUT_NIS=true
+export WITHOUT_NLS=true
+export WITHOUT_NLS_CATALOGS=true
+export WITHOUT_NS_CACHING=true
+export WITHOUT_NTP=true
+export WITHOUT_NVME=true
+export WITHOUT_OFED=true
+export WITHOUT_OFED_EXTRA=true
+export WITHOUT_OPENSSL_KTLS=true
+export WITHOUT_OPENSSH=true
+export WITHOUT_OPENSSH_SUPPORT=true
+export WITHOUT_PC_SYSINSTALL=true
+export WITHOUT_PKGBOOTSTRAP=true
+export WITHOUT_PMC=true
+export WITHOUT_PORTSNAP=true
+export WITHOUT_PPP=true
+export WITHOUT_PAM_SUPPORT=true
+export WITHOUT_PF=true
+export WITHOUT_QUOTAS=true
+export WITHOUT_RADIUS_SUPPORT=true
+export WITHOUT_RBOOTD=true
+export WITHOUT_RESCUE=true
+export WITHOUT_RETPOLINE=true
+export WITHOUT_ROUTED=true
+export WITHOUT_SENDMAIL=true
+export WITHOUT_SERVICESDB=true
+export WITHOUT_SHAREDOCS=true
+export WITHOUT_SOURCELESS=true
+export WITHOUT_SOURCELESS_HOST=true
+export WITHOUT_SOURCELESS_UCODE=true
+export WITHOUT_SYSCONS=true
+export WITHOUT_SVN=true
+export WITHOUT_SVNLITE=true
+export WITHOUT_TALK=true
+export WITHOUT_TCP_WRAPPERS=true
+export WITHOUT_TCSH=true
+export WITHOUT_TELNET=true
+export WITHOUT_TESTS=true
+export WITHOUT_TESTS_SUPPORT=true
+export WITHOUT_TEXTPROC=true
+export WITHOUT_TOOLCHAIN=true
+export WITHOUT_TFTP=true
+export WITHOUT_TCPDUMP=true
+export WITHOUT_TIMED=true
+export WITHOUT_DETECT_TZ_CHANGES=true
+export WITHOUT_UNBOUND=true
+export WITHOUT_USB_GADGET_EXAMPLES=true
+export WITHOUT_VERIEXEC=true
+export WITHOUT_VI=true
+export WITHOUT_WIRELESS=true
+export WITHOUT_WIRELESS_SUPPORT=true
+export WITHOUT_WPA_SUPPLICANT_EAPOL=true
+export WITHOUT_WPA_SUPPLICANT_SUPPORT=true
+export WITHOUT_ZFS=true
+export WITHOUT_ZONEINFO=true
+export WITHOUT_LEGACY_CONSOLE=true
+export WITHOUT_VT=true
+export WITHOUT_MAN_UTILS=true
+export WITHOUT_MAKE=true
+export WITHOUT_MAKE_SUPPORT=true
+export WITHOUT_SHARED_TOOLCHAIN=true
+export WITHOUT_SMBIOS=true
+export WITHOUT_CLEAN=true
+export WITHOUT_LOADER_EFI_SECUREBOOT=true
+export WITHOUT_LOADER_FIREWIRE=true
+export WITHOUT_LOADER_OFW=true
+export WITHOUT_LOADER_GELI=true
+export WITHOUT_LOADER_VERIEXEC=true
+export WITHOUT_LOADER_ZFS=true
+export WITHOUT_LOADER_UBOOT=true
+export WITHOUT_LOADER_KBOOT=true
+export WITHOUT_LOADER_VERBOSE=true
+export WITHOUT_WIREGUARD=true
+export WITHOUT_FDT=true
+export WITH_MALLOC_PRODUCTION=true
+export WITH_REPRODUCIBLE_BUILD=true
+export WITH_PIE=true
+export WITH_SSP=true
+export WITH_SYSTEM_COMPILER=true
+export WITH_SYSTEM_LINKER=true
+export WITH_LOADER_LUA=true
+export NO_FSCHG=true
+export WITHOUT_PRIVATELIBS=true
+
+######################
+# SHARED LOADER CONF #
+######################
+# unset LOADER_FDT_SUPPORT
+export LOADER_NET_SUPPORT=yes # w/o build broken
+export LOADER_INTERP=lua
+export LOADER_DISK_SUPPORT=yes
+export LOADER_GPT_SUPPORT=yes
+export LOADER_MBR_SUPPORT=yes
+export LOADER_UFS_SUPPORT=yes
+export LOADER_MSDOS_SUPPORT=yes
+export LOADER_CD9660_SUPPORT=no
+export LOADER_EXT2FS_SUPPORT=no
+export LOADER_GZIP_SUPPORT=no
+export LOADER_BZIP2_SUPPORT=no
+export LOADER_NFS_SUPPORT=no
+export LOADER_TFTP_SUPPORT=no
+export LOADER_GELI=no
+export LOADER_VERIEXEC=no
+
+#################
+# GENERIC SETUP #
+#################
+export BSD_MDROOT=lzma
+
+############################
+# /etc/sysctl.conf generic #
+############################
+X='# all.os
+kern.randompid=1
+
+# geom debug
+kern.geom.collectstats=0
+kern.geom.debugflags=0
+kern.geom.uzip.debug=0
+kern.geom.label.debug=0
+kern.geom.part.check_integrity=0
+kern.geom.part.auto_resize=0
+
+# generic setup
+kern.powercycle_on_panic=0
+kern.poweroff_on_panic=0
+kern.sync_on_panic=0
+kern.panic_reboot_wait_time=15
+kern.coredump=0
+kern.corefile="/dev/null"
+kern.log_wakeups_per_second=2
+kern.msgbuf_show_timestamp=2
+kern.random.harvest.mask=351
+vfs.ufs.dirhash_maxmem=10485760
+vfs.usermount=0
+vfs.default_autoro=1
+
+# hardening 
+# machdep.syscall_ret_flush_l1d=1
+security.bsd.allow_ptrace=0
+security.bsd.stack_guard_page=1
+security.bsd.hardlink_check_gid=1
+security.bsd.hardlink_check_uid=1
+security.bsd.conservative_signals=1
+security.bsd.see_jail_proc=0
+security.bsd.see_other_gids=0
+security.bsd.see_other_uids=0
+security.bsd.unprivileged_get_quota=0
+security.bsd.unprivileged_read_msgbuf=0
+security.bsd.unprivileged_mlock=0
+security.bsd.unprivileged_idprio=0
+security.bsd.unprivileged_read_msgbuf=0
+security.bsd.unprivileged_chroot=0
+'
+export BSD_SYSCTL="$BSD_SYSCTL$X"
+
+###########################################
+# /etc/sysctl.conf [display only section] #
+###########################################
+
+X='
+# random 
+# debug.fxrng_vdso=0
+kern.random.use_chacha20_cipher
+kern.random.fortuna.concurrent_read
+kern.random.initial_seeding.bypass_before_seeding
+kern.random.initial_seeding.arc4random_bypassed_before_seeding
+kern.random.initial_seeding.disable_bypass_warnings
+kern.random.initial_seeding.read_random_bypassed_before_seeding
+
+# info screen
+security.bsd.unprivileged_proc_debug
+vm.swap_enabled
+kern.osrevision
+kern.bootfile
+kern.boottime
+kern.build_id
+kern.version
+kern.console
+kern.securelevel'
+export BSD_SYSCTL_INFO="$X"
+
+
+###############
+# loader.conf #
+###############
+
+X='entropy_cache_load="YES"
+entropy_cache_name="/boot/entropy"
+entropy_cache_type="boot_entropy_cache"
+verbose_loading="YES"
+boot_verbose="YES"
+boot_multicons="NO"
+console="vidconsole"
+loader_delay="0"
+autoboot_delay="0"
+password=""
+beastie_disable="YES"
+loader_logo="none"
+loader_color="NO"
+vesa_load="NO"
+bitmap_load="NO"
+splash_pcx_load="NO"
+splash_bmp_load="NO"
+cpu_microcode_load="NO"
+bootfile="/boot/kernel/kernel"
+kernel="/boot/kernel/kernel"
+rootdev="ufs:/dev/md0.uzip"
+vfs.root.mountfrom="ufs:/dev/md0.uzip"
+vfs.root.mountfrom.options="ro"
+mdroot_load="YES"
+mdroot_type="md_image"
+mdroot_name="/boot/mdroot"
+twiddle_divisor=64'
+export BSD_LOADER_CONF="$X"
+X='
+hw.usb.no_boot_wait=1
+kern.ipc.maxpipekva=3114584
+kern.msgbuf_show_timestamp=2'
+export BSD_LOADER_CONF_SYSCTL="$BSD_LOADER_CONF_SYSCTL$X"
+export BSD_ADD_ETC_PASSWD="root:*LOCKED*:0:0::0:0:lockdownuser:/root:/usr/sbin/nologin
+toor:*LOCKED*:0:0::0:0:lockdownuser:/root:/usr/sbin/nologin
+sh::0:0::0:0:alternative shell root user:/root:/bin/sh
+down::0:0::0:0:shutdown user:/tmp:/etc/action/down
+reboot::0:0::0:0:shutdown user:/tmp:/etc/action/reboot
+panic::0:0::0:0:system panic user:/tmp:/etc/action/invoke.kernelpanic
+daemon:*:1:1::0:0:Owner of many system processes:/root:/usr/sbin/nologin
+operator:*:2:5::0:0:System &:/:/usr/sbin/nologin
+bin:*:3:7::0:0:Binaries Commands and Source:/:/usr/sbin/nologin
+tty:*:4:65533::0:0:Tty Sandbox:/:/usr/sbin/nologin
+kmem:*:5:65533::0:0:KMem Sandbox:/:/usr/sbin/nologin
+games:*:7:13::0:0:Games pseudo-user:/:/usr/sbin/nologin
+news:*:8:8::0:0:News Subsystem:/:/usr/sbin/nologin
+man:*:9:9::0:0:Mister Man Pages:/usr/share/man:/usr/sbin/nologin
+sshd:*:22:22::0:0:Secure Shell Daemon:/var/empty:/usr/sbin/nologin
+smmsp:*:25:25::0:0:Sendmail Submission User:/var/spool/clientmqueue:/usr/sbin/nologin
+mailnull:*:26:26::0:0:Sendmail Default User:/var/spool/mqueue:/usr/sbin/nologin
+bind:*:53:53::0:0:Bind Sandbox:/:/usr/sbin/nologin
+unbound:*:59:59::0:0:Unbound DNS Resolver:/var/unbound:/usr/sbin/nologin
+proxy:*:62:62::0:0:Packet Filter pseudo-user:/nonexistent:/usr/sbin/nologin
+_pflogd:*:64:64::0:0:pflogd privsep user:/var/empty:/usr/sbin/nologin
+_dhcp:*:65:65::0:0:dhcp programs:/var/empty:/usr/sbin/nologin
+uucp:*:66:66::0:0:UUCP pseudo-user:/var/spool/uucppublic:/usr/local/libexec/uucp/uucico
+pop:*:68:6::0:0:Post Office Owner:/nonexistent:/usr/sbin/nologin
+auditdistd:*:78:77::0:0:Auditdistd unprivileged user:/var/empty:/usr/sbin/nologin
+www:*:80:80::0:0:World Wide Web Owner:/nonexistent:/usr/sbin/nologin
+ntpd:*:123:123::0:0:NTP Daemon:/var/db/ntp:/usr/sbin/nologin
+_ypldap:*:160:160::0:0:YP LDAP unprivileged user:/var/empty:/usr/sbin/nologin
+hast:*:845:845::0:0:HAST unprivileged user:/var/empty:/usr/sbin/nologin
+tests:*:977:977::0:0:Unprivileged user for tests:/nonexistent:/usr/sbin/nologin
+nobody:*:65534:65534::0:0:Unprivileged user:/nonexistent:/usr/sbin/nologin"
+export BSD_ADD_ETC_GROUP="wheel:*:0:root
+daemon:*:1:
+kmem:*:2:
+sys:*:3:
+tty:*:4:
+operator:*:5:root
+mail:*:6:
+bin:*:7:
+news:*:8:
+man:*:9:
+games:*:13:
+ftp:*:14:
+staff:*:20:
+sshd:*:22:
+smmsp:*:25:
+mailnull:*:26:
+guest:*:31:
+video:*:44:
+realtime:*:47:
+bind:*:53:
+unbound:*:59:
+proxy:*:62:
+authpf:*:63:
+_pflogd:*:64:
+_dhcp:*:65:
+uucp:*:66:
+dialer:*:68:
+network:*:69:
+audit:*:77:
+www:*:80:
+ntpd:*:123:
+_ypldap:*:160:
+hast:*:845:
+tests:*:977:
+auth:*:999:
+nogroup:*:65533:
+nobody:*:65534:"

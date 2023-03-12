@@ -1,0 +1,2 @@
+#!/bin/sh
+export BSD_DIST_PKG="$BSD_DIST_PKG iperf"

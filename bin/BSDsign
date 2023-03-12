@@ -1,0 +1,107 @@
+#!/bin/sh
+. /etc/action/.check.store
+if [ ! $BSD_CONF_VERSION ]; then . /etc/.bsdconf; fi
+DTS=$(date "+%Y%m%d")
+# XXX ... broken again, for md/msdosfs ! ### DEBUG mid JAN 2021
+#sysctl kern.geom.part.check_integrity=0
+#sysctl kern.geom.part.auto_resize=0
+LOCKFILE=/var/lock.BSDsign
+if [ ! $IMGBASE ]; then export IMGBASE=/tmp/.build.img.unsigned; fi
+case $1 in
+clean) rm $LOCKFILE && exit ;;
+esac
+if [ -f $LOCKFILE ]; then
+	echo "... there is already an BSDsign instance running or a stale lock [/var/lock.BSDsign"
+	echo "... if no other instance is running, please invoke BSDsign clean"
+	exit
+fi
+touch /var/lock.BSDsign
+if [ -x $IMGBASE ]; then
+	cd /tmp
+	ls -I $IMGBASE | while read line; do
+		TEMPSTAMP=$(date "+%Y%m%d-%H%M%S")
+		BSD_TARGET_DIST=$(echo $line | cut -c 1-4)
+		BSD_TARGET_SBC=$(echo $line | cut -c 6-12)
+		ARCH=$(echo $line | cut -c 14-)
+		case $line in
+		*uefi*)
+			echo "... uefi gpt scheme detected!"
+			IMG_PART=p2
+			FSTYPE=ufs
+			export XBOOT=uefi
+			export SIGN_ABLE=true
+			;;
+		*efi*)
+			echo "... mbr efi scheme detected!"
+			IMG_PART=s1
+			FSTYPE=msdosfs
+			export XBOOT=efi
+			export SIGN_ABLE=true
+			;;
+		*gptboot*)
+			echo "... gpt scheme detected!"
+			IMG_PART=p2
+			FSTYPE=ufs
+			export XBOOT=gptboot
+			export SIGN_ABLE=true
+			;;
+		*ubldr*)
+			echo "... mbr scheme detected!"
+			IMG_PART=s1
+			FSTYPE=msdosfs
+			export XBOOT=ubldr
+			export SIGN_ABLE=true
+			;;
+		*mbrboot*)
+			echo "... mbr scheme detected!"
+			IMG_PART=s1
+			FSTYPE=msdosfs
+			export XBOOT=mbrboot
+			export SIGN_ABLE=true
+			;;
+		*bsdboot*)
+			echo "... mbr scheme detected!"
+			IMG_PART=s1
+			FSTYPE=ufs
+			export XBOOT=bsdboot
+			export SIGN_ABLE=true
+			;;
+		esac
+		echo "... process sign action for image: $line"
+		echo $BSD_TARGET_DIST $BSD_TARGET_SBC $ARCH $IMG_PART $FSTYPE $XBOOT $SIGN_ABLE
+
+		# sign
+		if [ $SIGN_ABLE ]; then
+
+			# mount image
+			IMG_MD=$(mdconfig -f $IMGBASE/$line)
+			IMG_DRIVE=/dev/$IMG_MD$IMG_PART
+			IMG_FOLDER=/tmp/IMG_$TEMPSTAMP
+			mkdir -p $IMG_FOLDER
+			mount -t $FSTYPE $IMG_DRIVE $IMG_FOLDER
+			cd $IMG_FOLDER && (
+				tree
+				if [ -x /usr/bin/hq ]; then hq s; fi
+				if [ -x /usr/bin/fsdd ]; then fsdd $IMG_FOLDER --clean-metadata; fi
+			)
+			cd /tmp && sync && sync && sync
+			umount -f $IMG_DRIVE > /dev/null 2>&1
+			rm -rf $IMG_FOLDER > /dev/null 2>&1
+			mdconfig -d -u $IMG_MD > /dev/null 2>&1
+
+		fi
+		# compress & store checking
+		IMG_STORE=$BSD_IMG
+		mkdir -p $IMG_STORE/.store && cd $IMG_STORE
+		rm -r fbsd.$BSD_TARGET_DIST.$BSD_TARGET_SBC.$XBOOT .store/fbsd.$BSD_TARGET_DIST.$BSD_TARGET_SBC.* > /dev/null 2>&1
+		COMPRESS="zstd -vv --force --stdout"
+		case $ARCH in
+		amd64) COMPRESS="$COMPRESS --long --ultra -22 --threads=0" ;;
+		esac
+		$COMPRESS $IMGBASE/$line > $IMG_STORE/.store/fbsd.$line.$DTS.img.zst
+		ln -fs .store/fbsd.$line.$DTS.img.zst fbsd.$BSD_TARGET_DIST.$BSD_TARGET_SBC.$XBOOT
+		cd /tmp && rm -rf $IMGBASE/$line
+
+	done
+fi
+rm -rf $LOCKFILE

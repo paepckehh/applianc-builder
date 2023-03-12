@@ -1,0 +1,110 @@
+#!/bin/sh
+(cd /usr/local/bin && ln -fs aclocal aclocal-1.15)
+#export LIBOPENSSL_CFLAGS="-I$SYSROOTMOUNT/usr/include/openssl"
+#export LIBOPENSSL_LIBS="-lcrypto -lssl"
+#export BUILDCXXFLAGS="-target $LT_ARCH"
+# export LIBS="$SYSROOTMOUNT/usr/lib"
+#echo "... squid target libs $LIBS"
+#echo "... squid build arch  $BUILDCXXFLAGS"
+#unset LDFLAGS
+
+cd /tmp/squid-master
+sh ./bootstrap.sh
+autoreconf -if
+autoreconf -if
+
+# cd /tmp/squid-master/src
+# echo " ... patching FD_NONE file descriptor namespace overlap fuckup!"
+# patch -i $BSD_CONTRIB/_files/squid_fd_namespace_fuckup
+
+# cd /tmp/squid-master/src/security
+# echo " ... apply some custom patching!"
+# patch -i $BSD_CONTRIB/___legacy/_files/squid_delete_copy_constructor
+# ln -s /usr/include/rpcsvc/crypt.h /usr/include/crypt.h
+
+# cd /tmp/squid-master
+sh ./configure \
+	--disable-ipv6 \
+	--with-openssl \
+	--enable-ssl-crtd \
+	--disable-strict-error-checking \
+	--disable-external-acl-helpers \
+	--disable-storeid-rewrite-helpers \
+	--disable-storeio \
+	--disable-esi \
+	--disable-icmp \
+	--disable-icap-client \
+	--disable-wccp \
+	--disable-wccpv2 \
+	--disable-snmp \
+	--disable-eui \
+	--disable-htcp \
+	--disable-epoll \
+	--disable-auto-locale \
+	--disable-delay-pools \
+	--disable-ecap \
+	--disable-ident-lookups \
+	--disable-auto-locale \
+	--disable-url-rewrite-helpers \
+	--disable-LOG-daemon-helpers \
+	--disable-auth \
+	--disable-auth-ntlm \
+	--disable-auth-negotiate \
+	--disable-auth-digest \
+	--disable-auth-basic \
+	--disable-linux-netfilter \
+	--disable-linux-tproxy \
+	--without-libxml2 \
+	--without-valgrind-debug \
+	--without-mit-krb5 \
+	--without-heimdal-krb5 \
+	--without-gnugss \
+	--without-gss \
+	--without-netfiler-conntrack \
+	--without-gnutls \
+	--without-nettle \
+	--disable-translation \
+	--disable-auto-locale \
+	--sysconfdir=/etc/app/squid \
+	--enable-default-hostsfile=/etc/hosts \
+	--enable-log-daemon-helpers=none \
+	--without-tdb \
+	--without-aio \
+	--without-pthreads \
+	--host=$CCT \
+	--target=$CCT \
+	--build=$LT_ARCH \
+	--with-sysroot=$SYSROOTMOUNT \
+	--prefix=/usr
+
+# --enable-default-configfile=/etc/app/squid/squid.conf \
+# --without-cppunit \
+# --disable-arch-native \
+# --without-pthreads \
+# --enable-ipfw-transparent \
+# --disable-shared \
+# --without-libcap \
+# --without-largefiles \
+# --with-dl \
+# --with-pic \
+
+#	LIBOPENSSL_CFLAGS="-I$SYSROOTMOUNT/usr/include/openssl" \
+#	LIBOPENSSL_LIBS="-lcrypto -lssl"
+
+# --disable-arch-native \
+# --without-pthreads \
+# --build=$LT_ARCH \
+# --without-expat \
+#--enable-auth-basic="none" \
+#--enable-auth-negotiate="none" \
+#--enable-diskio=Mmapped \
+#--enable-storeio=ufs \
+#	--disable-storeid-rewrite-helpers \
+#	--disable-storeio \
+# --enable-storeio=ufs \
+#	--disable-loadable-modules \
+#	--disable-shared \
+#	--disable-external-acl-helpers \
+#	--without-tdb
+# --enable-loadable-modules
+# --enable-log-daemon-helpers=none \

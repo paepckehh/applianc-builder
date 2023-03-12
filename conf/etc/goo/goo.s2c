@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="github.com/klauspost/compress/s2/cmd/s2d" goo $*

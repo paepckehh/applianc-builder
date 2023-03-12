@@ -1,0 +1,6 @@
+#!/bin/sh
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS SYSVSHM SYSVMSG SYSVSEM"
+X='
+# IPC kernel package specific
+kern.ipc.shm_use_phys=1'
+export BSD_SYSCTL="$BSD_SYSCTL $X"

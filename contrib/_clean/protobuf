@@ -1,0 +1,4 @@
+usr/include
+usr/lib/*lite*
+usr/lib/cmake
+usr/libdata

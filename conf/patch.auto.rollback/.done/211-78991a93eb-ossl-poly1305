@@ -1,0 +1,443 @@
+commit 78991a93eb9dd3074a3fc19b88a7c3e34e1ec703
+Author: John Baldwin <jhb@FreeBSD.org>
+Date:   2021-03-03 23:17:51 +0000
+
+    ossl: Add support for the ChaCha20 + Poly1305 AEAD cipher from RFC 8439
+    
+    Sponsored by:   Netflix
+    Differential Revision:  https://reviews.freebsd.org/D28757
+
+diff --git a/share/man/man4/ossl.4 b/share/man/man4/ossl.4
+index 2aa4b69eda3..5929e46e9fe 100644
+--- a/share/man/man4/ossl.4
++++ b/share/man/man4/ossl.4
+@@ -76,6 +76,8 @@ driver includes support for the following algorithms:
+ .It
+ ChaCha20
+ .It
++ChaCha20-Poly1305 (RFC 8439)
++.It
+ Poly1305
+ .It
+ SHA1
+diff --git a/sys/crypto/openssl/ossl.c b/sys/crypto/openssl/ossl.c
+index 0c863429939..ad9b93dd960 100644
+--- a/sys/crypto/openssl/ossl.c
++++ b/sys/crypto/openssl/ossl.c
+@@ -165,6 +165,14 @@ ossl_probesession(device_t dev, const struct crypto_session_params *csp)
+ 			return (EINVAL);
+ 		}
+ 		break;
++	case CSP_MODE_AEAD:
++		switch (csp->csp_cipher_alg) {
++		case CRYPTO_CHACHA20_POLY1305:
++			break;
++		default:
++			return (EINVAL);
++		}
++		break;
+ 	default:
+ 		return (EINVAL);
+ 	}
+@@ -314,6 +322,12 @@ ossl_process(device_t dev, struct cryptop *crp, int hint)
+ 	case CSP_MODE_CIPHER:
+ 		error = ossl_chacha20(crp, csp);
+ 		break;
++	case CSP_MODE_AEAD:
++		if (CRYPTO_OP_IS_ENCRYPT(crp->crp_op))
++			error = ossl_chacha20_poly1305_encrypt(crp, csp);
++		else
++			error = ossl_chacha20_poly1305_decrypt(crp, csp);
++		break;
+ 	default:
+ 		__assert_unreachable();
+ 	}
+diff --git a/sys/crypto/openssl/ossl.h b/sys/crypto/openssl/ossl.h
+index b7c681d0fb1..11793dca037 100644
+--- a/sys/crypto/openssl/ossl.h
++++ b/sys/crypto/openssl/ossl.h
+@@ -39,6 +39,10 @@ struct crypto_session_params;
+ 
+ int	ossl_chacha20(struct cryptop *crp,
+ 	    const struct crypto_session_params *csp);
++int	ossl_chacha20_poly1305_decrypt(struct cryptop *crp,
++	    const struct crypto_session_params *csp);
++int	ossl_chacha20_poly1305_encrypt(struct cryptop *crp,
++	    const struct crypto_session_params *csp);
+ void ossl_cpuid(void);
+ 
+ /* Needs to be big enough to hold any hash context. */
+diff --git a/sys/crypto/openssl/ossl_chacha20.c b/sys/crypto/openssl/ossl_chacha20.c
+index 70a0a5718db..a2bfb52cacd 100644
+--- a/sys/crypto/openssl/ossl_chacha20.c
++++ b/sys/crypto/openssl/ossl_chacha20.c
+@@ -37,6 +37,7 @@
+ 
+ #include <crypto/openssl/ossl.h>
+ #include <crypto/openssl/ossl_chacha.h>
++#include <crypto/openssl/ossl_poly1305.h>
+ 
+ int
+ ossl_chacha20(struct cryptop *crp, const struct crypto_session_params *csp)
+@@ -139,3 +140,308 @@ ossl_chacha20(struct cryptop *crp, const struct crypto_session_params *csp)
+ 	explicit_bzero(key, sizeof(key));
+ 	return (0);
+ }
++
++int
++ossl_chacha20_poly1305_encrypt(struct cryptop *crp,
++    const struct crypto_session_params *csp)
++{
++	_Alignas(8) unsigned int key[CHACHA_KEY_SIZE / 4];
++	unsigned int counter[CHACHA_CTR_SIZE / 4];
++	_Alignas(8) unsigned char block[CHACHA_BLK_SIZE];
++	unsigned char tag[POLY1305_HASH_LEN];
++	POLY1305 auth_ctx;
++	struct crypto_buffer_cursor cc_in, cc_out;
++	const unsigned char *in, *inseg, *cipher_key;
++	unsigned char *out, *outseg;
++	size_t resid, todo, inlen, outlen;
++	uint32_t next_counter;
++	u_int i;
++
++	if (crp->crp_cipher_key != NULL)
++		cipher_key = crp->crp_cipher_key;
++	else
++		cipher_key = csp->csp_cipher_key;
++	for (i = 0; i < nitems(key); i++)
++		key[i] = CHACHA_U8TOU32(cipher_key + i * 4);
++
++	crypto_read_iv(crp, counter + 1);
++	for (i = 1; i < nitems(counter); i++)
++		counter[i] = le32toh(counter[i]);
++
++	/* Block 0 is used to generate the poly1305 key. */
++	counter[0] = 0;
++
++	memset(block, 0, sizeof(block));
++	ChaCha20_ctr32(block, block, sizeof(block), key, counter);
++	Poly1305_Init(&auth_ctx, block);
++
++	/* MAC the AAD. */
++	if (crp->crp_aad != NULL)
++		Poly1305_Update(&auth_ctx, crp->crp_aad, crp->crp_aad_length);
++	else
++		crypto_apply(crp, crp->crp_aad_start, crp->crp_aad_length,
++		    ossl_poly1305_update, &auth_ctx);
++	if (crp->crp_aad_length % 16 != 0) {
++		/* padding1 */
++		memset(block, 0, 16);
++		Poly1305_Update(&auth_ctx, block,
++		    16 - crp->crp_aad_length % 16);
++	}
++
++	/* Encryption starts with block 1. */
++	counter[0] = 1;
++
++	/* Do encryption with MAC */
++	resid = crp->crp_payload_length;
++	crypto_cursor_init(&cc_in, &crp->crp_buf);
++	crypto_cursor_advance(&cc_in, crp->crp_payload_start);
++	inseg = crypto_cursor_segbase(&cc_in);
++	inlen = crypto_cursor_seglen(&cc_in);
++	if (CRYPTO_HAS_OUTPUT_BUFFER(crp)) {
++		crypto_cursor_init(&cc_out, &crp->crp_obuf);
++		crypto_cursor_advance(&cc_out, crp->crp_payload_output_start);
++	} else
++		cc_out = cc_in;
++	outseg = crypto_cursor_segbase(&cc_out);
++	outlen = crypto_cursor_seglen(&cc_out);
++	while (resid >= CHACHA_BLK_SIZE) {
++		if (inlen < CHACHA_BLK_SIZE) {
++			crypto_cursor_copydata(&cc_in, CHACHA_BLK_SIZE, block);
++			in = block;
++			inlen = CHACHA_BLK_SIZE;
++		} else
++			in = inseg;
++		if (outlen < CHACHA_BLK_SIZE) {
++			out = block;
++			outlen = CHACHA_BLK_SIZE;
++		} else
++			out = outseg;
++
++		/* Figure out how many blocks we can encrypt/decrypt at once. */
++		todo = rounddown(MIN(inlen, outlen), CHACHA_BLK_SIZE);
++
++#ifdef __LP64__
++		/* ChaCha20_ctr32() assumes length is <= 4GB. */
++		todo = (uint32_t)todo;
++#endif
++
++		/* Truncate if the 32-bit counter would roll over. */
++		next_counter = counter[0] + todo / CHACHA_BLK_SIZE;
++		if (next_counter < counter[0]) {
++			todo -= next_counter * CHACHA_BLK_SIZE;
++			next_counter = 0;
++		}
++
++		ChaCha20_ctr32(out, in, todo, key, counter);
++		Poly1305_Update(&auth_ctx, out, todo);
++
++		counter[0] = next_counter;
++		if (counter[0] == 0)
++			counter[1]++;
++
++		if (out == block) {
++			crypto_cursor_copyback(&cc_out, CHACHA_BLK_SIZE, block);
++			outseg = crypto_cursor_segbase(&cc_out);
++			outlen = crypto_cursor_seglen(&cc_out);
++		} else {
++			crypto_cursor_advance(&cc_out, todo);
++			outseg += todo;
++			outlen -= todo;
++		}
++		if (in == block) {
++			inseg = crypto_cursor_segbase(&cc_in);
++			inlen = crypto_cursor_seglen(&cc_in);
++		} else {
++			crypto_cursor_advance(&cc_in, todo);
++			inseg += todo;
++			inlen -= todo;
++		}
++		resid -= todo;
++	}
++
++	if (resid > 0) {
++		memset(block, 0, sizeof(block));
++		crypto_cursor_copydata(&cc_in, resid, block);
++		ChaCha20_ctr32(block, block, CHACHA_BLK_SIZE, key, counter);
++		crypto_cursor_copyback(&cc_out, resid, block);
++
++		/* padding2 */
++		todo = roundup2(resid, 16);
++		memset(block + resid, 0, todo - resid);
++		Poly1305_Update(&auth_ctx, block, todo);
++	}
++
++	/* lengths */
++	le64enc(block, crp->crp_aad_length);
++	le64enc(block + 8, crp->crp_payload_length);
++	Poly1305_Update(&auth_ctx, block, sizeof(uint64_t) * 2);
++
++	Poly1305_Final(&auth_ctx, tag);
++	crypto_copyback(crp, crp->crp_digest_start, csp->csp_auth_mlen == 0 ?
++	    POLY1305_HASH_LEN : csp->csp_auth_mlen, tag);
++
++	explicit_bzero(&auth_ctx, sizeof(auth_ctx));
++	explicit_bzero(tag, sizeof(tag));
++	explicit_bzero(block, sizeof(block));
++	explicit_bzero(counter, sizeof(counter));
++	explicit_bzero(key, sizeof(key));
++	return (0);
++}
++
++
++int
++ossl_chacha20_poly1305_decrypt(struct cryptop *crp,
++    const struct crypto_session_params *csp)
++{
++	_Alignas(8) unsigned int key[CHACHA_KEY_SIZE / 4];
++	unsigned int counter[CHACHA_CTR_SIZE / 4];
++	_Alignas(8) unsigned char block[CHACHA_BLK_SIZE];
++	unsigned char tag[POLY1305_HASH_LEN], tag2[POLY1305_HASH_LEN];
++	struct poly1305_context auth_ctx;
++	struct crypto_buffer_cursor cc_in, cc_out;
++	const unsigned char *in, *inseg, *cipher_key;
++	unsigned char *out, *outseg;
++	size_t resid, todo, inlen, outlen;
++	uint32_t next_counter;
++	int error;
++	u_int i, mlen;
++
++	if (crp->crp_cipher_key != NULL)
++		cipher_key = crp->crp_cipher_key;
++	else
++		cipher_key = csp->csp_cipher_key;
++	for (i = 0; i < nitems(key); i++)
++		key[i] = CHACHA_U8TOU32(cipher_key + i * 4);
++
++	crypto_read_iv(crp, counter + 1);
++	for (i = 1; i < nitems(counter); i++)
++		counter[i] = le32toh(counter[i]);
++
++	/* Block 0 is used to generate the poly1305 key. */
++	counter[0] = 0;
++
++	memset(block, 0, sizeof(block));
++	ChaCha20_ctr32(block, block, sizeof(block), key, counter);
++	Poly1305_Init(&auth_ctx, block);
++
++	/* MAC the AAD. */
++	if (crp->crp_aad != NULL)
++		Poly1305_Update(&auth_ctx, crp->crp_aad, crp->crp_aad_length);
++	else
++		crypto_apply(crp, crp->crp_aad_start, crp->crp_aad_length,
++		    ossl_poly1305_update, &auth_ctx);
++	if (crp->crp_aad_length % 16 != 0) {
++		/* padding1 */
++		memset(block, 0, 16);
++		Poly1305_Update(&auth_ctx, block,
++		    16 - crp->crp_aad_length % 16);
++	}
++
++	/* Mac the ciphertext. */
++	crypto_apply(crp, crp->crp_payload_start, crp->crp_payload_length,
++	    ossl_poly1305_update, &auth_ctx);
++	if (crp->crp_payload_length % 16 != 0) {
++		/* padding2 */
++		memset(block, 0, 16);
++		Poly1305_Update(&auth_ctx, block,
++		    16 - crp->crp_payload_length % 16);
++	}
++
++	/* lengths */
++	le64enc(block, crp->crp_aad_length);
++	le64enc(block + 8, crp->crp_payload_length);
++	Poly1305_Update(&auth_ctx, block, sizeof(uint64_t) * 2);
++
++	Poly1305_Final(&auth_ctx, tag);
++	mlen = csp->csp_auth_mlen == 0 ? POLY1305_HASH_LEN : csp->csp_auth_mlen;
++	crypto_copydata(crp, crp->crp_digest_start, mlen, tag2);
++	if (timingsafe_bcmp(tag, tag2, mlen) != 0) {
++		error = EBADMSG;
++		goto out;
++	}
++
++	/* Decryption starts with block 1. */
++	counter[0] = 1;
++
++	resid = crp->crp_payload_length;
++	crypto_cursor_init(&cc_in, &crp->crp_buf);
++	crypto_cursor_advance(&cc_in, crp->crp_payload_start);
++	inseg = crypto_cursor_segbase(&cc_in);
++	inlen = crypto_cursor_seglen(&cc_in);
++	if (CRYPTO_HAS_OUTPUT_BUFFER(crp)) {
++		crypto_cursor_init(&cc_out, &crp->crp_obuf);
++		crypto_cursor_advance(&cc_out, crp->crp_payload_output_start);
++	} else
++		cc_out = cc_in;
++	outseg = crypto_cursor_segbase(&cc_out);
++	outlen = crypto_cursor_seglen(&cc_out);
++	while (resid >= CHACHA_BLK_SIZE) {
++		if (inlen < CHACHA_BLK_SIZE) {
++			crypto_cursor_copydata(&cc_in, CHACHA_BLK_SIZE, block);
++			in = block;
++			inlen = CHACHA_BLK_SIZE;
++		} else
++			in = inseg;
++		if (outlen < CHACHA_BLK_SIZE) {
++			out = block;
++			outlen = CHACHA_BLK_SIZE;
++		} else
++			out = outseg;
++
++		/* Figure out how many blocks we can encrypt/decrypt at once. */
++		todo = rounddown(MIN(inlen, outlen), CHACHA_BLK_SIZE);
++
++#ifdef __LP64__
++		/* ChaCha20_ctr32() assumes length is <= 4GB. */
++		todo = (uint32_t)todo;
++#endif
++
++		/* Truncate if the 32-bit counter would roll over. */
++		next_counter = counter[0] + todo / CHACHA_BLK_SIZE;
++		if (next_counter < counter[0]) {
++			todo -= next_counter * CHACHA_BLK_SIZE;
++			next_counter = 0;
++		}
++
++		ChaCha20_ctr32(out, in, todo, key, counter);
++
++		counter[0] = next_counter;
++		if (counter[0] == 0)
++			counter[1]++;
++
++		if (out == block) {
++			crypto_cursor_copyback(&cc_out, CHACHA_BLK_SIZE, block);
++			outseg = crypto_cursor_segbase(&cc_out);
++			outlen = crypto_cursor_seglen(&cc_out);
++		} else {
++			crypto_cursor_advance(&cc_out, todo);
++			outseg += todo;
++			outlen -= todo;
++		}
++		if (in == block) {
++			inseg = crypto_cursor_segbase(&cc_in);
++			inlen = crypto_cursor_seglen(&cc_in);
++		} else {
++			crypto_cursor_advance(&cc_in, todo);
++			inseg += todo;
++			inlen -= todo;
++		}
++		resid -= todo;
++	}
++
++	if (resid > 0) {
++		memset(block, 0, sizeof(block));
++		crypto_cursor_copydata(&cc_in, resid, block);
++		ChaCha20_ctr32(block, block, CHACHA_BLK_SIZE, key, counter);
++		crypto_cursor_copyback(&cc_out, resid, block);
++	}
++
++	error = 0;
++out:
++	explicit_bzero(&auth_ctx, sizeof(auth_ctx));
++	explicit_bzero(tag, sizeof(tag));
++	explicit_bzero(block, sizeof(block));
++	explicit_bzero(counter, sizeof(counter));
++	explicit_bzero(key, sizeof(key));
++	return (error);
++}
+diff --git a/sys/crypto/openssl/ossl_poly1305.c b/sys/crypto/openssl/ossl_poly1305.c
+index 8f8c5bc4b6e..9d08e84ae5b 100644
+--- a/sys/crypto/openssl/ossl_poly1305.c
++++ b/sys/crypto/openssl/ossl_poly1305.c
+@@ -46,7 +46,7 @@ void poly1305_blocks(void *ctx, const unsigned char *inp, size_t len,
+ void poly1305_emit(void *ctx, unsigned char mac[16],
+                    const unsigned int nonce[4]);
+ 
+-static void Poly1305_Init(POLY1305 *ctx, const unsigned char key[32])
++void Poly1305_Init(POLY1305 *ctx, const unsigned char key[32])
+ {
+     ctx->nonce[0] = U8TOU32(&key[16]);
+     ctx->nonce[1] = U8TOU32(&key[20]);
+@@ -77,7 +77,7 @@ static void Poly1305_Init(POLY1305 *ctx, const unsigned char key[32])
+ # define poly1305_emit   (*poly1305_emit_p)
+ #endif
+ 
+-static void Poly1305_Update(POLY1305 *ctx, const unsigned char *inp, size_t len)
++void Poly1305_Update(POLY1305 *ctx, const unsigned char *inp, size_t len)
+ {
+ #ifdef POLY1305_ASM
+     /*
+@@ -119,7 +119,7 @@ static void Poly1305_Update(POLY1305 *ctx, const unsigned char *inp, size_t len)
+     ctx->num = rem;
+ }
+ 
+-static void Poly1305_Final(POLY1305 *ctx, unsigned char mac[16])
++void Poly1305_Final(POLY1305 *ctx, unsigned char mac[16])
+ {
+ #ifdef POLY1305_ASM
+     poly1305_blocks_f poly1305_blocks_p = ctx->func.blocks;
+@@ -152,7 +152,7 @@ ossl_poly1305_setkey(void *vctx, const uint8_t *key, u_int klen)
+ 	Poly1305_Init(vctx, key);
+ }
+ 
+-static int
++int
+ ossl_poly1305_update(void *vctx, const void *buf, u_int len)
+ {
+ 	Poly1305_Update(vctx, buf, len);
+diff --git a/sys/crypto/openssl/ossl_poly1305.h b/sys/crypto/openssl/ossl_poly1305.h
+index d1b2db6d5cb..d0811e0e3f0 100644
+--- a/sys/crypto/openssl/ossl_poly1305.h
++++ b/sys/crypto/openssl/ossl_poly1305.h
+@@ -33,3 +33,8 @@ struct poly1305_context {
+         poly1305_emit_f emit;
+     } func;
+ };
++
++int ossl_poly1305_update(void *vctx, const void *buf, u_int len);
++void Poly1305_Init(POLY1305 *ctx, const unsigned char key[32]);
++void Poly1305_Update(POLY1305 *ctx, const unsigned char *inp, size_t len);
++void Poly1305_Final(POLY1305 *ctx, unsigned char mac[16]);

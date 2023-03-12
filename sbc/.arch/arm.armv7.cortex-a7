@@ -1,0 +1,18 @@
+#!/bin/sh
+. $BSD_ARCH/.arm.armv7
+export TARCH_L3="cortex-a7"
+export TARCH_L4="neon-vfpv4"
+export CPUOPT="+crc"
+export TARGET=$TARCH_L1
+export TARGETARCH=$TARCH_L2
+export BUILDARCH=$TARCH_L3
+export TCPUTYPE=$TARCH_L3
+export CCO="-Ofast -mcpu=$TARCH_L3$CPUOPT -mfpu=$TARCH_L4"
+export CCT="$TARCH_L2-gnueabihf-$BSD_BASE"
+export LCT="$TARCH_L2-gnueabihf-linux"
+export CFLAGS=$CCO
+export FBSD_CFLAGS=$CCO
+export BSD_KERNCONF_CPU="CPU_CORTEXA"
+export BSD_KERNCONF_MAKEOPTIONS_CONF_CFLAGS="-mcpu=$TARCH_L3"
+# export BSD_KERNCONF_MAKEOPTIONS_CONF_CFLAGS="-Ofast -mcpu=$TARCH_L3 -mfpu=$TARCH_L4"
+. $BSD_ARCH/.boot.arm

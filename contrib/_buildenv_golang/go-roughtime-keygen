@@ -1,0 +1,2 @@
+#!/bin/sh
+go build -o /tmp/go-roughtime-keygen/usr/local/bin -mod vendor -ldflags="-s" -ldflags="-w" -trimpath -buildmode $GOBUILDMODE cmd/keygen/keygen.go

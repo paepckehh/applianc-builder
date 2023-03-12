@@ -1,0 +1,13 @@
+#!/bin/sh
+. $BSD_SBC/.device/gps.usb
+. $BSD_DIST/.shared/add.fbsd.devd
+X='
+# xxdevdname
+xxdevdname_enable="NO" # disabled by default - triggered via devd only!
+xx_devdname_gps_pps="NO"
+xx_devdname_startservicegps=""
+xx_devdname_startservicelte=""
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+export BSD_DIST_PKG="$BSD_DIST_PKG devdname"
+export BSD_DIST_RC="$BSD_DIST_RC xxdevdname"

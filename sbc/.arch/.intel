@@ -1,0 +1,2 @@
+#!/bin/sh
+export BSD_X86="intel"

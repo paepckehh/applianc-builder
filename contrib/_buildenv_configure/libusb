@@ -1,0 +1,10 @@
+#!/bin/sh
+sh bootstrap.sh >> /tmp/build-libusb.log
+sh ./configure \
+	--host=$CCT \
+	--with-sysroot=$SYSROOTMOUNT \
+	--prefix=/usr/local \
+	--disable-debug \
+	--disable-locale \
+	--disable-man \
+	>> /tmp/build-libusb.log

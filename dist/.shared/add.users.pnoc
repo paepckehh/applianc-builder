@@ -1,0 +1,55 @@
+#!/bin/sh
+export BSD_ADD_ETC_GROUP="$BSD_ADD_ETC_GROUP
+squid:*:2000:
+dnscrypt:*:2001:
+rtime:*:2002:
+rtimesrv:*:2003:
+npad:*:2004:
+cgit:*:2005:
+postgres:*:2006:
+miniflux:*:2007:
+ssh:*:2008:
+curl:*:2009:
+goproxy:*:2010:
+git:*:2011:
+paste:*:2012:
+proxy:*:2013:
+rss:*:2014:
+time:*:2015:
+httpd:*:2016:
+fastgoproxy:*:2017:
+dns:*:2018:
+blockdns:*:2019:
+display:*:3000:
+displaypf:*:3001:
+sshclient:*:3020:
+gitclient:*:3021:
+dnsclient:*:3022:"
+export BSD_ADD_ETC_PASSWD="$BSD_ADD_ETC_PASSWD
+gitup::0:0::0:0:gitupuser:/home/nobody:/etc/action/gitup
+gitdaily::0:0::0:0:gitdaily:/home/nobody:/etc/action/gitdaily
+squid:*LOCKED*:2000:2000::0:0:squid user:nologin:/usr/bin/nologin
+dnscrypt::2001:2001::0:0:dnscrypt user:nologin:/usr/bin/sh
+rtime:*LOCKED*:2002:2002::0:0:rtime client user:nologin:/usr/bin/nologin
+rtimesrv:*LOCKED*:2003:2003::0:0:rtimesrv user:nologin:/usr/bin/nologin
+npad:*LOCKED*:2004:2004::0:0:npad user:nologin:/usr/bin/nologin
+cgit:*LOCKED*:2005:2005::0:0:cgit user:nologin:/usr/bin/nologin
+postgres:*:2006:2006::0:0:postgres db user:/home/nobody:/usr/bin/sh
+miniflux:*LOCKED*:2007:2007::0:0:miniflux user:nologin:/usr/bin/nologin
+ssh:*:2008:2008::0:0:ssh user:/home/nobody:/usr/bin/sh
+curl::2009:2009::0:0:curl user:/home/nobody:/usr/bin/sh
+goproxy:*LOCKED*:2010:2010::0:0:goproxy user:nologin:/usr/bin/nologin
+git:*LOCKED*:2011:2011::0:0:git user:nologin:/usr/bin/nologin
+paste:*LOCKED*:2012:2012::0:0:paste user:nologin:/usr/bin/nologin
+proxy:*LOCKED*:2013:2013::0:0:proxy user:nologin:/usr/bin/nologin
+rss:*LOCKED*:2014:2013::0:0:rss user:nologin:/usr/bin/nologin
+time:*LOCKED*:2015:2015::0:0:time user:nologin:/usr/bin/nologin
+httpd:*LOCKED*:2016:2016::0:0:httpd user:nologin:/usr/bin/nologin
+fastgoproxy:*LOCKED*:2017:2017::0:0:fastgoproxy user:nologin:/usr/bin/nologin
+dns:*LOCKED*:2018:2018::0:0:dns user:nologin:/usr/bin/nologin
+blockdns:*LOCKED*:2019:2019::0:0:blockdns user:nologin:/usr/bin/nologin
+display:*:3000:3000::0:0:display user:/home/nobody:/usr/bin/sh
+displaypf:*:3001:3001::0:0:display pf user:/home/nobody:/usr/bin/sh
+sshclient:*:3020:3020::0:0:sshclient user:/home/nobody:/usr/bin/sh
+gitclient:*:3021:3021::0:0:gitclient user:/home/nobody:/usr/bin/sh
+dnsclient:*:3022:3022::0:0:dnsclient user:/home/nobody:/usr/bin/sh"

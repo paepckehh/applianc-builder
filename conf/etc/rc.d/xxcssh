@@ -1,0 +1,22 @@
+#!/bin/sh
+#
+# PROVIDE: xxcssh
+# REQUIRE: NETWORKING syslogd netif pf
+
+. /etc/rc.subr
+name="xxcssh"
+desc="prepare ssh client worker"
+start_cmd="cssh_start"
+stop_cmd=":"
+rcvar="xxcssh_enable"
+worker="sshclient"
+load_rc_config $name
+
+cssh_start() {
+	(
+		/usr/sbin/service jail onestart $worker
+		logger "[xx] cssh worker prep [worker:$worker] done!"
+	) &
+}
+
+run_rc_command "$1"

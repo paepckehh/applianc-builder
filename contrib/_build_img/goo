@@ -1,0 +1,280 @@
+#!/bin/sh
+
+golang_vendor_setup() {
+	GSTARCH="amd64 arm64 arm"
+	case $GOOOS in
+	freebsd | linux) ;;
+	*) echo "unknown, empty or unsupported GOOS target env [$GOOS]" && exit ;;
+	esac
+	DTS=$(date "+%Y%m%d")
+	UUID=$(uuidgen)
+	VTARGET=/tmp/.$UUID
+	STORE=$VTARGET
+	mkdir -p $STORE/paepcke.de
+	touch $STORE/.$(date "+%Y%m%d-%H%M%S")
+	cd $BSD_DEV
+	REPOS=$(find . -type d -depth 1)
+	echo "add paepcke.de: "
+	for RSRC in $REPOS; do
+		RSRC=$(echo $RSRC | cut -c 3-)
+		if [ -e "$RSRC/go.mod" ]; then
+			echo -n " $RSRC "
+			case $GOOOS in
+			linux) (cd "$STORE/paepcke.de" && cp -af "$BSD_DEV/$RSRC" .) ;;
+			freebsd) (cd "$STORE/paepcke.de" && ln -fs "$BSD_DEV/$RSRC" .) ;;
+			esac
+		fi
+	done
+	echo
+	echo "add goo"
+	cp -rf $BSD_DEV/goo/goo $STORE/.goo
+	cp -rf $BSD_DEV/goo/goo/goo $STORE/.goo/goo
+	cp -rf $BSD_DEV/goo/all.auto $STORE/.goo/
+	export BSD_GOSRC_MODE=true
+	(cd $BSD_ENHANCED && make rebuild clean)
+	PARALLEL=$(($(/usr/bin/sysctl -n hw.ncpu) / 2 + 1))
+	echo "SESSIONS: $PARALLEL"
+}
+
+golang_vendor_stdlib_nistec() {
+	echo "### GOLANG FIAT NISTEC EXPERIMENTAL UPGRADE ACTIVATED! - DO NOT USE IN PROD"
+	cd $STORE/.std/go/src/crypto/internal
+	rm -rf nistec
+	sh /etc/action/git.checkout go-github_com_filosottile_nistec patchclean
+	mv -f go-github_com_filosottile_nistec nistec
+	cd nistec && rm vendor
+	ln -fs internal/fiat fiat
+	sed -i '' -e 's/filippo.io\/nistec\/internal\/fiat/crypto\/internal\/nistec\/fiat/g' *.go
+}
+
+golang_vendor_stdlib() {
+	echo "add golang std-lib"
+	cd $STORE && mkdir -p .std/go
+	sh /etc/action/git.checkout golang patchclean > /dev/null 2>&1
+	find golang/src -type d | grep 'testdata' | xargs rm
+	mv golang/src .std/go/ && rm -rf golang
+	# rm -rf .std/go/src/vendor && ln -fs /usr/local/goo .std/go/src/vendor
+	golang_vendor_stdlib_nistec
+	cd $STORE
+	for GARCH in $GSTARCH; do
+		cd $STORE && cp -af .std/go/src .std/go/src.$GOOOS.$GARCH
+		cd $STORE/.std/go/src.$GOOOS.$GARCH && patch -i $BSD_DEV/goo/stdlib.$GOOOS.$GARCH.diff
+		cd $STORE && ln -fs .std/go/src.$GOOOS.$GARCH .golang.src.$GOOOS.$GARCH
+		TIMG="$BSD_PKG"
+		case $GOOOS in
+		linux) TIMG="$TIMG/linux" ;;
+		freebsd) TIMG="$TIMG/fbsd" ;;
+		esac
+		case $GARCH in
+		arm) TIMG="$TIMG.arm.armv7.cortex-a7" ;;
+		amd64) TIMG="$TIMG.amd64.amd64.x86-64-v3" ;;
+		arm64) TIMG="$TIMG.arm64.aarch64.cortex-a53" ;;
+		esac
+		TIMG="$TIMG/go.img"
+		if [ -e $TIMG ]; then
+			TARGETED=$STORE/.$GOOOS.$GARCH && mkdir -p $TARGETED
+			MD=$(mdconfig -f $TIMG)
+			MNT=$STORE/mnt && mkdir -p $MNT && mount /dev/"$MD".uzip $MNT
+			cp -af $MNT/VERSION $MNT/bin $MNT/pkg $TARGETED/
+			cp -af $STORE/.goo/goo $TARGETED/bin/
+			cd $TARGETED && ln -fs ../.std/go/src.$GOOOS.$GARCH src
+			case $GARCH in
+			arm64)
+				case $GOOOS in
+				linux)
+					cd $STORE && (
+						ln -fs .linux.$GARCH .linux.aarch64
+						ln -fs .golang.src.linux.$GARCH .golang.src.linux.aarch64
+					)
+					;;
+				esac
+				;;
+			esac
+			umount -f $MNT && mdconfig -d -u $MD
+			rm -rf $MNT
+		fi
+	done
+}
+
+golang_vendor_grepclean() {
+	cd $STORE
+	echo "grep cleanup $PWD"
+	(/usr/bin/find . | egrep -i 'TESTDATA' | egrep -v 'honnef' | xargs rm -rf) &
+	(/usr/bin/find * | egrep -i 'DOCS|\/DOC\/' | egrep -v 'docshelper|go\/doc|cobra\/doc|gendocs|lint|honnef' | xargs rm -rf) &
+	(/usr/bin/find * | egrep -i 'FUZZ' | egrep -v 'fuzzy|testing' | xargs rm -rf) &
+	(/usr/bin/find * | egrep -i 'BENCH' | xargs rm -rf) &
+	(/usr/bin/find * -type f | egrep -i 'CONTRIB|CHANGELOG|README' | egrep -v 'engine|contrib-init' | xargs rm -rf) &
+	(/usr/bin/find * -type f | egrep -i '\.sh$' | egrep -v 'cli\/cli' | xargs rm -rf) &
+	(/usr/bin/find * | egrep -i 'TESTS|TEST-' | egrep -v 'analysis\/passes|objx|testing|rclone\/cmd|lint|honnef' | xargs rm -rf) &
+	(
+		CLEAN='\/license|\/patents|\/authors' # internal use only
+		/usr/bin/find * -type f | egrep -i $CLEAN | grep -v 'go-github|licenses' | xargs rm -rf
+	)
+	(
+		CLEAN='_test\.go$|_example\.go$|makefile|\/doc\.go$'
+		/usr/bin/find * -type f | egrep -i $CLEAN | egrep -v '\/abi\/|testing|lint|honnef' | xargs rm -rf
+	)
+	(
+		CLEAN='\/go\.sum$|\.1$|\.2$|\.3$|\.4$|\.5$|\.6$|\.7$|\.8$|\.9$|\.in$'
+		/usr/bin/find * -type f | egrep -i $CLEAN | xargs rm -rf
+	)
+	(
+		CLEAN='\.pcap$|\.py$|\.md$|\.txt$|\.rst$|\.svg$|\.png$|\.jpg$|\.jpeg$|\.yml$|\.bat$|\.rc$|\.dist$'
+		/usr/bin/find * -type f | egrep -i $CLEAN | egrep -v '\/abi\/|cli\/cli' | xargs rm -rf
+	)
+	# /usr/bin/ugrep --no-hidden -r -l -e '//go:build.ignore' | |xargs rm -rf
+	wait && sync && sync && sync
+}
+
+golang_vendor_cleanup() {
+	cd $STORE
+	sh /etc/goo/goo.fsdd . --fast-hash
+	echo ""
+	echo "######################################################################################################################"
+	echo "starting cleanup"
+	MODLIST=$(find * -type f -name 'go.mod')
+	for line in $MODLIST; do
+		sed -i '' -e '/^module/!d' $line
+		echo 'go 1.19' >> $line
+	done
+	echo "... removing tests/fuzzer/doc and unrelated files!"
+	echo "... random overlapping i/o may preoduce some expected and benign errors"
+	golang_vendor_grepclean > /dev/null 2>&1
+	$FSDD_CMD
+	echo "... codereview cleanup"
+	GO_ONLY=true sh /etc/action/code.compact .
+	# /usr/bin/ugrep --no-hidden -r -l -e '//go:build.ignore' | xargs rm -rf
+	chmod -R o=rX,u=rX,g=rX $STORE
+	chown -R 0:0 $STORE
+}
+
+golang_git_action() {
+	cd $STORE && sh /etc/action/store git.checkout $REPO patchclean > /dev/null 2>&1
+	cd $STORE/$REPO
+	if [ -e go.mod ]; then
+		mv go.mod save.mod # keep only root pkg level go.mod
+		find * -type f -name "go.mod" | xargs rm -rf
+		mv save.mod go.mod
+		rm -rf go.sum vendor > /dev/null 2>&1
+		ln -fs /usr/local/goo vendor
+		MODE=$(cat go.mod | head -n 1 | cut -c 8-)
+		L1=$(echo $MODE | cut -sd '/' -f 1)
+		L2=$(echo $MODE | cut -sd '/' -f 2)
+		L3=$(echo $MODE | cut -sd '/' -f 3)
+		L4=$(echo $MODE | cut -sd '/' -f 4)
+		case $L1 in
+		"") D=$MODE && T=$D ;;
+		*)
+			case $L2 in
+			"") D=$REPO && T=$L1 ;;
+			v[0-9] | v[0-9][0-9])
+				case $L3 in
+				"") Y=$L2 && D=$REPO && T=$L1 ;;
+				*) C=$L1/$L2 && D=$L3 && T=$C/$D ;;
+				esac
+				;;
+			*)
+				case $L3 in
+				"") C=$L1 && D=$L2 && T=$C/$D ;;
+				v[0-9] | v[0-9][0-9])
+					case $L4 in
+					"") Y=$L3 && C=$L1 && D=$L2 && T=$C/$D ;;
+					*) C=$L1/$L2 && D=$L3 && T=$C/$D ;;
+					esac
+					;;
+				*)
+					case $L4 in
+					"") C=$L1/$L2 && D=$L3 && T=$C/$D ;;
+					v[0-9] | v[0-9][0-9]) Y=$L4 && C=$L1/$L2 && D=$L3 && T=$C/$D ;;
+					*) C=$L1/$L2/$L3 && D=$L4 && T=$C/$D ;;
+					esac
+					;;
+				esac
+				;;
+			esac
+			;;
+		esac
+		if [ $Y ]; then sed -i '' -e "s/\/$Y//g" go.mod; fi
+		cd $STORE && if [ $C ]; then mkdir -p $C; fi
+		VERSIONS="v1 v2 v3 v4 v5 v6 v7 v8 v9 $Y"
+		mv $REPO $T/ && cd $T && (for VER in $VERSIONS; do
+			ln -s ../$D $VER > /dev/null 2>&1
+		done)
+		if [ -e "/tmp/GIT/$REPO" ]; then rm -rf /tmp/GIT/$REPO; fi
+		MISS=$(sh /etc/goo/goo.goodepclone)
+		if [ "$MISS" != "\n" ]; then
+			echo "### [$REPO]" >> $DEPSLIST
+			echo "$MISS" >> $DEPSLIST
+		fi
+		echo "### [$REPO]" >> $DEPSLIST_ALL
+		if [ -e go.mod.orig ]; then cat go.mod.orig >> $DEPSLIST_ALL && rm -rf go.mod.orig; fi
+		echo "[$T],[$(cat .url)]" >> $REPOLIST
+		echo "[$T]"
+		# if [ $RECALC_SCORE ]; then sh /etc/goo/goo.codescore . --file | sed -e "s/$UUID//g" >> $CODESCORE; fi
+	fi
+}
+
+golang_vendor_git_all() {
+	echo "add go repos: "
+	REPOLIST=$BSD_DEV/goo/.repolist
+	DEPSLIST=$BSD_DEV/goo/.deps.pending
+	DEPSLIST_ALL=$BSD_DEV/goo/.deps.all
+	CODESCORE=$BSD_DEV/goo/.codescore
+	rm -rf $REPOLIST $DEPSLIST $DEPSLIST_ALL $CODESCORE > /dev/null 2>&1
+	sh /etc/goo/goo.goodepclone > /dev/null 2>&1 # init
+	LIST=$(ls -I $BSD_GIT/.repo/ | grep 'go-' | sort)
+	for REPO in $LIST; do
+		golang_git_action &
+		jobs > /var/.$PPID
+		while [ $(cat /var/.$PPID | wc -l) -gt $PARALLEL ]; do
+			sleep 0.1 && jobs > /var/.$PPID
+		done
+		rm /var/.$PPID
+	done
+	wait && sync
+	/usr/bin/cat $REPOLIST | sort -u | /usr/bin/sponge $REPOLIST
+	if [ $RECALC_SCORE ]; then /usr/bin/cat $CODESCORE | sort | /usr/bin/sponge $CODESCORE; fi
+	/usr/bin/sed -i '' -e '/^$/d' $DEPSLIST
+	echo "[done] [vendor]"
+
+}
+
+golang_vendor_image() {
+	cd $STORE
+	echo ""
+	echo "######################################################################################################################"
+	echo "prep done, create img"
+	case $GOOOS in
+	linux)
+		FINAL_LNK=$BSD_PKG/all/goo.sqfs
+		FINAL_IMG=$BSD_PKG/.store/all/goo.$DTS.sqfs
+		PROGRESS_IMG=$BSD_PKG/.store/all/in-progress.goo.$DTS.sqfs
+		XCMD="sh $BSD_ACTION/.create.img.sh $PROGRESS_IMG $VTARGET squash xz goo nofsck" && echo $XCMD && $XCMD || exit 1
+		rm -rf $BSD_PKG/.store/all/goo.*.sqfs
+		;;
+	freebsd)
+		FINAL_LNK=$BSD_PKG/all/goo.uzst
+		FINAL_IMG=$BSD_PKG/.store/all/goo.$DTS.uzst
+		PROGRESS_IMG=$BSD_PKG/.store/all/in-progress.goo.$DTS.img.uzst
+		export SOURCE_DIR_CLEANUP=true # XXX
+		XCMD="sh $BSD_ACTION/.create.img.sh $PROGRESS_IMG $VTARGET ffs1 zstd12 goo nofsck" && echo $XCMD && $XCMD || exit 1
+		rm -rf $BSD_PKG/.store/all/goo.*.uzst
+		;;
+	esac
+	sh /etc/action/store drop.golang
+	sh /etc/action/store drop.golang
+	rm -rf $VTARGET $FINAL_LNK > /dev/null 2>&1
+	mv $PROGRESS_IMG $FINAL_IMG && ln -fs $FINAL_IMG $FINAL_LNK
+}
+
+golang_vendor_setup
+golang_vendor_stdlib
+golang_vendor_git_all
+golang_vendor_cleanup
+golang_vendor_image
+sh /etc/action/store drop.golang
+BSDlive goo
+sh /etc/goo/goo.goobinfinder
+sh /etc/goo/goo.goostats > $BSD_DEV/goo/.deps.stats
+go version
+##################################

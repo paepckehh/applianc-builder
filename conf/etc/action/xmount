@@ -1,0 +1,56 @@
+#!/bin/sh
+# ... quick hack for missing mount auto-fstype detection in FreeBSD !
+if [ ! $2 ]; then
+	echo "syntax example: xmount /dev/da0s1 /tmp/x"
+	exit
+fi
+FSTYPE="$(fstyp $1)"
+DRIVE=$1
+TARGET=$2
+inf_exit() {
+	echo "... missing kernel support for filesystem: $FSTYPE [KERNCONF: options $KERNEL]"
+	exit
+}
+test_mount() {
+	if [ -x $TARGET ]; then
+		mount -v -t $FSTYPE $OPT $DRIVE $TARGET
+		exit
+	fi
+}
+case $FSTYPE in
+ufs)
+	if [ "$(sysctl -t vfs.ufs.rename_restarts)" != "vfs.ufs.rename_restarts: integer" ]; then
+		KERNEL=FFS
+		inf_exit
+	fi
+	OPT="-o async,noatime,untrusted"
+	;;
+ext2fs)
+	if [ "$(sysctl -t vfs.ext2fs.doasyncfree)" != "vfs.ext2fs.doasyncfree: integer" ]; then
+		KERNEL=EXT2FS
+		inf_exit
+	fi
+	OPT="-o async,noatime,noexec,nosymfollow"
+	;;
+msdosfs)
+	if [ "$(sysctl -t vfs.msdosfs.use_buf_pager)" != "vfs.msdosfs.use_buf_pager: integer" ]; then
+		KERNEL=MSDOSFS
+		inf_exit
+	fi
+	OPT="-o async,noatime,noexec"
+	;;
+cd9660)
+	# XXX todo: testcase
+	# KERNEL=CD9660
+	# inf_exit
+	OPT="-o ro"
+	;;
+*)
+	echo "... unknown or unsupported filesystem: $FSTYPE"
+	exit
+	;;
+esac
+test_mount
+mkdir -p $TARGET
+test_mount
+echo "... unable to use/create $TARGET as target!"

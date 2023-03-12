@@ -1,0 +1,2 @@
+#!/bin/sh
+exec clang -target amd64-freebsd-eabi --sysroot /usr/sysroots/linux.bsrv.amd64.amd64.skylake "$@"

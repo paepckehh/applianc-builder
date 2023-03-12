@@ -1,0 +1,2 @@
+#!/bin/sh
+sh /etc/action/.reset.date.file /usr/store

@@ -1,0 +1,71 @@
+commit 8c3eaf244a417a4ee105834410a52144206102e5
+Author: Emmanuel Vadot <manu@FreeBSD.org>
+Date:   2021-03-16 06:12:46 +0000
+
+    pkgbase: Install all BSM includes with INCS
+    
+    Now they are correctly taggued and put them into the libbsm package
+    
+    Reviewed by:    bapt
+    Differential Revision:  https://reviews.freebsd.org/D29165
+    MFC after:      2 weeks
+
+diff --git a/include/Makefile b/include/Makefile
+index 8ddfd701591..cf760359d2f 100644
+--- a/include/Makefile
++++ b/include/Makefile
+@@ -38,7 +38,7 @@ PHDRS=	sched.h _semaphore.h
+ LHDRS=	aio.h errno.h fcntl.h linker_set.h poll.h stdatomic.h stdint.h \
+ 	syslog.h ucontext.h
+ 
+-LDIRS=	bsm cam geom net net80211 netgraph netinet netinet6 \
++LDIRS=	cam geom net net80211 netgraph netinet netinet6 \
+ 	netipsec netsmb nfs nfsclient nfsserver sys vm
+ 
+ LSUBDIRS=	cam/ata cam/mmc cam/nvme cam/scsi \
+@@ -58,7 +58,6 @@ LSUBDIRS=	cam/ata cam/mmc cam/nvme cam/scsi \
+ 	netinet/cc \
+ 	netinet/netdump \
+ 	netinet/tcp_stacks \
+-	security/audit \
+ 	security/mac_biba security/mac_bsdextended security/mac_lomac \
+ 	security/mac_mls security/mac_partition \
+ 	security/mac_veriexec \
+@@ -76,6 +75,25 @@ ACPICADIR=	${INCLUDEDIR}/dev/acpica
+ AGP=		agpreg.h
+ AGPDIR=		${INCLUDEDIR}/dev/agp
+ 
++.PATH: ${SRCTOP}/sys/bsm
++BSM=		audit.h \
++		audit_errno.h \
++		audit_internal.h \
++		audit_record.h \
++		audit_domain.h \
++		audit_fcntl.h \
++		audit_kevents.h \
++		audit_socket_type.h
++BSMPACKAGE=	libbsm
++BSMDIR=		${INCLUDEDIR}/bsm
++
++.PATH: ${SRCTOP}/sys/security/audit
++SECAUDIT=	audit.h \
++		audit_ioctl.h \
++		audit_private.h
++SECAUDITPACKAGE=	libbsm
++SECAUDITDIR=	${INCLUDEDIR}/security/audit
++
+ .PATH: ${SRCTOP}/sys/fs/cd9660
+ FS9660=		cd9660_mount.h \
+ 		cd9660_node.h \
+@@ -175,6 +193,11 @@ INCSGROUPS=	INCS \
+ 		VERIEXEC \
+ 		WG
+ 
++.if ${MK_AUDIT} != "no"
++INCSGROUPS+=	BSM
++INCSGROUPS+=	SECAUDIT
++.endif
++
+ .if ${MK_IPFILTER} != "no"
+ INCSGROUPS+=	IPFILTER
+ .endif

@@ -1,0 +1,3 @@
+#!/bin/sh
+. $BSD_DIST/.shared/add.client.ssh.airgap
+. $BSD_DIST/.shared/add.fbsd.wireguard

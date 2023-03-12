@@ -1,0 +1,4 @@
+#!/bin/sh
+# unset WITHOUT_TCPDUMP
+# export WITH_TCPDUMP=true
+export BSD_DIST_PKG="$BSD_DIST_PKG tcpdump"

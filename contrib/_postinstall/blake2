@@ -1,0 +1,2 @@
+#!/bin/sh
+mv /tmp/blake2/usr/bin/b2sum /tmp/blake2/usr/bin/blake2b

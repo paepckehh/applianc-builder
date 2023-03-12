@@ -1,0 +1,348 @@
+#!/bin/sh
+export BSD_CONF_VERSION=20221210
+
+# APPLIANCE [SBC|DIST] SPECIFIC CONFIG
+. /etc/rc.info
+
+######################################
+##### START USER CONFIG SECTION ######
+######################################
+
+# storage [ external ]
+export BSD_STORE=/usr/store
+export BSD_LTS=$BSD_STORE/.lts
+export BSD_KEY=$BSD_STORE/.keys
+export BSD_GIT=$BSD_STORE/git
+export BSD_FOSSIL=$BSD_STORE/fossil
+export BSD_TARBALL=$BSD_STORE/tarball
+export BSD_DOC=$BSD_STORE/doc
+export BSD_DEV=$BSD_STORE/dev
+export BSD_DEVOPS=$BSD_DEV/devops
+export BSD_ENHANCED=$BSD_DEV/enhanced
+export BSD_BACKUP=$BSD_STORE/backup
+export BSD_EXCHANGE=$BSD_STORE/eXchange
+
+# bsd-build *** APPLICATION *** [ core application files ]
+export BSD_APP=$BSD_STORE/appliance-builder
+
+# bsd-build *** CACHES *** [ temporary & rebuild-able caches and output ]
+export BSD_CACHE=$BSD_STORE/appliance-builder-cache
+
+######################################
+##### END USER CONFIG SECTION ########
+######################################
+
+# in-detail app-internal setup
+export BSD_BIN=$BSD_APP/bin
+export BSD_ACTION=$BSD_APP/bin/action
+export BSD_CONF=$BSD_APP/conf
+export BSD_SBC=$BSD_APP/sbc
+export BSD_SOC=$BSD_SBC/.soc
+export BSD_DIST=$BSD_APP/dist
+export BSD_OS=$BSD_DIST/.os
+export BSD_BOOT=$BSD_SBC/.boot
+export BSD_ARCH=$BSD_SBC/.arch
+export BSD_VENDOR=$BSD_SBC/.vendor
+export BSD_DEVICE=$BSD_SBC/.device
+export BSD_SBC_DEVICE_KEYS=$BSD_SBC/.device.keys
+export BSD_CONTRIB=$BSD_APP/contrib
+export BSD_LIVEPKG=$BSD_APP/contrib/livepkg
+
+# output [ -> os images & optional software packages ]
+export BSD_IMG=$BSD_CACHE/img
+export BSD_PKG=$BSD_CACHE/pkg
+
+# caches, logs, tempfiles, manuals, bootstrap, kernel, sysroots, ...
+# [ ... disposeable caches, will be re-created from source code in case its gone ! ]
+export BSD_CCACHE=$BSD_CACHE/ccache
+export BSD_ROOTFS=$BSD_CACHE/rootfs
+export BSD_KERNEL=$BSD_CACHE/kernel
+export BSD_PNOC=$BSD_DEV/pnoc
+export BSD_ACTIONLISTS=/var/.actionlists
+
+# cross-env persistent MD drives
+export BSD_MD_SRC=md998
+export BSD_MD_MAN=md997
+export BSD_MD_SYS=md996
+export BSD_MD_GO=md940
+export BSD_MD_GOV=md941
+export BSD_MD_GOMOD=md942
+export BSD_MD_LLVM13=md953
+export BSD_MD_LLVM14=md954
+export BSD_MD_LLVM15=md955
+export BSD_MD_LLVM16=md956
+export BSD_MD_CCACHE=md994
+export BSD_MD_CCACHE_START=900
+export BSD_MD_SYSROOTS_START=800
+
+# adapt corse-grain hardware specific BUILD-ENV setup
+DFLT="--stdout --compress --verbose --verbose --force"
+export COMPRESS_XZ="/usr/bin/xz $DFLT"
+export COMPRESS_ZSTD="/usr/bin/zstd $DFLT"
+case $ARCH_L2 in
+armv7)
+	export COMPRESS_XZ="$COMPRESS_XZ --threads=1"
+	export COMPRESS_ZSTD="$COMPRESS_ZSTD --threads=0 -19"
+	;;
+aarch64)
+	export COMPRESS_XZ="$COMPRESS_XZ --threads=1"
+	export COMPRESS_ZSTD="$COMPRESS_ZSTD --threads=0 -19"
+	;;
+amd64)
+	export COMPRESS_XZ="$COMPRESS_XZ --threads=0 --extreme -9"
+	export COMPRESS_ZSTD="$COMPRESS_ZSTD --threads=0 --ultra --long -22"
+	;;
+esac
+export COMPRESS=$COMPRESS_ZSTD
+export FZF_CMD="/usr/bin/fzy --lines=80"
+export FSDD_CMD="sh /etc/goo/goo.fsdd --hard-link --clean-metadata --fast-hash"
+export CODEREVIEW_CMD="sh /etc/goo/goo.codereview"
+
+########################
+# SPEEDDAIL / NAVIGATE #
+########################
+# optional shell convinience resources [check for env namespace pollution]
+export IMG=$BSD_IMG/.store
+export PKG=$BSD_PKG/.store
+export GIT=$BSD_GIT
+export GITSTORE=$BSD_GIT
+export FOSSIL=$BSD_FOSSIL
+export TARBALL=$BSD_TARBALL
+export VENDOR=$BSD_SBC/.vendor
+export DEV=$BSD_DEV
+export DEVOPS=$BSD_DEVOPS
+export DOC=$BSD_DOC
+export ENHANCED=$BSD_DEV/enhanced
+export PNOC=$BSD_DEV/pnoc
+export ACTION=$BSD_ACTION
+export CACTION=$BSD_APP/conf/etc/action
+export BOOT=$BSD_BOOT
+export CONF=$BSD_CONF
+export BACKUP=$BSD_BACKUP
+export CONTRIB=$BSD_CONTRIB
+
+#################
+# CONNECTED ENV #
+#################
+
+# disconnect all
+export GOPROXY="127.0.0.1:0"
+export HTTP_PROXY="127.0.0.1:0"
+export HTTPS_PROXY="127.0.0.1:0"
+
+case $DIST in
+pnoc)
+	#########################################
+	# LockSSL supported/enabled feature set #
+	#########################################
+
+	export LOCKSSL_CIPHERS_TLSv13=TLS_CHACHA20_POLY1305_SHA256:TLS_AES_256_GCM_SHA384:TLS_AES_128_GCM_SHA256
+	export LOCKSSL_CIPHERS_TLSv12=ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256
+	export LOCKSSL_CIPHERS="$LOCKSSL_CIPHERS_TLSv13:$LOCKSSL_CIPHERS_TLSv12"
+	export LOCKSSL_CIPHERS_SHA224="1a9af3e013718df5f5be6c2775c043fb2b416b342d379087fea98c74"
+
+	if [ "$LOCKSSL_CIPHERS_SHA224" = "$(/usr/bin/openssl ciphers | sha224)" ] \
+		&& [ "$LOCKSSL_CIPHERS_SHA224" = "$(echo $LOCKSSL_CIPHERS | sha224)" ]; then
+		export LOCKSSL_CA=/etc/ssl/rootCA.pem
+		export LOCKSSL_CA_EXTERNAL=/etc/ssl/external_trust.pem
+		export LOCKSSL_PROTOCOL=TLSv1_2:TLSv1_3
+		export LOCKSSL_CURVES=X25519:P-521:P-384
+	else
+		export LOCKSSL_CIPHERS_TLSv13=fail
+		export LOCKSSL_CIPHERS_TLSv12=fail
+		export LOCKSSL_CIPHERS=fail
+		export LOCKSSL_CA=fail
+		export LOCKSSL_CA_EXTERNAL=fail
+		export LOCKSSL_PROTOCOL=fail
+		export LOCKSSL_CURVES=fail
+	fi
+
+	############
+	# CURL ENV #
+	############
+
+	if [ "$LOCKSSL_CA" = "fail" ]; then
+		export CURL_CMD=fail
+		export CURL_CMD_PROXY=fail
+		export CURL_CMD_LEGACY=fail
+	else
+		FIB="/usr/sbin/setfib 6"
+		DOAS="/usr/bin/doas -u curl"
+		CURL="/usr/bin/curl --disable --ipv4 --no-sessionid --user-agent curl --compressed"
+		TRUST="--cacert $LOCKSSL_CA_EXTERNAL"
+		PROXY1="--proxy 127.0.0.80:8080 --cacert $LOCKSSL_CA"
+		PROXY2="--curves X25519 --tlsv1.3 --tls13-ciphers TLS_CHACHA20_POLY1305_SHA256"
+		TLS12="--tlsv1.2 --ciphers $LOCKSSL_CIPHERS_TLSv12 --tls13-ciphers $LOCKSSL_CIPHERS_TLSv13 --curves $LOCKSSL_CURVES"
+		TLS13="--tlsv1.3 --tls13-ciphers $LOCKSSL_CIPHERS_TLSv13 --curves $LOCKSSL_CURVES"
+
+		export CURL_CMD_PROXY="$CURL $PROXY1 $PROXY2"
+		export CURL_CMD="$DOAS $FIB $CURL $TLS13 $TRUST"
+		export CURL_CMD_LEGACY="$DOAS $FIB $CURL $TLS12 $TRUST"
+
+		export CURLOPT_TLS13_CIPHERS=$LOCKSSL_CIPHERS_TLSv13
+		export CURLOPT_SSL_CIPHER_LIST=$LOCKSSL_CIPHERS_TLSv12
+		export CURLOPT_SSL_CURVES_LIST=$LOCKSSL_CURVES
+		export CURLOPT_TRANSFER_ENCODING="gzip"
+
+		# export CURLOPT_VERBOSE=true
+		# export CURLOPT_SSL_VERIFYHOST=true
+		# export CURLOPT_PINNEDPUBKEY=sha256//$TARGET_KEYPIN
+	fi
+	;;
+*)
+	export CURL_CMD=fail
+	export CURL_CMD_PROXY=fail
+	export CURL_CMD_LEGACY=fail
+	;;
+esac
+
+case $LOGNAME in
+curl) unset HTTPS_PROXY ;;
+esac
+
+#####################
+# BUILD AND DEV ENV #
+#####################
+
+case $DIST in
+pnoc | bsrv)
+
+	export DTS_FILE=$(date "+%Y%m%d")
+	export DTSS_FILE=$(date "+%Y%m%d-%H%M%S")
+
+	###########################
+	# CROSS PLATTFORM SUPPORT #
+	###########################
+	if [ -r $BSD_SBC/.active ]; then
+		export BSD_ENABLED_SBCS="$(cat $BSD_SBC/.active)"
+		export BSD_ENABLED_DISTS="$(cat $BSD_DIST/.active)"
+		export BSD_ENABLED_ROOTFS=$(cat $BSD_ROOTFS/.active)
+	fi
+
+	#############
+	# SCM / GIT #
+	#############
+	export BSD_GIT_FORMAT=sha256
+	export BSD_GIT_DEFAULT_BRANCH=main
+	export GIT_CONFIG_NOSYSTEM=true
+	export GIT_SSL_CAPATH=$LOCKSSL_CA
+	export GIT_SSL_CAINFO=$LOCKSSL_CA
+	export GIT_SSL_VERSION="tlsv1.3"
+
+	################
+	# SCM / FOSSIL #
+	################
+	export FOSSIL_HOME=$BSD_FOSSIL
+	
+	#############
+	# CODESARCH #
+	#############
+	export CSEARCHINDEX="$BSD_PKG/.store/all/csearchindex"
+
+	##################
+	# GOLANG SECTION #
+	##################
+	# lockdown the sumdb public key!
+	export GOO=/usr/local/goo
+	export GOOCACHE=/var/.goocache
+	export GOROOT=$GOO/.$ARCH_OS.$ARCH_L1
+	export GOPROXY=fail # managed via fastgoproxy with build-in key-pinning
+	export GOSUMDB="sum.golang.org+033de0ae+Ac4zctda0e5eza+HJyk9SxEdh+s3Ux18htTTAD8OuAn8"
+	export GOPATH=/usr/store/go
+	export GOMODCACHE=/usr/store/go/mod
+	export GOCACHE=/var/tmp/.go.build.cache
+	export GOTMPDIR=/var/tmp/.go.build.temp
+	export GOENV=off
+	export CGO_ENABLED=0
+	export GOOS=$ARCH_OS
+	export GOARCH=$ARCH_L1
+	export GOHOSTOS=$ARCH_OS
+	export GOHOSTARCH=$ARCH_L1
+	export GOFLAGS="-ldflags=-s -ldflags=-w -mod=vendor -trimpath"
+	export GOARM=7
+	export GOAMD64="$(cat /.bsdinfo/X86_64_LEVEL 2> /dev/null)"
+
+	####################################
+	# LLVM, CLANG & BINUTILS TOOLCHAIN #
+	####################################
+
+	export BSD_BASE="freebsd$(uname -U | cut -c 1-2).0"
+	export DESTDIR=/tmp
+	export CORES=$(sysctl -n hw.ncpu)
+	if [ -x /usr/bin/clang ]; then
+		export CC=/usr/bin/clang
+		export CXX=/usr/bin/clang++
+		export CPP=/usr/bin/clang-cpp
+	fi
+	if [ -x /usr/bin/as ]; then
+		export AS=/usr/bin/as
+		export AR=/usr/bin/ar
+		export NM=/usr/bin/nm
+		export OBJDUMP=/usr/bin/objdump
+		export OBJCOPY=/usr/bin/objcopy
+		export STRINGS=/usr/bin/strings
+		export STRIPBIN=/usr/bin/strip
+		export RANLIB=/usr/bin/ranlib
+		export SIZE=/usr/bin/size
+		export ELFCTL=/usr/bin/elfctl
+	fi
+	if [ -x /usr/bin/strip ]; then
+		export STRIPBIN=/usr/bin/strip
+	fi
+	if [ -x /usr/bin/install ]; then
+		export INSTALL=/usr/bin/install
+		export INSTALL_STRIP=-s
+	fi
+	if [ -x /usr/bin/make ]; then
+		export MAKE_OBJDIR_CHECK_WRITABLE=true
+		export MAKE=/usr/bin/make
+		export MAKE_CONF=/dev/null
+		export MAKETHREADS=$CORES
+		export JFLAG=$CORES
+		export JFLAGS=$CORES
+	fi
+	if [ -x /usr/bin/m4 ]; then
+		export M4=/usr/bin/m4
+	fi
+	if [ -x /usr/bin/samu ]; then
+		export NINJA=/usr/bin/samu
+		export NINJA_CMD=$NINJA
+	elif [ -x /usr/bin/ninja ]; then
+		export NINJA=/usr/bin/ninja
+		export NINJA_CMD=$NINJA
+	fi
+	if [ -x /usr/bin/pkgconf ]; then
+		export PKG_CONF=/usr/bin/pkgconf
+		export PKG_CONFIG_LIBDIR=/usr/lib
+		export PKG_CONFIG_PATH=/usr/libdata/pkgconfig
+	fi
+	if [ -x /usr/local/llvm/bin ] && [ -x $BSD_ACTION ]; then
+		if [ -x /usr/local/llvm13 ]; then export CTOOLCHAIN=llvm13; fi
+		if [ -x /usr/local/llvm14 ]; then export CTOOLCHAIN=llvm14; fi
+		if [ -x /usr/local/llvm15 ]; then export CTOOLCHAIN=llvm15; fi
+		. $BSD_ACTION/.buildenv.sh
+		buildenv_conf_$CTOOLCHAIN
+	fi
+	if [ "$CC" != "" ]; then
+		export BUILDCC=$CC
+		export BUILDCXX=$CXX
+		export BUILDCPP=$CPP
+		export BUILD_CC=$CC
+		export BUILD_CXX=$CXX
+		export BUILD_CPP=$CPP
+		export HOSTCC=$CC
+		export HOSTCXX=$CXX
+		export HOSTCPP=$CPP
+		export HOST_CC=$CC
+		export HOST_CXX=$CXX
+		export HOST_CPP=$CPP
+		export cc_default=$CC
+		export cxx_default=$CXX
+		export cpp_default=$CPP
+		export BUILDCFLAGS="-target $CCT $CCO"
+		export BUILDLDFLAGS=$CFLAGS
+		export BUILDCPPFLAGS=$CFLAGS
+		export BUILDCXXFLAGS=$CFLAGS
+	fi
+	;;
+esac

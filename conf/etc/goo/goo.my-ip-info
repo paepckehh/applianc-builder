@@ -1,0 +1,2 @@
+#!/bin/sh
+HTTPS_PROXY="127.0.0.80:8080" SSL_CERT_FILE=/etc/ssl/rootCA.pem REPO="github.com/ipinfo/go/example/my-ip-info" goo $*

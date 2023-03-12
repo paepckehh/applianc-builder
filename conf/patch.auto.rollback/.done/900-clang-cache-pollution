@@ -1,0 +1,33 @@
+commit e7e517981a6591c79fb49cd8810361b0f3ad5983
+Author: Dimitry Andric <dim@FreeBSD.org>
+Date:   2021-06-21 18:46:34 +0000
+
+    Fix clang assertion while building recent www/chromium
+    
+    Merge commit c8227f06b335 from llvm git (by Arthur Eubanks):
+    
+      [clang] Don't assert in EmitAggregateCopy on trivial_abi types
+    
+      Fixes PR42961.
+    
+      Reviewed By: rnk
+    
+      Differential Revision: https://reviews.llvm.org/D97872
+    
+    PR:             256721, 255570
+    Reported by:    jbeich
+    MFC after:      3 days
+
+diff --git a/contrib/llvm-project/clang/lib/CodeGen/CGExprAgg.cpp b/contrib/llvm-project/clang/lib/CodeGen/CGExprAgg.cpp
+index 60ea1b2af03..f3ab91559d3 100644
+--- a/contrib/llvm-project/clang/lib/CodeGen/CGExprAgg.cpp
++++ b/contrib/llvm-project/clang/lib/CodeGen/CGExprAgg.cpp
+@@ -2056,7 +2056,7 @@ void CodeGenFunction::EmitAggregateCopy(LValue Dest, LValue Src, QualType Ty,
+               Record->hasTrivialCopyAssignment() ||
+               Record->hasTrivialMoveConstructor() ||
+               Record->hasTrivialMoveAssignment() ||
+-              Record->isUnion()) &&
++              Record->hasAttr<TrivialABIAttr>() || Record->isUnion()) &&
+              "Trying to aggregate-copy a type without a trivial copy/move "
+              "constructor or assignment operator");
+       // Ignore empty classes in C++.

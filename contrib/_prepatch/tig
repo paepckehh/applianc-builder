@@ -1,0 +1,20 @@
+### ( 2023-03-12 ) ( 1678605360 ) ### DO NOT EDIT ### auto-generated file / patchset by <appliance-builder/enhanced> ###
+--- ./src/tig.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./src/tig.c	1970-01-01 00:00:00.000000000 +0000
+@@ -864,6 +864,16 @@
+ 	if (!repo.git_dir[0] && request != REQ_VIEW_PAGER)
+ 		die("Not a git repository");
+ 
++	if (codeset && strcmp(codeset, ENCODING_UTF8)) {
++		char translit[SIZEOF_STR];
++
++		if (string_format(translit, "%s%s", codeset, ICONV_TRANSLIT))
++			opt_iconv_out = iconv_open(translit, ENCODING_UTF8);
++		else
++			opt_iconv_out = iconv_open(codeset, ENCODING_UTF8);
++		if (opt_iconv_out == ICONV_NONE)
++			die("Failed to initialize character set conversion");
++	}
+ 
+ 	die_if_failed(load_refs(false), "Failed to load refs.");
+ 

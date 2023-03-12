@@ -1,0 +1,15 @@
+#/bin/sh
+ln -fs /tmp/lighttpd1.4-master /tmp/lighttpd-master
+cmake $CMAKE_CONFIG \
+	-DWITH_PCRE=OFF \
+	-DWITH_PCRE2=OFF \
+	-DWITH_LUA=OFF \
+	-DWITH_PAM=OFF \
+	-DWITH_NETTLE=OFF \
+	-DWITH_ZLIB=ON \
+	-DWITH_OPENSSL=ON \
+	..
+
+TLL=/tmp/lighttpd-master/build/build
+mkdir -p $TLL
+tar -C $TLL -xvf $BSD_CONTRIB/_patch/lemon.txz

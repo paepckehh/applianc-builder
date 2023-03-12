@@ -1,0 +1,4 @@
+#!/bin/sh
+cd /tmp/$PTARGET/usr/bin
+ln -fs go-squid-urlrewrite squid-urlrewrite
+cd /tmp

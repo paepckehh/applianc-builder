@@ -1,0 +1,6 @@
+#!/bin/sh
+if [ -e go.mod ]; then
+	REPO="honnef.co/go/tools/cmd/staticcheck" goo $*
+else
+	echo "no ./go.mod file found" && exit 1
+fi

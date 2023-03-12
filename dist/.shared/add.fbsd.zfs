@@ -1,0 +1,5 @@
+#!/bin/sh
+unset WITHOUT_ZFS
+export WITH_ZFS=true
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE crypto cryptodev"
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS ZFS ZSTDIO"

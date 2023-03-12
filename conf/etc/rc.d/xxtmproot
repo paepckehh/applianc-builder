@@ -1,0 +1,37 @@
+#!/bin/sh
+# PROVIDE: xxtmproot
+# REQUIRE: LOGIN var tmp syslogd
+# KEYWORD: nojail
+
+. /etc/rc.subr
+name="xxtmproot"
+desc="provide tmpfs [encrypted] root temp!"
+rcvar="xxtmproot_enable"
+start_cmd="tmproot_start"
+stop_cmd="tmproot_stop"
+rcvar="xxtmproot_enable"
+load_rc_config $name
+
+tmproot_start() {
+	(
+		startmsg 'Starting [xx] tmproot.'
+		if [ "$xxtmp_root_encrypted" = "YES" ]; then
+			if [ $xxtmp_root_size = "0"]; then
+				logger "... encrypted tmpfs can not be zero! ### ERROR ###"
+			else
+				LOG=$(sh /etc/action/create.fs.ram.enc /home/root/.temp $xxtmp_root_size 2>&1)
+			fi
+		else
+			LOG=$(sh /etc/action/create.fs.ram /home/root/.temp $xxtmp_root_size noexec 2>&1)
+		fi
+		touch /var/lock.init.tmp.root
+	) &
+}
+
+tmproot_stop() {
+	startmsg 'Stopping [xx] tmproot.'
+	umount -f /home/root/.tmp > /dev/null 2>&1
+	rm /var/lock.init.tmp.root
+}
+
+run_rc_command "$1"

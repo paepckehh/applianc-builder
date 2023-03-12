@@ -1,0 +1,7 @@
+#!/bin/sh
+TARGET=$1
+SIZE=0M && if [ $2 ]; then SIZE=$2; fi
+SECURE=noexec && if [ $3 ]; then SECURE=$3; fi
+mkdir -p $TARGET
+mount -o $SECURE,size=$SIZE -t tmpfs tmpfs $TARGET
+echo "... [done ]create memory tmpfs [mountpoint: $TARGET] [size: $SIZE]  [ zero = no limit ] [options: $SECURE]"

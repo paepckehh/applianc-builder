@@ -1,0 +1,27 @@
+#!/bin/sh headless / console-less bsrv build server [ components in powersave/switched off mode: vga/pci/kbd/hid/usb patches needed ]
+. $BSD_DIST/.base/bare
+# . $BSD_DEVICE/storage.nvme
+# . $BSD_DIST/.shared/add.fbsd.vm.host.bhyve
+. $BSD_DIST/.shared/add.fbsd.tcpdump
+. $BSD_DIST/.shared/add.fbsd.ipc
+. $BSD_DIST/.shared/add.pkg.git
+. $BSD_DIST/.shared/add.pkg.curl
+. $BSD_DIST/.shared/add.pkg.iperf
+. $BSD_DIST/.shared/add.pkg.ugrep
+. $BSD_DIST/.shared/add.pkg.toolchain
+. $BSD_DIST/.shared/add.users.pnoc
+export BSD_DIST_PKG="$BSD_DIST_PKG libzip lz4 hidapi pcsc ccid squashfs-tools-ng"
+DEBUG_CONS=true # XXX remove for prod
+case $SBC in
+rpi*) . $BSD_DIST/.shared/add.fbsd.console.vertical ;;
+*)
+	case $DEBUG_CONS in
+	true) . $BSD_DIST/.shared/add.fbsd.console ;;
+	*) . $BSD_DIST/.shared/add.fbsd.console.null ;;
+	esac
+	. $BSD_DIST/.shared/add.server.ssh.airgap
+	;;
+esac
+export NIC_PRIMARY_IP="10.10.10.11"
+export EFI_STAGING_SIZE=64
+export BSD_TARGET_DIST="bsrv"

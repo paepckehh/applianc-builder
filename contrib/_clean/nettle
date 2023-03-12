@@ -1,0 +1,3 @@
+usr/local/bin/*
+usr/local/lib/libhogweed*
+usr/local/lib/pkgconfig/hogweed*

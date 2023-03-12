@@ -1,0 +1,50 @@
+--- Makefile.orig	2014-01-28 13:05:11.000000000 +0000
++++ Makefile	2021-02-02 10:18:04.472464000 +0000
+@@ -2,22 +2,23 @@
+ 
+ # The path to install squirm under
+ BINDIR=/usr/bin
+-LOGDIR=/var/log/squid
+-ETCDIR=/etc/squid
+-DESTDIR=
++LOGDIR=/var/pnoc/squid
++ETCDIR=/var/pnoc/squid
++#DESTDIR=
+ 
+ # The username that squid runs as (see cache_effective_user in squid.conf)
+-USER=proxy
++USER=ap-squid
+ 
+ # The group that squid runs as (see cache_effective_group in squid.conf)
+-GROUP=daemon
++GROUP=ap-squid
+ 
+ # The group that the root user belongs to
+ ROOT_GROUP = root
+ 
+ # The regex library (-lgnuregex is common on FreeBSD, none for some Linux'es)
+ EXTRALIBS=
+-# EXTRALIBS=-lgnuregex
++EXTRALIBS=-lgnuregex
++EXTRALIBS=-lregex
+ 
+ 
+ 
+@@ -29,13 +30,14 @@
+ OFILES = squirm.o main.o config.o log.o lists.o ip.o util.o
+ HFILES = squirm.h paths.h lists.h log.h ip.h util.h
+ 
+-CC=gcc
++CC=clang
+ 
+ 
+-OPTIMISATION=-O3
++# OPTIMISATION=-Ofast
+ BINARIES = squirm
+ 
+-CFLAGS = -O3 -Wall -funroll-loops -DBINDIR=\"$(BINDIR)\" -DLOGDIR=\"$(LOGDIR)\" -DETCDIR=\"$(ETCDIR)\"
++CFLAGS += -DBINDIR=\"$(BINDIR)\" -DLOGDIR=\"$(LOGDIR)\" -DETCDIR=\"$(ETCDIR)\"
++#CFLAGS = -Ofast -Wall -funroll-loops -DBINDIR=\"$(BINDIR)\" -DLOGDIR=\"$(LOGDIR)\" -DETCDIR=\"$(ETCDIR)\"
+ #CFLAGS = -Wall -g -DPREFIX=\"$(PREFIX)\"
+ #CFLAGS = -Wall -g -DDEBUG
+ 

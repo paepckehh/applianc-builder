@@ -1,0 +1,6 @@
+#!/bin/sh
+. $BSD_ARCH/amd64.amd64.x86-64-v3
+. $BSD_ARCH/.intel
+export BSD_TARGET_SOC=haswell-dt
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE rdrand_rng aesni"
+. $BSD_ARCH/.boot.amd64

@@ -1,0 +1,5 @@
+127.0.0.1	localhost localhost.local 
+10.10.250.10	sshserver.local
+10.10.250.11	sshclient.local
+192.168.250.10  sshserver.wg
+192.168.250.11  sshclient.wg

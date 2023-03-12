@@ -1,0 +1,4 @@
+#!/bin/sh
+# specific lockdown [usb/axe] usb nic driver
+. $BSD_SBC/.device/usb
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE ether uether mii ukphy locknic"

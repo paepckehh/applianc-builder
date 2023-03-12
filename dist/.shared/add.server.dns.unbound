@@ -1,0 +1,15 @@
+#!/bin/sh
+# export BSD_DIST_RC="$BSD_DIST_RC xxunbound"
+# export BSD_DIST_RCFWSRV="$BSD_DIST_RCFWSRV xxdns"
+# export BSD_DIST_PKG="$BSD_DIST_PKG unbound ldns libsodium minisign dnscrypt-wrapper libexpat"
+unset WITHOUT_LDNS WITHOUT_LDNS_UTILS WITHOUT_UNBOUND
+export WITH_LDNS=true WITH_LDNS_UTILS=true WITH_UNBOUND=true
+X='
+# xxunbound
+xxunbound_enable="YES"
+xxunbound_program="/usr/sbin/local-unbound"
+xxunbound_control="/usr/sbin/local-unbound-control"
+xxunbound_args="-c /etc/app/unbound/unbound.conf"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+export BSD_DIST_RC="$BSD_DIST_RC xxunbound"

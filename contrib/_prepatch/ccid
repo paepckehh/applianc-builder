@@ -1,0 +1,30 @@
+### ( 2023-03-12 ) ( 1678605360 ) ### DO NOT EDIT ### auto-generated file / patchset by <appliance-builder/enhanced> ###
+--- ./Makefile.am.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./Makefile.am	1970-01-01 00:00:00.000000000 +0000
+@@ -1,6 +1,6 @@
+ ACLOCAL_AMFLAGS = -I m4
+ 
+-SUBDIRS = readers examples contrib src
++SUBDIRS = readers src
+ 
+ EXTRA_DIST = bootstrap ChangeLog SCARDGETATTRIB.txt \
+ 	README.md \
+--- ./bootstrap.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./bootstrap	1970-01-01 00:00:00.000000000 +0000
+@@ -1,13 +1,13 @@
+-#! /bin/bash
++#! /bin/sh
+ 
+-set -x
++#set -x
+ 
+ LIBTOOLIZE=libtoolize
+ # From brew(1) on Mac OS X
+ # ==> Caveats
+ #  In order to prevent conflicts with Apple's own libtool we have prepended a "g"
+ #  so, you have instead: glibtool and glibtoolize.
+-which glibtoolize && LIBTOOLIZE=glibtoolize
++#  which glibtoolize && LIBTOOLIZE=glibtoolize
+ 
+ aclocal -I m4
+ $LIBTOOLIZE --copy --force --automake

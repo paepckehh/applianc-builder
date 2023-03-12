@@ -1,0 +1,4 @@
+#!/bin/sh
+if [ ! $BSD_CONF_VERSION ]; then . /etc/.bsdconf; fi
+. /etc/action/.check.store
+BSDlive man

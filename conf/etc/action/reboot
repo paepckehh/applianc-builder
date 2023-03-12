@@ -1,0 +1,7 @@
+#!/bin/sh
+if [ -x /usr/store/eXchange ]; then
+	sh /etc/action/store drop
+else
+	sync && sync && sync
+fi
+/usr/bin/shutdown -r now

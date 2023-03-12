@@ -1,0 +1,8 @@
+#!/bin/sh
+X='
+# init.tmp.root
+xxtmproot_enable="YES"
+xxtmproot_encrypted="NO"
+xxtmproot_size="0"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"

@@ -1,0 +1,6 @@
+etc
+usr/bin/ocsp*
+usr/etc
+usr/lib/*.a
+usr/lib/*.la
+usr/share

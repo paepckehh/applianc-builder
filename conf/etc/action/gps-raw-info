@@ -1,0 +1,2 @@
+#!/bin/sh
+cat /dev/gps0 | grep GP

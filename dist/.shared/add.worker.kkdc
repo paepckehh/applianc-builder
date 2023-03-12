@@ -1,0 +1,33 @@
+#!/bin/sh
+. $BSD_DIST/.shared/add.worker
+. $BSD_DIST/.shared/add.server.kdc
+X='
+#  kkdc specifc worker setup 
+jail_enable="NO"
+jail_list=" "		
+jail_conf="/etc/worker/worker.kkdc.conf"
+
+# kkdc localhost interface [worker] infrastructure
+ifconfig_lo0_descr="[LOCALHOST] [LOCALNET]"
+
+# kkdc private link services interfaces
+ifconfig_ue0_name="private0"
+ifconfig_private0_descr="[PRIVATE] [PRIVATENET]"
+ifconfig_private="inet 10.10.250.11/24"
+pf_rules="/etc/pf.conf.kkdc"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+X='
+#
+# WORKER
+#
+alias worker.start.kkdc="service jail onestart kkdc"
+alias worker.stop.kkdc="service jail onestop kkdc"
+alias worker.login.kkdc="jexec kkdc"
+'
+export BSD_ALIAS_DISTRIBUTION="$BSD_ALIAS_DISTRIBUTION $X"
+export BSD_DIST_PKG="$BSD_DIST_PKG kkdc"
+export BSD_ADD_ETC_GROUP="$BSD_ADD_ETC_GROUP
+kkdc:*:3101:"
+export BSD_ADD_ETC_PASSWD="$BSD_ADD_ETC_PASSWD
+kkdc:*:3101:3101::0:0:kkdc user:/home/nobody:/bin/sh"

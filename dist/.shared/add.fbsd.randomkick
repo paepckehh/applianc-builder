@@ -1,0 +1,14 @@
+#!/bin/sh
+X='
+
+# rnd default
+random_enable="YES"
+entropy_dir="NO"
+entropy_file="NO"
+entropy_boot_file="NO"
+
+# init.random [kick]
+xxrandom_kick_enable="YES"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+export BSD_DIST_RC="$BSD_DIST_RC xxrandomkick"

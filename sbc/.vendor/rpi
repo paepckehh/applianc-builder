@@ -1,0 +1,15 @@
+#!/bin/sh
+export BOOT_FBSD_IMG=raw
+export BOOT_FBSD_FS=msdos16
+export BOOT_FBSD_SCHEME=mbr
+export BOOT_FBSD_BOOTPARTS=
+export LOADER_FDT_SUPPORT=yes
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE dwcotg gpio gpioled gpioregulator fdt_pinctrl regulator"
+export BSD_KERNCONF_DEVICE_NIC="$BSD_KERNCONF_DEVICE_NIC"
+export BSD_KERNCONF_DEVICE_STO="$BSD_KERNCONF_DEVICE_STO mmc mmcsd sdhci syscon"
+X='
+dev.cpu.0.freq'
+export BSD_SYSCTL_INFO="$BSD_SYSCTL_INFO $X"
+if [ -n "$BSD_IOD" ]; then
+	export BSD_KERNCONF_DEVICE_IOD="$BSD_KERNCONF_DEVICE_IOD gpio gpioled gpioregulator regulator pwm iic iicbus iicmux bcm2835_bsc spibus bcm2835_spi uart pl011"
+fi

@@ -1,0 +1,8 @@
+#!/bin/sh
+case $TARCH_L1 in
+amd64)
+	export BSD_DIST_PKG="$BSD_DIST_PKG powermon"
+	export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS HWPMC_HOOKS"
+	export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE cpuctl hwpmc"
+	;;
+esac

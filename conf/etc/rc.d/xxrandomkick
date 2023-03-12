@@ -1,0 +1,36 @@
+#!/bin/sh
+# PROVIDE: xxrandomkick
+# REQUIRE: LOGIN
+# KEYWORD: nojail
+
+. /etc/rc.subr
+name="xxrandomkick"
+desc="static/rtc/stateless sbcs are very bad at finding none-static/predictable 'entropy' sources,  give it a nice kick!"
+rcvar="xxrandomkick_enable"
+start_cmd="randkick_start"
+stop_cmd="randkick_stop"
+rcvar="xxrandkick_enable"
+load_rc_config $name
+
+randkick_start() {
+	(
+		startmsg "Starting [xx] randomkick"
+		DIGEST="/sbin/sha512" && if [ -x /usr/sbin/blake2b-512 ]; then DIGEST="/usr/sbin/blake2b-512"; fi
+		(if [ -e /dev/gps ]; then head -n 10 /dev/gps | $DIGEST > /dev/random; fi) &
+		(dmesg | $DIGEST > /dev/random) &
+		(sysctl -a hw | $DIGEST > /dev/random) &
+		(date | $DIGEST > /dev/random) &
+		(ps -auxvv | $DIGEST > /dev/random) &
+		(sysctl -a | $DIGEST > /dev/random) &
+		wait
+		touch /var/lock.init.random
+		logger "[xx] randomkick [$DIGEST] started"
+	) &
+}
+
+randkick_stop() {
+	startmsg 'Stopping [xx] randomkick.'
+	rm -rf /var/lock.init.random
+}
+
+run_rc_command "$1"

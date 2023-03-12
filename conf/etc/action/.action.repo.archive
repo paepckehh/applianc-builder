@@ -1,0 +1,10 @@
+#!/bin/sh
+case $1 in
+"" | .)
+	if [ ! -z "$FZF_CMD" ]; then
+		$ACTION $REPO $(cd $BSD_GIT/.repo/.autoarchive && ls -I | sed -e 's/\.git-deflate-tree\.tar\.zst//g' | $FZF_CMD)
+		exit
+	fi
+	;;
+esac
+$ACTION $*

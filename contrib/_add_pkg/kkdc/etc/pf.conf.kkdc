@@ -1,0 +1,54 @@
+# pf.conf 
+#
+# [ssh client] 
+
+####################
+# INTERFACES & IPs #
+####################
+
+table <localhost> persist const { 127.0.0.1 }
+table <kkdc_server> persist const { 10.10.250.10 }
+localhost_if="lo0"
+internal_if="private0"
+
+###########
+# OPTIONS #
+###########
+
+set block-policy drop
+set fail-policy drop
+set state-policy if-bound
+set require-order yes
+set syncookies always
+
+#####################
+# GENERIC SANITIZER #
+#####################
+
+# scrub
+scrub all random-id reassemble tcp fragment reassemble 
+
+# antispoof
+antispoof log quick for $localhost_if
+antispoof log quick for $internal_if
+
+# activity detection rules [analysis only]
+block drop log quick proto icmp
+block drop log quick from any to no-route
+block drop log quick from no-route to any
+block drop log quick from urpf-failed to any
+block drop log quick from any to 255.255.255.255
+block drop log quick from 255.255.255.255 to any
+
+##########
+# FILTER #
+##########
+
+# allow localhost 
+pass quick on $localhost_if
+
+# block all
+block drop log all
+
+# pass 
+pass in on $internal_if inet proto tcp from any to <kkdc_server> port 443 flags S/SA keep state

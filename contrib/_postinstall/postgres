@@ -1,0 +1,8 @@
+#!/bin/sh
+rm -rf /tmp/postgres/usr/include
+echo "... building the hstore"
+echo "... building the hstore" >> /tmp/build-postgres.log
+cd /tmp/postgres-master/contrib/hstore
+gmake all >> /tmp/build-postgres.log
+gmake DESTDIR=/tmp/postgres install >> /tmp/build-postgres.log
+cd /tmp/postgres

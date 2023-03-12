@@ -1,0 +1,8 @@
+#!/bin/sh
+cd /tmp/vim/usr/share/vim
+ln -fs vim9* vim
+cd /tmp/vim/usr/bin
+ln -f vim e
+ln -f vim ee
+ln -f vim vi
+cd /tmp/vim

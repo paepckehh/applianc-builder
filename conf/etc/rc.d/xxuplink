@@ -1,0 +1,150 @@
+#!/bin/sh
+#
+# PROVIDE: xxuplink
+# REQUIRE: NETWORKING var tmp xxdevdname
+
+. /etc/rc.subr
+name="xxuplink"
+desc="uplink - manage network uplinks"
+start_cmd="uplink_start"
+stop_cmd="uplink_stop"
+rcvar="xxuplink_enable"
+load_rc_config $name
+
+uplink_fw_start() {
+	if [ -x /usr/bin/ipfw ]; then
+		/usr/bin/sysctl net.inet.ip.fw.verbose=0
+		/usr/bin/ipfw add 1010 deny log ip from any to me tcpflags rst ipid 0 in via uplink0
+		/usr/bin/ipfw add 1020 deny log ip from any to me tcpflags rst ipid 1 in via uplink0
+		/usr/bin/ifconfig ipfw0 create > /dev/null 2>&1
+	fi
+	while [ "$(ifconfig $interface | grep status)" != "	status: active" ]; do
+		logger "[UPLINK] [interface:$interface] [interface added, waiting for carrier]"
+		if [ "$(ifconfig $interface 2>&1 | grep not | grep exist)" != "" ]; then exit 1; fi
+		sleep 1
+	done
+	logger "[UPLINK] [inferface:$interface] [$fibcmd] [activated]"
+	$fibcmd route add default $GW
+	logger "[UPLINK] [gw:$GW] [$fibcmd] [default route activated]"
+	$fibcmd netstat -rn
+	echo $interface > /var/uplink.$id.interface
+	echo $IP4 > /var/uplink.$id.ip4
+	echo $GW > /var/uplink.$id.gateway
+	echo $NM > /var/uplink.$id.netmask
+	echo "$interface|$IP4/$NM" > /var/uplink.$id.done
+	if [ -e /var/uplink.$id.dhcp ]; then cat /var/uplink.$id.dhcp; fi
+	if [ "$IP6" = "" ]; then
+		/sbin/sysctl net.pf.request_maxcount=131070
+		IP6="n/a"
+	else
+		/sbin/sysctl net.pf.request_maxcount=262140
+		echo $IP6 > /var/uplink.$id.ip6
+	fi
+	/sbin/pfctl -F all 2>&1
+	/sbin/pfctl -f /etc/app/uplink/pf.conf.uplink || /sbin/pfctl -f /etc/pf.conf 2>&1
+	logger "[UPLINK] [FW] [ACTIVATED] [/etc/app/uplink/pf.conf.uplink]"
+	logger "[UPLINK] [FINISH] [$device] [$mode] [$interface] [IP:$IP4/$NM] [GW:$GW] [IP6:$IP6] [usb:$usbid] [$cmdport] [fib:$fib]"
+}
+uplink_fw_stop() {
+	/sbin/pfctl -F all 2>&1
+	/sbin/pfctl -f /etc/pf.conf
+	logger "[UPLINK] default [local|client only] firewall rule-set activated"
+}
+uplink_rename() {
+	ifconfig $interface name uplink$id && interface="uplink$id"
+	ifconfig $interface up
+	ifconfig $interface description "[UPLINK] [$mode] [$device] [usb:$usbid] [cmd:$cmdport] [apn:$apn] [fib:$fib]"
+	logger "[UPLINK] [started] [$mode] [$interface] [$fibcmd] "
+}
+uplink_start_main() {
+	id=0 && while [ -e /var/uplink.$id ]; do id=$((id + 1)); done
+	touch /var/uplink.$id
+	interface="ue$((id + 1))"
+	cmdport="/dev/lte$id"
+	apn="$xxuplink_apn"
+	fib="$((6 + id))"
+	fibcmd="setfib $fib"
+	usbid=$(echo $usbport | cut -c 6-)
+	echo $id > /var/uplink.usbid.$usbid
+	logger "[UPLINK] [START] [device:$device] [mode:$mode] [usbid:$usbid] [interface:$interface] [cmd:$cmdport] [apn:$apn]"
+	while $LOOP; do
+		case "$mode" in
+		"auto")
+			case "$(sysctl -i -n dev.cdce.0.%pnpinfo | cut -c 1-28)" in
+			"vendor=0x12d1 product=0x1506") export device="HUAWEI_CDC_NCM" && export mode="CDC_NCM" ;;
+			"vendor=0x12d1 product=0x14db") export device="HUAWEI_CDC_ECM" && export mode="CDC_ECM" ;;
+			*) sleep 1 ;;
+			esac
+			;;
+		"CDC_NCM")
+			while [ ! -e "$cmdport" ]; do sleep 0.2; done
+			sleep 1 #
+			uplink_rename
+			/sbin/pfctl -F all 2>&1
+			/sbin/pfctl -f /etc/app/uplink/pf.conf.dhcp-phase || /sbin/pfctl -f /etc/pf.conf
+			logger "[UPLINK] [FW] [/etc/app/uplink/pf.dhcp.phase]"
+			echo 'AT^NDISDUP=1,1,"internet"' > $cmdport
+			$fibcmd /sbin/dhclient -c /etc/app/uplink/dhclient.conf.uplink -l /var/uplink.$id.dhcp $interface
+			GW="$(grep 'option routers' /var/uplink.$id.dhcp | cut -c 18- | sed 's/;//')"
+			NM="$(grep 'option subnet-mask' /var/uplink.$id.dhcp | cut -c 22- | sed 's/;//')"
+			IP4="$(grep 'fixed-address' /var/uplink.$id.dhcp | cut -c 17- | sed 's/;//')"
+			pkill dhclient
+			uplink_fw_start
+			echo 'AT^CURC=0' > $cmdport
+			break
+			;;
+		"CDC_ECM")
+			case "$device" in
+			HUAWEI*) IP4="192.168.8.2" && GW="192.168.8.1" && NM="30" ;;
+			*) logger "[UPLINK] unsupported device [$device]" && break ;;
+			esac
+			uplink_rename
+			ifconfig $interface "$IP4/$NM"
+			uplink_fw_start
+			break
+			;;
+		*) logger "[UPLINK] unsupported mode [$mode]" && break ;;
+		esac
+	done
+}
+uplink_stop_main() {
+	usbid="$(echo $usbport | cut -c 6-)"
+	id="$(cat /var/uplink.usbid.$usbid)"
+	fib="$((6 + id))"
+	fibcmd="setfib $fib"
+	logger "[UPLINK] [STOP] [$device] [$mode] [$interface] [$cmdport] [$usbport] [usbid:$usbid] [id:$id] [fib:$fib]"
+	rm -rf /var/uplink.$id*
+	rm -rf /var/uplink.usb.$usbid
+	$fibcmd route delete default
+	case $id in
+	0)
+		uplink_fw_stop
+		service xxsquid onerestart
+		service xxunbound onerestart
+		service xxdnscrypt onerestart
+		;;
+	esac
+}
+uplink_stop() {
+	(uplink_stop_main | logger) &
+}
+uplink_start() {
+	(uplink_start_main | logger) &
+}
+
+. /etc/rc.conf
+case $1 in
+start | stop | onestart | onestop)
+	device="auto" && case $2 in
+	HUAWEI*) device=$2 ;;
+	esac
+	mode="" && case $3 in
+	CDC*) mode=$3 ;;
+	esac
+	usbport="" && case $4 in
+	/dev/*) usbport=$4 ;;
+	esac
+	;;
+esac
+
+run_rc_command "$1"

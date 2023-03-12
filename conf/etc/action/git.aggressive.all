@@ -1,0 +1,2 @@
+#!/bin/sh
+sh /etc/action/store git.aggressive all

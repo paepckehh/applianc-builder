@@ -1,0 +1,3 @@
+#!/bin/sh
+/usr/bin/hq u
+/etc/action.hqx/store.hqx sign

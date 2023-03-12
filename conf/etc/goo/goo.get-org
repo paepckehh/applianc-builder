@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="github.com/ipinfo/go/example/get-org" goo $*

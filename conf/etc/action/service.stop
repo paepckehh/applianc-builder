@@ -1,0 +1,6 @@
+#!/bin/sh
+case $1 in
+. | "") SERVICE=$(ls -I /etc/rc.d | $FZF_CMD --query=$2) ;;
+*) SERVICE=$* ;;
+esac
+/usr/bin/service $SERVICE onestop

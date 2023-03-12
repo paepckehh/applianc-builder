@@ -1,0 +1,8 @@
+#!/bin/sh
+sh ./bootstrap.sh
+sh ./configure \
+	--build=$LT_ARCH \
+	--host=$CCT \
+	--target=$CCT \
+	--prefix=/usr/local \
+	cross_compiling=yes

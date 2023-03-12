@@ -1,0 +1,6 @@
+#!/bin/sh
+X='
+# pnoc 
+xxpnoc_enable="YES"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"

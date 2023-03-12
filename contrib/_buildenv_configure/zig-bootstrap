@@ -1,0 +1,2 @@
+#!/bin/sh
+sh ./build -j$JFLAGS x86_64-freebsd-gnu native

@@ -1,0 +1,3 @@
+#!/bin/sh
+# REPO=".golang.src.$GOOS.$GOARCH/cmd/vet" goo -vettool=/var/.goocache/_golang_src_$GOHOSTOS_$GOHOSTARCH_cmd_vet $*
+REPO=".golang.src.$GOOS.$GOARCH/cmd/vet" goo $*

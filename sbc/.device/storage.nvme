@@ -1,0 +1,15 @@
+#!/bin/sh
+X='
+# hw.pci.enable_msi=0
+# hw.nvme.use_nvd=0
+# dev.nvme.0.num_io_queues=1
+hw.nvme.verbose_cmd_dump=1
+# kern.cam.nda.nvd_compat=0
+# kern.cam.nda.0.trim_ticks=1000
+'
+export BSD_LOADER_CONF="$BSD_LOADER_CONF $X"
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE nvme nvd scbus pass ahci"
+#export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE nvme nvd"
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS NVME_2X_RESET PCI_IOV PCI_HP"
+export WITH_NVME=true
+unset WITHOUT_NVME

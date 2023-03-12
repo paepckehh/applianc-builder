@@ -1,0 +1,6 @@
+# pf.conf 
+#
+# [generic] [localhost-only] [block log all]
+
+set skip on lo0
+block drop log quick all

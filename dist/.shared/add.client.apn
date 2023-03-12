@@ -1,0 +1,11 @@
+#!/bin/sh
+X='
+# xxapn
+# xxapn_oomprotect="YES"
+xxapn_enable="YES"
+xxapn_program="/usr/bin/apn"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+export BSD_DIST_RC="$BSD_DIST_RC xxapn"
+export BSD_DIST_PKG="$BSD_DIST_PKG apn"
+export BSD_DIST_RCFW="$BSD_DIST_RCFW client_ntp client_rt"

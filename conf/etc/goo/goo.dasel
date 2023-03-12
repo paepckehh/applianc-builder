@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="github.com/tomwright/dasel/cmd/dasel" goo $*

@@ -1,0 +1,21 @@
+#!/bin/sh
+export BSD_NIC=true
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS NETLINK"
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE bpf ether loop"
+export BSD_DIST_RC="$BSD_DIST_RC hostname netif netoptions"
+X='
+# nic
+netif_enable="YES"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+X='
+# nic
+net.link.ether.inet.allow_multicast=0
+net.link.ether.inet.log_arp_permanent_modify=1
+net.link.ether.inet.log_arp_movements=1
+net.link.ether.inet.log_arp_wrong_iface=1
+net.link.ether.inet.proxyall=0
+net.link.ether.arp.log_level=6
+net.link.log_link_state_change=1
+'
+export BSD_SYSCTL="$BSD_SYSCTL$X"

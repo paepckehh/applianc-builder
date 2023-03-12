@@ -1,0 +1,7 @@
+#!/bin/sh
+. /etc/rc.info
+. /etc/action/.alias.common
+export USER=root
+export SHELL=/bin/sh
+export PS1="[sh:root@\h] [\w] # "
+echo "=== plattform [$DIST] [$SBC] [$SOC] [$ARCH_TRIPLE]"

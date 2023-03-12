@@ -1,0 +1,4 @@
+#!/bin/sh
+if [ "$TOS" != "fbsd" ]; then
+	cp /tmp/go-gohash-master/gohash-unix-shell-wrapper.sh /tmp/go-gohash/usr/bin
+fi

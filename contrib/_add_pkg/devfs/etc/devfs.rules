@@ -1,0 +1,51 @@
+[devfsrules_hide_all=1]
+add hide
+
+[devfsrules_unhide_basic=2]
+add path null unhide
+add path zero unhide
+add path crypto unhide
+add path random unhide
+add path urandom unhide
+
+[devfsrules_unhide_login=3]
+add path ptmx unhide
+add path fd unhide
+add path 'fd/*' unhide
+add path stdin unhide
+add path stdout unhide
+add path stderr unhide
+
+[devfsrules_jail=4]
+add include $devfsrules_hide_all
+add include $devfsrules_unhide_basic
+add include $devfsrules_unhide_login
+
+[devfsrules_base=5]
+add include $devfsrules_jail
+add path 'ttyv*' unhide
+add path pts unhide
+add path 'pts/*' unhide
+add path pf unhide
+add path 'md*' unhide
+
+[devfsrules_bsrv=6]
+add include $devfsrules_base
+add path gpt unhide
+add path ufs unhide
+add path usb unhide
+add path 'gpt/*' unhide
+add path 'ufs/*' unhide
+add path 'usb/*' unhide
+add path 'da*' unhide
+add path speaker unhide
+add path led unhide
+add path 'led/*' unhide
+
+[devfsrules_pnoc=7]
+add include $devfsrules_bsrv
+add path 'ttyU*' unhide
+add path 'cua*' unhide
+add path 'bpf*' unhide
+add path 'lte*' unhide
+add path 'gps*' unhide

@@ -1,0 +1,3 @@
+#!/bin/sh
+. $BSD_SBC/.device/usb
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE ucom umodem"

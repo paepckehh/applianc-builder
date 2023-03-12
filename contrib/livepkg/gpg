@@ -1,0 +1,7 @@
+libiconv-legacy
+libgpg-error
+libassuan
+libksba
+libnpth
+libgcrypt 
+gnupg

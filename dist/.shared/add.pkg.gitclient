@@ -1,0 +1,8 @@
+#!/bin/sh
+. $BSD_DIST/.shared/add.pkg.git
+X='
+# xxgitclient
+xxgitclient_enable="NO"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+export BSD_DIST_RC="$BSD_DIST_RC xxgitclient"

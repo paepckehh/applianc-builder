@@ -1,0 +1,68 @@
+# pf.conf 
+#
+# [ssh client] 
+
+####################
+# INTERFACES & IPs #
+####################
+
+table <localhost> persist const { 127.0.0.1 }
+table <airgap_client> persist const { 10.10.250.11 }
+table <airgap_server> persist const { 10.10.250.10 }
+localhost_if="{ lo0 }"
+internal_if="{ private0 }"
+wireguard_if="{ wg0 }"
+
+###########
+# OPTIONS #
+###########
+
+set block-policy drop
+set fail-policy drop
+set state-policy if-bound
+set require-order yes
+set syncookies always
+
+#####################
+# GENERIC SANITIZER #
+#####################
+
+# scrub
+scrub all random-id reassemble tcp fragment reassemble 
+
+# antispoof
+antispoof log quick for $localhost_if
+antispoof log quick for $internal_if
+antispoof log quick for $wireguard_if
+
+# activity detection rules [analysis only]
+# block drop log quick proto icmp
+block drop log quick from any to no-route
+block drop log quick from no-route to any
+block drop log quick from urpf-failed to any
+block drop log quick from any to 255.255.255.255
+block drop log quick from 255.255.255.255 to any
+
+##########
+# FILTER #
+##########
+
+# allow localhost 
+pass quick on $localhost_if all
+# pass quick on $wireguard_if all
+
+# block ipv6 outside localhost
+block drop log quick inet6
+
+# block all
+block drop log all
+
+# pass wg
+# pass on $wireguard_if
+
+# pass udp for wg
+# pass in  on $internal_if inet proto udp from <airgap_server> to <airgap_client> keep state
+# pass out on $internal_if inet proto udp from <airgap_client> to <airgap_server> keep state
+
+# pass ssh direct
+pass out on $internal_if inet proto tcp from <airgap_client> to <airgap_server> port 8822 flags S/SA keep state

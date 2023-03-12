@@ -1,0 +1,89 @@
+#!/bin/sh
+. $BSD_SBC/.device/gps.usb
+export BSD_REPLACE_ETC_NTP_CONF='# GPS [serial/usb-serial] STRATUM 1 NTPD SERVER CONFIG
+# GERNERIC
+leapfile "/etc/ntp/leap-seconds"
+
+# CUSTOM GPS SYNC
+restrict 127.127.20.1 
+server   127.127.20.1 prefer mode 1
+fudge    127.127.20.1 stratum 1
+
+# LOCALHOST CLOCK
+restrict 127.0.0.1
+restrict 127.127.1.0
+server   127.127.1.0
+fudge    127.127.1.0 stratum 10
+
+# PNOC GUESTS
+restrict 192.168.10.3 nomodify notrap
+
+# CUSTOM HARDENING
+disable bclient 
+interface ignore ipv6
+interface ignore ipv4
+interface ignore all
+interface listen 192.168.10.251
+
+# server auth
+# keys /etc/ntp/host.key
+'
+X='
+# GPS NTPD STRATUM 1 SERVER
+ntpd_enable="YES"
+ntpd_program="/usr/sbin/ntpd"
+ntpd_config="/etc/ntp/ntp.conf"
+ntpd_sync_on_start="YES"
+#ntpd_oomprotect="YES"
+ntp_src_leapfile="/etc/ntp/leap-seconds"
+
+# custom rc.d/ntpd gps extension [needs src code patch hold/101]
+ntpd_gps_enable="YES"
+ntpd_gps_xxgate="YES"
+ntpd_gps_device="cuaU0"
+ntpd_gps_driver_link="gps1"
+ntp_init="PUBLIC_PRIVATE"
+'
+BSD_REPLACE_ETC_NTP_HOSTKEY='
+# ntpkey_RSAhost_rpi3b64-pnoc.3828408508
+# Mon Apr 26 06:48:28 2021
+
+-----BEGIN ENCRYPTED PRIVATE KEY-----
+MIIFHDBOBgkqhkiG9w0BBQ0wQTApBgkqhkiG9w0BBQwwHAQIyjYeiXHg1VYCAggA
+MAwGCCqGSIb3DQIJBQAwFAYIKoZIhvcNAwcECPBlr7GkI3doBIIEyP8Eaay/KaxS
+orzolkdMI9TWvy11GH2K9VRb49Skhdq8us9MBPpjV5L/hMMft73PnFzP5Mn+oad9
+qNuJHG9IMwINYC1YnAFB3doMGot+1tX83xt+lLXrsL90/8oEc1fu1Fi7L1gIeUhh
+IOk/WxJNGGUG6icNnvUQzdYCNcrtEnAXxxEeSkfl7cctxqxHAFgzGW3d1XwvrsM1
+3QLAMFOoLNR1fmAF7wNCcEm533BgLw451s5daHGLux8WXpbu/m0ciu7i7GshcaCC
++Q4JOcWIndKQPeKMmM9EoV+iLDo4K82plLkuznd441qGnbP7ydBzMSt/0tqArmNa
+QNnC6h9yt/CL/+F1mjKSF73HVHA5BbIwCYmL/bOuxBSs7Xxl8w7OZaYRfbvptH5P
+/qEuPYHRmemb+0l/TscPicGiUeWclSVpTAuN9QUh39a3gGkmMt8JPJm5DHuFa4ER
+gRuiPLYggobKcBs6j/fuvvyhVYy+K/ldNIpfExoTMvNdAmqagXKM55LZS/ROse6L
+4aG0fcRPj9lO2tySFNKx/uMkJ2QmU2G+gojC+y9ngiWgWbB7RsXHcCb6pUaKzq4i
+nqEoYVfliuxQ8TtsN9mwf+zLovuL47Kpuh8cHqSPoJkhyRoLm7FzZuYkyQ6OarKo
+oUZ6lhuVrJ1OT2FMS191X0uhrmVyjolgx8PFrdsiTEH1pOSS8pe2QdtJcqc8C2zJ
+zHJKlamHIYs7MweVMKQ+BHtpsE8zdxzgunAws7plZAUfZEspcwhCzhJQqOXJvjyB
+XWeavkCrhocvPyJ86UhSdgn/BPCJomgd3n9f5e6/Jinrq5CHhLKhiqSBp6DbVpEZ
+2m1djAY4gervMLUbtvNzQ0G8DffxB72A3Jasjd/TmjCKzwLXHQgUMDnysvnX2HOw
+9VJvdO251MFrvFxvQCu39q6yNb5oIH986slvXW+vB1OVB3SHCaxznKGpoRWl5uAb
+ly+J54GWGbrY3JYC9iHIaGGOQdqpXhNvQSM6Ew0ZQxwJw53gzto2r+mvAcJncDqU
+R3s1F2xhSPVunU4U26autM+EKMtcO8rzG8qlAWWZeUHIfiovgQQ1gVaySoPn3ZLb
+u21LBC+ZmYIfrx01LXS/Vup7ngv3ryaZdmOL/FnhJEyYNchsQEjP8eJRBhQYqYCT
+rvN0ZxBbc4Xzjq1CIFOtKlasn7KaIrLR9h7DKLyiEpFDzZ2bHeWu1BWCDr0rKlS0
+dPv5AzeiWeaaVmUjV1qs/K58Jj2d3McIoKPNaXOX0yUSPNpNylltSwiSIhFHVXHP
+hOg75vXSJQaKtUv565POQl8CsPolowv3D8hS6jXCs04MTKPL+X6M6sUtN3UiQY/7
+Nd51nqeoXShVK64w5UIzPHOvalMCOzEP9uxSU2j/W8tsLAEQigJMS+yneVKMNym9
+LWJwbIkzrh7co90EnMWzPG+YnpW/8fH8XRKUbSiQpu6c6kjCF/g4QZQ4p9nC7bYk
+fMZIJE/LT3aTEfJ8UfLfSTgAQ/OSa+fXQMNWGKLnWNaSzoBxD+Df3HA4ZeCE+ttT
+XNvZIjvUCNrr0yyvvWj2ZLVqAt5NYeTO4/YIjSaUBAZ0FhbOXzuwyqVSRQMEEycO
+DbdZd3LcjpEFxunShMYNGQ==
+-----END ENCRYPTED PRIVATE KEY-----'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+export BSD_DIST_RC="$BSD_DIST_RC ntpd gpsconfig"
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS PPS_SYNC"
+if [ $BSD_BUILD_SECURE_TARGET ]; then
+	export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS MAC MAC_NTPD"
+fi
+export WITH_NTP=true
+unset WITHOUT_NTP
+export BSD_DIST_RCFW="$BSD_DIST_RCFW srv_ntp"

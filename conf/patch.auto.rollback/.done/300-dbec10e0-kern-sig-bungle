@@ -1,0 +1,47 @@
+commit dbec10e08808e375365fb2a2462f306e0cdfda32
+Author: Jonathan T. Looney <jtl@FreeBSD.org>
+Date:   2021-03-12 18:14:17 +0000
+
+    Fetch the sigfastblock value in syscalls that wait for signals
+    
+    We have seen several cases of processes which have become "stuck" in
+    kern_sigsuspend(). When this occurs, the kernel's td_sigblock_val
+    is set to 0x10 (one block outstanding) and the userspace copy of the
+    word is set to 0 (unblocked). Because the kernel's cached value
+    shows that signals are blocked, kern_sigsuspend() blocks almost all
+    signals, which means the process hangs indefinitely in sigsuspend().
+    
+    It is not entirely clear what is causing this condition to occur.
+    However, it seems to make sense to add some protection against this
+    case by fetching the latest sigfastblock value from userspace for
+    syscalls which will sleep waiting for signals. Here, the change is
+    applied to kern_sigsuspend() and kern_sigtimedwait().
+    
+    Reviewed by:    kib
+    Sponsored by:   Netflix
+    Differential Revision:  https://reviews.freebsd.org/D29225
+
+diff --git a/sys/kern/kern_sig.c b/sys/kern/kern_sig.c
+index 7884b5be9f9..3d55405d315 100644
+--- a/sys/kern/kern_sig.c
++++ b/sys/kern/kern_sig.c
+@@ -1268,6 +1268,9 @@ kern_sigtimedwait(struct thread *td, sigset_t waitset, ksiginfo_t *ksi,
+ 	ets.tv_nsec = 0;
+ 	traced = false;
+ 
++	/* Ensure the sigfastblock value is up to date. */
++	sigfastblock_fetch(td);
++
+ 	if (timeout != NULL) {
+ 		if (timeout->tv_nsec >= 0 && timeout->tv_nsec < 1000000000) {
+ 			timevalid = 1;
+@@ -1527,6 +1530,9 @@ kern_sigsuspend(struct thread *td, sigset_t mask)
+ 	struct proc *p = td->td_proc;
+ 	int has_sig, sig;
+ 
++	/* Ensure the sigfastblock value is up to date. */
++	sigfastblock_fetch(td);
++
+ 	/*
+ 	 * When returning from sigsuspend, we want
+ 	 * the old mask to be restored after the

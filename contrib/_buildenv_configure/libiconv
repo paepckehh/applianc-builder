@@ -1,0 +1,28 @@
+#!/bin/sh
+rm -rf /tmp/gnulib-master
+tar -C /tmp -xf $BSD_CONTRIB/___legacy/gnulib
+export GNULIB_SRCDIR="/tmp/gnulib-master"
+sh ./autogen.sh
+sh ./configure \
+	--build=$LT_ARCH \
+	--host=$CCT \
+	--target=$CCT \
+	--prefix=$PREFIX \
+	--disable-debug \
+	--disable-locale \
+	--disable-doc \
+	--disable-man \
+	--disable-manual \
+	--disable-nls \
+	--disable-largefile \
+	--disable-rpath \ 
+--enable-shared=yes \
+	--enable-static=no \
+	exit
+###################################
+# >>/tmp/build-$PTARGET.log
+--enable-static=no \
+	--enable-static=yes \
+	--enable-shared=no \
+	--enable-shared=yes \
+	am_cv_func_iconv=no

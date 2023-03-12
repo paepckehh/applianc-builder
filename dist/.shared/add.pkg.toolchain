@@ -1,0 +1,10 @@
+#!/bin/sh
+. $BSD_DIST/.shared/add.pkg.bmake
+export BSD_DIST_PKG="$BSD_DIST_PKG xinstall pkgconf samurai ccache-stable"
+export WITH_INCLUDES=true WITH_LEGACY_CONSOLE=true
+unset WITHOUT_INCLUDES WITHOUT_LEGACY_CONSOLE EMBEDDED
+X='
+# toolchain - appliance builder
+kern_securelevel="0" # needed to allow chflags on build items
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"

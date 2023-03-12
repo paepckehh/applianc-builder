@@ -1,0 +1,4 @@
+#!/bin/sh
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE acpi"
+export WITH_ACPI=true
+unset WITHOUT_ACPI

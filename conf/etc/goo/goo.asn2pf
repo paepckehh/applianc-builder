@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO_ALLOW_ASM=true REPO="paepcke.de/asn2pf" goo $*

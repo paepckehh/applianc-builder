@@ -1,0 +1,4 @@
+#!/bin/sh
+cmake $CMAKE_CONFIG \
+	-DLZ4_BUILD_LEGACY_LZ4C=OFF \
+	../build.old/cmake

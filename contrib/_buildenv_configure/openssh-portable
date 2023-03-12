@@ -1,0 +1,23 @@
+#!/bin/sh
+autoreconf -i >> $LOGM
+autoreconf -i >> $LOGM
+sh ./configure \
+	--prefix=/usr \
+	--sysconfdir=/etc/ssh \
+	--with-sysroot=$SYSROOTMOUNT \
+	--build=$LT_ARCH \
+	--host=$CCT \
+	--target=$CCT \
+	--with-pie \
+	--with-sandbox=capsicum \
+	--with-mantype=man \
+	--with-ipaddr-display \
+	--with-security-keybuiltin \
+	cross_compiling=yes
+#--with-privsep-user=ss
+#--with-privsep-path=/var/ss
+#--with-pam
+#--with-pam-service=ssh
+#--with-ldns
+#--with-audit
+sh ./version.sh

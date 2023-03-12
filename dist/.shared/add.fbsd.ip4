@@ -1,0 +1,68 @@
+#!/bin/sh
+. $BSD_DIST/.shared/add.fbsd.nic
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS INET CC_CUBIC"
+export WITH_INET=true
+export WITH_INET_SUPPORT=true
+unset WITHOUT_INET
+unset WITHOUT_INET_SUPPORT
+X='
+#
+netif_enable="YES"
+network_interfaces="auto"
+
+# ipv4
+ifconfig_lo0="inet 127.0.0.1 netmask 255.255.255.0"
+
+# generic
+tcp_keepalive="NO"
+tcp_drop_synfin="YES"
+tcp_extensions="YES"
+icmp_drop_redirect="YES"
+icmp_log_redirect="YES"
+log_in_vain="2"
+defaultrouter="NO"
+gateway_enable="NO"
+arpproxy_all="NO"
+accept_sourceroute="NO"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+X='
+# network ip
+net.inet.ip.forwarding=0
+net.inet.ip.random_id=1
+net.inet.ip.random_id_period=32768
+net.inet.ip.redirect=0
+net.inet.ip.sourceroute=0
+net.inet.ip.accept_sourceroute=0
+net.inet.ip.process_options=0
+net.inet.ip.portrange.first=32768
+net.inet.ip.maxfragpackets=0
+net.inet.ip.maxfragsperpacket=0
+net.inet.ip.rfc1122_strong_es=1
+
+# network icmp
+net.inet.icmp.drop_redirect=1
+net.inet.icmp.maskrepl=0
+net.inet.icmp.bmcastecho=0
+net.inet.icmp.icmplim=1
+net.inet.icmp.icmplim_output=0
+
+# network udp	
+net.inet.udp.blackhole=1
+net.inet.udp.log_in_vain=1
+net.inet.tcp.do_lrd=1
+
+# network sockets 
+net.inet.raw.maxdgram=16384
+net.inet.raw.recvspace=16384
+net.local.stream.sendspace=16384
+net.local.stream.recvspace=16384
+
+# network ipc
+kern.ipc.pipe_mindirect=16384
+kern.ipc.soacceptqueue=256
+
+# fibs by-pass [dhclient]
+net.add_addr_allfibs=1
+'
+export BSD_SYSCTL="$BSD_SYSCTL$X"

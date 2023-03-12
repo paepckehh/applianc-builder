@@ -1,0 +1,5 @@
+#!/bin/sh
+mkdir csources && cd csources
+git -C $BSD_GIT/nim-csources archive master | tar -xf -
+cd ..
+sh ./build_all.sh

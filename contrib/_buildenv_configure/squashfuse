@@ -1,0 +1,11 @@
+#!/bin/sh
+sh ./autogen.sh
+# patch --batch -i $BSD_CONTRIB/_post_autoconf_patch/$PTARGET
+sh ./configure \
+	--host=$CCT \
+	--build=$LT_ARCH \
+	--target=$CCT \
+	--prefix=/usr \
+	--disable-demo \
+	--program-transform-name="" \
+	cross_compiling=yes

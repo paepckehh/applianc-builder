@@ -1,0 +1,11 @@
+#!/bin/sh
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS CAPABILITIES CAPABILITY_MODE"
+export WITH_CAPSICUM=true
+export WITH_CASPER=true
+unset WITHOUT_CAPSICUM
+unset WITHOUT_CASPER
+X='
+# hardening capsicum capability
+vfs.lookup_cap_dotdot=0
+vfs.lookup_cap_dotdot_nonlocal=0'
+export BSD_SYSCTL="$BSD_SYSCTL$X"

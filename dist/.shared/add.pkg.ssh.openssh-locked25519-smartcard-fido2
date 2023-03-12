@@ -1,0 +1,4 @@
+#!/bin/sh
+# export BSD_DIST_PKG="$BSD_DIST_PKG openssh-lock ccid hidapi pcsc libfido2 libcbor"
+unset WITHOUT_OPENSSH
+export WITH_OPENSSSH=true

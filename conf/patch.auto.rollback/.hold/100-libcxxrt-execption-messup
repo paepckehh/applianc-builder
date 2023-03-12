@@ -1,0 +1,39 @@
+commit cbd1e83154af8bae3daa3919bb2746d587436515
+Author: Mark Johnston <markj@FreeBSD.org>
+Date:   2022-08-08 16:30:56 +0000
+
+    Merge libcxxrt commit 5d8a15823a103bbc27f1bfdcf2b5aa008fab57dd
+    
+      Fix two bugs in __cxa_end_cleanup()
+    
+      Per the EHABI32 specification, __cxa_end_cleanup must take care to
+      preserve registers before calling _Unwind_Resume().  So, libcxxrt uses
+      an assembly stub which preserves caller-saved registers around the call
+      to __cxa_get_cleanup().  But:
+      - it failed to restore them properly,
+      - it did not preserve the link register.
+    
+      Fix both of these problems.  This is needed to fix exception unwinding
+      on FreeBSD with LLVM 14.  Note that r4 is callee-saved but is pushed
+      onto the stack to preserve stack pointer alignment.
+    
+      Sponsored-by: The FreeBSD Foundation
+    
+    MFC after:      1 week
+
+diff --git a/contrib/libcxxrt/exception.cc b/contrib/libcxxrt/exception.cc
+index f28082ab7e8..6c5196876b1 100644
+--- a/contrib/libcxxrt/exception.cc
++++ b/contrib/libcxxrt/exception.cc
+@@ -1577,8 +1577,10 @@ asm (
+ ".type __cxa_end_cleanup, \"function\"   \n"
+ "__cxa_end_cleanup:                      \n"
+ "	push {r1, r2, r3, r4}                \n"
++"	mov r4, lr                           \n"
+ "	bl __cxa_get_cleanup                 \n"
+-"	push {r1, r2, r3, r4}                \n"
++"	mov lr, r4                           \n"
++"	pop {r1, r2, r3, r4}                 \n"
+ "	b _Unwind_Resume                     \n"
+ "	bl abort                             \n"
+ ".popsection                             \n"

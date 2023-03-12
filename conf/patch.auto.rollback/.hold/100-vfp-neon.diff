@@ -1,0 +1,631 @@
+
+commit 24abb6b82102eec577eff9bd8dd7726e8cab89f4
+Author: Andrew Turner <andrew@FreeBSD.org>
+Date:   2023-02-20 12:22:11 +0000
+
+    When saving a context on arm call the vfp handler
+    
+    When adding kernel VFP support on arm a comparison instruction was
+    removed, however the branch to vfp_save_state was still conditional.
+    Remove the conditional check and always call into vfp_save_state as
+    it could cause unexpected results otherwise.
+    
+    Sponsored by:   Arm Ltd
+
+diff --git a/sys/arm/arm/swtch-v6.S b/sys/arm/arm/swtch-v6.S
+index bff1bc8f3d35..b23fb2f7686f 100644
+--- a/sys/arm/arm/swtch-v6.S
++++ b/sys/arm/arm/swtch-v6.S
+@@ -325,7 +325,7 @@ ENTRY(cpu_switch)
+ 	ldr	r3, [r10, #(TD_PCB)]
+ 	mov	r1, r3
+ 	mov	r0, r10
+-	blne	_C_LABEL(vfp_save_state)
++	bl	_C_LABEL(vfp_save_state)
+ #endif
+ 
+ 	/*
+diff --git a/sys/arm/arm/swtch.S b/sys/arm/arm/swtch.S
+index f7c2beaf4f3e..1856f8b1e97c 100644
+--- a/sys/arm/arm/swtch.S
++++ b/sys/arm/arm/swtch.S
+@@ -101,7 +101,7 @@ ENTRY(savectx)
+ #ifdef VFP
+ 	mov	r1, r0
+ 	mov	r0, #0
+-	blne	_C_LABEL(vfp_save_state)
++	bl	_C_LABEL(vfp_save_state)
+ #endif
+ 	add	sp, sp, #4;
+ 	ldmfd	sp!, {pc}
+
+
+
+
+commit 6926e2699ae55080f860488895a2a9aa6e6d9b4d
+Author: Kornel Dulęba <kd@FreeBSD.org>
+Date:   2023-02-04 12:59:30 +0000
+
+    arm: Add support for using VFP in kernel
+    
+    Add missing logic to allow in-kernel VFP usage for ARMv7 NEON.
+    The implementation is strongly based on arm64 code.
+    It introduces a family of fpu_kern_* functions to enable the usage
+    of VFP instructions in kernel.
+    Apart from that the existing armv7 VFP logic was modified,
+    taking into account that the state of the VFP registers can now
+    be modified in the kernel.
+    
+    Co-developed by: Wojciech Macek <wma@FreeBSD.org>
+    Sponsored by:   Stormshield
+    Obtained from:  Semihalf
+    Reviewed by:    andrew
+    Differential Revision: https://reviews.freebsd.org/D37419
+
+diff --git a/lib/libthread_db/arch/arm/libpthread_md.c b/lib/libthread_db/arch/arm/libpthread_md.c
+index 34ebbf4c5046..379f67d2568f 100644
+--- a/lib/libthread_db/arch/arm/libpthread_md.c
++++ b/lib/libthread_db/arch/arm/libpthread_md.c
+@@ -87,22 +87,25 @@ pt_ucontext_to_reg(const ucontext_t *uc, struct reg *r)
+ }
+ 
+ void
+-pt_fpreg_to_ucontext(const struct fpreg *r __unused, ucontext_t *uc)
++pt_fpreg_to_ucontext(const struct fpreg *r, ucontext_t *uc)
+ {
+-	mcontext_t *mc = &uc->uc_mcontext;
++	mcontext_vfp_t *mc_vfp;
+ 
+-	/* XXX */
+-	mc->mc_vfp_size = 0;
+-	mc->mc_vfp_ptr = NULL;
+-	memset(mc->mc_spare, 0, sizeof(mc->mc_spare));
++	mc_vfp = uc->uc_mcontext.mc_vfp_ptr;
++
++	if (mc_vfp != NULL)
++		memcpy(mc_vfp, r, sizeof(*r));
+ }
+ 
+ void
+-pt_ucontext_to_fpreg(const ucontext_t *uc __unused, struct fpreg *r)
++pt_ucontext_to_fpreg(const ucontext_t *uc, struct fpreg *r)
+ {
++	mcontext_vfp_t *mc_vfp;
+ 
+-	/* XXX */
+-	memset(r, 0, sizeof(*r));
++	mc_vfp = uc->uc_mcontext.mc_vfp_ptr;
++
++	if (mc_vfp != NULL)
++		memcpy(r, &mc_vfp, sizeof(*r));
+ }
+ 
+ void
+diff --git a/sys/arm/arm/exec_machdep.c b/sys/arm/arm/exec_machdep.c
+index 2bf3efff7fe4..c14bd51146ef 100644
+--- a/sys/arm/arm/exec_machdep.c
++++ b/sys/arm/arm/exec_machdep.c
+@@ -100,16 +100,18 @@ get_vfpcontext(struct thread *td, mcontext_vfp_t *vfp)
+ {
+ 	struct pcb *pcb;
+ 
++	MPASS(td == curthread);
++
+ 	pcb = td->td_pcb;
+-	if (td == curthread) {
++	if ((pcb->pcb_fpflags & PCB_FP_STARTED) != 0) {
+ 		critical_enter();
+ 		vfp_store(&pcb->pcb_vfpstate, false);
+ 		critical_exit();
+-	} else
+-		MPASS(TD_IS_SUSPENDED(td));
+-	memset(vfp, 0, sizeof(*vfp));
++	}
++	KASSERT(pcb->pcb_vfpsaved == &pcb->pcb_vfpstate,
++		("Called get_vfpcontext while the kernel is using the VFP"));
+ 	memcpy(vfp->mcv_reg, pcb->pcb_vfpstate.reg,
+-	    sizeof(vfp->mcv_reg));
++		sizeof(vfp->mcv_reg));
+ 	vfp->mcv_fpscr = pcb->pcb_vfpstate.fpscr;
+ }
+ 
+@@ -121,15 +123,18 @@ set_vfpcontext(struct thread *td, mcontext_vfp_t *vfp)
+ {
+ 	struct pcb *pcb;
+ 
++	MPASS(td == curthread);
++
+ 	pcb = td->td_pcb;
+-	if (td == curthread) {
++	if ((pcb->pcb_fpflags & PCB_FP_STARTED) != 0) {
+ 		critical_enter();
+ 		vfp_discard(td);
+ 		critical_exit();
+-	} else
+-		MPASS(TD_IS_SUSPENDED(td));
++	}
++	KASSERT(pcb->pcb_vfpsaved == &pcb->pcb_vfpstate,
++		("Called set_vfpcontext while the kernel is using the VFP"));
+ 	memcpy(pcb->pcb_vfpstate.reg, vfp->mcv_reg,
+-	    sizeof(pcb->pcb_vfpstate.reg));
++		sizeof(pcb->pcb_vfpstate.reg));
+ 	pcb->pcb_vfpstate.fpscr = vfp->mcv_fpscr;
+ }
+ #endif
+@@ -166,6 +171,8 @@ get_mcontext(struct thread *td, mcontext_t *mcp, int clear_ret)
+ {
+ 	struct trapframe *tf = td->td_frame;
+ 	__greg_t *gr = mcp->__gregs;
++	mcontext_vfp_t	mcontext_vfp;
++	int rv;
+ 
+ 	if (clear_ret & GET_MC_CLEAR_RET) {
+ 		gr[_REG_R0] = 0;
+@@ -190,9 +197,19 @@ get_mcontext(struct thread *td, mcontext_t *mcp, int clear_ret)
+ 	gr[_REG_LR]   = tf->tf_usr_lr;
+ 	gr[_REG_PC]   = tf->tf_pc;
+ 
+-	mcp->mc_vfp_size = 0;
+-	mcp->mc_vfp_ptr = NULL;
+-	memset(&mcp->mc_spare, 0, sizeof(mcp->mc_spare));
++#ifdef VFP
++	if (mcp->mc_vfp_size != sizeof(mcontext_vfp_t))
++		return (EINVAL);
++	get_vfpcontext(td, &mcontext_vfp);
++#else
++	bzero(&mcontext_vfp, sizeof(mcontext_vfp));
++#endif
++
++	if (mcp->mc_vfp_ptr != NULL) {
++		rv = copyout(&mcontext_vfp, mcp->mc_vfp_ptr,  sizeof(mcontext_vfp));
++		if (rv != 0)
++			return (rv);
++	}
+ 
+ 	return (0);
+ }
+@@ -306,14 +323,6 @@ sendsig(sig_t catcher, ksiginfo_t *ksi, sigset_t *mask)
+ 	/* Populate the siginfo frame. */
+ 	bzero(&frame, sizeof(frame));
+ 	get_mcontext(td, &frame.sf_uc.uc_mcontext, 0);
+-#ifdef VFP
+-	get_vfpcontext(td, &frame.sf_vfp);
+-	frame.sf_uc.uc_mcontext.mc_vfp_size = sizeof(fp->sf_vfp);
+-	frame.sf_uc.uc_mcontext.mc_vfp_ptr = &fp->sf_vfp;
+-#else
+-	frame.sf_uc.uc_mcontext.mc_vfp_size = 0;
+-	frame.sf_uc.uc_mcontext.mc_vfp_ptr = NULL;
+-#endif
+ 	frame.sf_si = ksi->ksi_info;
+ 	frame.sf_uc.uc_sigmask = *mask;
+ 	frame.sf_uc.uc_stack = td->td_sigstk;
+diff --git a/sys/arm/arm/machdep.c b/sys/arm/arm/machdep.c
+index 933edfb0dc84..0c82190181be 100644
+--- a/sys/arm/arm/machdep.c
++++ b/sys/arm/arm/machdep.c
+@@ -377,6 +377,7 @@ init_proc0(vm_offset_t kstack)
+ 	thread0.td_pcb = (struct pcb *)(thread0.td_kstack +
+ 	    thread0.td_kstack_pages * PAGE_SIZE) - 1;
+ 	thread0.td_pcb->pcb_flags = 0;
++	thread0.td_pcb->pcb_fpflags = 0;
+ 	thread0.td_pcb->pcb_vfpcpu = -1;
+ 	thread0.td_pcb->pcb_vfpstate.fpscr = VFPSCR_DN;
+ 	thread0.td_frame = &proc0_tf;
+diff --git a/sys/arm/arm/machdep_kdb.c b/sys/arm/arm/machdep_kdb.c
+index b1f04c0832a1..22d403957b81 100644
+--- a/sys/arm/arm/machdep_kdb.c
++++ b/sys/arm/arm/machdep_kdb.c
+@@ -39,6 +39,7 @@ __FBSDID("$FreeBSD$");
+ #include <sys/systm.h>
+ 
+ #include <machine/cpu.h>
++#include <machine/pcb.h>
+ 
+ #ifdef DDB
+ #include <ddb/ddb.h>
+@@ -105,7 +106,26 @@ fill_regs(struct thread *td, struct reg *regs)
+ int
+ fill_fpregs(struct thread *td, struct fpreg *regs)
+ {
+-	bzero(regs, sizeof(*regs));
++#ifdef VFP
++	struct pcb *pcb;
++
++	pcb = td->td_pcb;
++	if ((pcb->pcb_fpflags & PCB_FP_STARTED) != 0) {
++		/*
++		 * If we have just been running VFP instructions we will
++		 * need to save the state to memcpy it below.
++		 */
++		if (td == curthread)
++			vfp_save_state(td, pcb);
++	}
++	KASSERT(pcb->pcb_vfpsaved == &pcb->pcb_vfpstate,
++	    ("Called fill_fpregs while the kernel is using the VFP"));
++	memcpy(regs->fpr_r, pcb->pcb_vfpstate.reg,
++	    sizeof(regs->fpr_r));
++	regs->fpr_fpscr = pcb->pcb_vfpstate.fpscr;
++#else
++	memset(regs, 0, sizeof(*regs));
++#endif
+ 	return (0);
+ }
+ 
+@@ -126,6 +146,15 @@ set_regs(struct thread *td, struct reg *regs)
+ int
+ set_fpregs(struct thread *td, struct fpreg *regs)
+ {
++#ifdef VFP
++	struct pcb *pcb;
++
++	pcb = td->td_pcb;
++	KASSERT(pcb->pcb_vfpsaved == &pcb->pcb_vfpstate,
++	    ("Called set_fpregs while the kernel is using the VFP"));
++	memcpy(pcb->pcb_vfpstate.reg, regs->fpr_r, sizeof(regs->fpr_r));
++	pcb->pcb_vfpstate.fpscr = regs->fpr_fpscr;
++#endif
+ 	return (0);
+ }
+ 
+diff --git a/sys/arm/arm/swtch-v6.S b/sys/arm/arm/swtch-v6.S
+index 8bbd88bc8670..bff1bc8f3d35 100644
+--- a/sys/arm/arm/swtch-v6.S
++++ b/sys/arm/arm/swtch-v6.S
+@@ -323,11 +323,9 @@ ENTRY(cpu_switch)
+ 
+ #ifdef VFP
+ 	ldr	r3, [r10, #(TD_PCB)]
+-	fmrx	r0, fpexc		/* If the VFP is enabled */
+-	tst	r0, #(VFPEXC_EN)	/* the current thread has */
+-	movne	r1, #1			/* used it, so go save */
+-	addne	r0, r3, #(PCB_VFPSTATE)	/* the state into the PCB */
+-	blne	_C_LABEL(vfp_store)	/* and disable the VFP. */
++	mov	r1, r3
++	mov	r0, r10
++	blne	_C_LABEL(vfp_save_state)
+ #endif
+ 
+ 	/*
+diff --git a/sys/arm/arm/swtch.S b/sys/arm/arm/swtch.S
+index b1180b06fc07..f7c2beaf4f3e 100644
+--- a/sys/arm/arm/swtch.S
++++ b/sys/arm/arm/swtch.S
+@@ -99,11 +99,9 @@ ENTRY(savectx)
+ 	add	r3, r0, #(PCB_R4)
+ 	stmia	r3, {r4-r12, sp, lr, pc}
+ #ifdef VFP
+-	fmrx	r2, fpexc		/* If the VFP is enabled */
+-	tst	r2, #(VFPEXC_EN)	/* the current thread has */
+-	movne	r1, #1			/* used it, so go save */
+-	addne	r0, r0, #(PCB_VFPSTATE)	/* the state into the PCB */
+-	blne	_C_LABEL(vfp_store)	/* and disable the VFP. */
++	mov	r1, r0
++	mov	r0, #0
++	blne	_C_LABEL(vfp_save_state)
+ #endif
+ 	add	sp, sp, #4;
+ 	ldmfd	sp!, {pc}
+diff --git a/sys/arm/arm/vfp.c b/sys/arm/arm/vfp.c
+index 3fa53c7ae2eb..915d65c1b790 100644
+--- a/sys/arm/arm/vfp.c
++++ b/sys/arm/arm/vfp.c
+@@ -55,6 +55,14 @@ static struct undefined_handler vfp10_uh, vfp11_uh;
+ /* If true the VFP unit has 32 double registers, otherwise it has 16 */
+ static int is_d32;
+ 
++struct fpu_kern_ctx {
++	struct vfp_state	*prev;
++#define	FPU_KERN_CTX_DUMMY	0x01	/* avoided save for the kern thread */
++#define	FPU_KERN_CTX_INUSE	0x02
++	uint32_t	 flags;
++	struct vfp_state	 state;
++};
++
+ /*
+  * About .fpu directives in this file...
+  *
+@@ -100,6 +108,26 @@ set_coprocessorACR(u_int val)
+ 	isb();
+ }
+ 
++static void
++vfp_enable(void)
++{
++	uint32_t fpexc;
++
++	fpexc = fmrx(fpexc);
++	fmxr(fpexc, fpexc | VFPEXC_EN);
++	isb();
++}
++
++static void
++vfp_disable(void)
++{
++	uint32_t fpexc;
++
++	fpexc = fmrx(fpexc);
++	fmxr(fpexc, fpexc & ~VFPEXC_EN);
++	isb();
++}
++
+ 	/* called for each cpu */
+ void
+ vfp_init(void)
+@@ -223,7 +251,9 @@ vfp_bounce(u_int addr, u_int insn, struct trapframe *frame, int code)
+ 	curpcb = curthread->td_pcb;
+ 	cpu = PCPU_GET(cpuid);
+ 	if (curpcb->pcb_vfpcpu != cpu || curthread != PCPU_GET(fpcurthread)) {
+-		vfp_restore(&curpcb->pcb_vfpstate);
++		if (curpcb->pcb_vfpsaved == NULL)
++			curpcb->pcb_vfpsaved = &curpcb->pcb_vfpstate;
++		vfp_restore(curpcb->pcb_vfpsaved);
+ 		curpcb->pcb_vfpcpu = cpu;
+ 		PCPU_SET(fpcurthread, curthread);
+ 	}
+@@ -320,4 +350,154 @@ vfp_discard(struct thread *td)
+ 		fmxr(fpexc, tmp & ~VFPEXC_EN);
+ }
+ 
++void
++vfp_save_state(struct thread *td, struct pcb *pcb)
++{
++	int32_t fpexc;
++
++	KASSERT(pcb != NULL, ("NULL vfp pcb"));
++	KASSERT(td == NULL || td->td_pcb == pcb, ("Invalid vfp pcb"));
++
++	/*
++	 * savectx() will be called on panic with dumppcb as an argument,
++	 * dumppcb doesn't have pcb_vfpsaved set, so set it to save
++	 * the VFP registers.
++	 */
++	if (pcb->pcb_vfpsaved == NULL)
++		pcb->pcb_vfpsaved = &pcb->pcb_vfpstate;
++
++	if (td == NULL)
++		td = curthread;
++
++	critical_enter();
++	/*
++	 * Only store the registers if the VFP is enabled,
++	 * i.e. return if we are trapping on FP access.
++	 */
++	fpexc = fmrx(fpexc);
++	if (fpexc & VFPEXC_EN) {
++		KASSERT(PCPU_GET(fpcurthread) == td,
++		    ("Storing an invalid VFP state"));
++
++		vfp_store(pcb->pcb_vfpsaved, true);
++	}
++	critical_exit();
++}
++
++void
++fpu_kern_enter(struct thread *td, struct fpu_kern_ctx *ctx, u_int flags)
++{
++	struct pcb *pcb;
++
++	pcb = td->td_pcb;
++	KASSERT((flags & FPU_KERN_NOCTX) != 0 || ctx != NULL,
++	    ("ctx is required when !FPU_KERN_NOCTX"));
++	KASSERT(ctx == NULL || (ctx->flags & FPU_KERN_CTX_INUSE) == 0,
++	    ("using inuse ctx"));
++	KASSERT((pcb->pcb_fpflags & PCB_FP_NOSAVE) == 0,
++	    ("recursive fpu_kern_enter while in PCB_FP_NOSAVE state"));
++
++	if ((flags & FPU_KERN_NOCTX) != 0) {
++		critical_enter();
++		if (curthread == PCPU_GET(fpcurthread)) {
++			vfp_save_state(curthread, pcb);
++		}
++		PCPU_SET(fpcurthread, NULL);
++
++		vfp_enable();
++		pcb->pcb_fpflags |= PCB_FP_KERN | PCB_FP_NOSAVE |
++		    PCB_FP_STARTED;
++		return;
++	}
++
++	if ((flags & FPU_KERN_KTHR) != 0 && is_fpu_kern_thread(0)) {
++		ctx->flags = FPU_KERN_CTX_DUMMY | FPU_KERN_CTX_INUSE;
++		return;
++	}
++	/*
++	 * Check either we are already using the VFP in the kernel, or
++	 * the the saved state points to the default user space.
++	 */
++	KASSERT((pcb->pcb_fpflags & PCB_FP_KERN) != 0 ||
++	    pcb->pcb_vfpsaved == &pcb->pcb_vfpstate,
++	    ("Mangled pcb_vfpsaved %x %p %p", pcb->pcb_fpflags, pcb->pcb_vfpsaved,
++	     &pcb->pcb_vfpstate));
++	ctx->flags = FPU_KERN_CTX_INUSE;
++	vfp_save_state(curthread, pcb);
++	ctx->prev = pcb->pcb_vfpsaved;
++	pcb->pcb_vfpsaved = &ctx->state;
++	pcb->pcb_fpflags |= PCB_FP_KERN;
++	pcb->pcb_fpflags &= ~PCB_FP_STARTED;
++
++	return;
++}
++
++int
++fpu_kern_leave(struct thread *td, struct fpu_kern_ctx *ctx)
++{
++	struct pcb *pcb;
++
++	pcb = td->td_pcb;
++
++	if ((pcb->pcb_fpflags & PCB_FP_NOSAVE) != 0) {
++		KASSERT(ctx == NULL, ("non-null ctx after FPU_KERN_NOCTX"));
++		KASSERT(PCPU_GET(fpcurthread) == NULL,
++		    ("non-NULL fpcurthread for PCB_FP_NOSAVE"));
++		CRITICAL_ASSERT(td);
++
++		vfp_disable();
++		pcb->pcb_fpflags &= ~(PCB_FP_NOSAVE | PCB_FP_STARTED);
++		critical_exit();
++	} else {
++		KASSERT((ctx->flags & FPU_KERN_CTX_INUSE) != 0,
++		    ("FPU context not inuse"));
++		ctx->flags &= ~FPU_KERN_CTX_INUSE;
++
++		if (is_fpu_kern_thread(0) &&
++		    (ctx->flags & FPU_KERN_CTX_DUMMY) != 0)
++			return (0);
++		KASSERT((ctx->flags & FPU_KERN_CTX_DUMMY) == 0, ("dummy ctx"));
++		critical_enter();
++		vfp_discard(td);
++		critical_exit();
++		pcb->pcb_fpflags &= ~PCB_FP_STARTED;
++		pcb->pcb_vfpsaved = ctx->prev;
++	}
++
++	if (pcb->pcb_vfpsaved == &pcb->pcb_vfpstate) {
++		pcb->pcb_fpflags &= ~PCB_FP_KERN;
++	} else {
++		KASSERT((pcb->pcb_fpflags & PCB_FP_KERN) != 0,
++		    ("unpaired fpu_kern_leave"));
++	}
++
++	return (0);
++}
++
++int
++fpu_kern_thread(u_int flags __unused)
++{
++	struct pcb *pcb = curthread->td_pcb;
++
++	KASSERT((curthread->td_pflags & TDP_KTHREAD) != 0,
++	    ("Only kthread may use fpu_kern_thread"));
++	KASSERT(pcb->pcb_vfpsaved == &pcb->pcb_vfpstate,
++	    ("Mangled pcb_vfpsaved"));
++	KASSERT((pcb->pcb_fpflags & PCB_FP_KERN) == 0,
++	    ("Thread already setup for the VFP"));
++	pcb->pcb_fpflags |= PCB_FP_KERN;
++	return (0);
++}
++
++int
++is_fpu_kern_thread(u_int flags __unused)
++{
++	struct pcb *curpcb;
++
++	if ((curthread->td_pflags & TDP_KTHREAD) == 0)
++		return (0);
++	curpcb = curthread->td_pcb;
++	return ((curpcb->pcb_fpflags & PCB_FP_KERN) != 0);
++}
++
+ #endif
+diff --git a/sys/arm/arm/vm_machdep.c b/sys/arm/arm/vm_machdep.c
+index 5f21a92d2b8b..d899e2cd584b 100644
+--- a/sys/arm/arm/vm_machdep.c
++++ b/sys/arm/arm/vm_machdep.c
+@@ -108,9 +108,8 @@ cpu_fork(struct thread *td1, struct proc *p2, struct thread *td2, int flags)
+ #ifdef VFP
+ 	/* Store actual state of VFP */
+ 	if (curthread == td1) {
+-		critical_enter();
+-		vfp_store(&td1->td_pcb->pcb_vfpstate, false);
+-		critical_exit();
++		if ((td1->td_pcb->pcb_fpflags & PCB_FP_STARTED) != 0)
++			vfp_save_state(td1, td1->td_pcb);
+ 	}
+ #endif
+ 	td2->td_pcb = pcb2;
+@@ -139,6 +138,7 @@ cpu_fork(struct thread *td1, struct proc *p2, struct thread *td2, int flags)
+ 	pcb2->pcb_regs.sf_tpidrurw = (register_t)get_tls();
+ 
+ 	pcb2->pcb_vfpcpu = -1;
++	pcb2->pcb_vfpsaved = &pcb2->pcb_vfpstate;
+ 	pcb2->pcb_vfpstate.fpscr = initial_fpscr;
+ 
+ 	tf = td2->td_frame;
+diff --git a/sys/arm/include/fpu.h b/sys/arm/include/fpu.h
+new file mode 100644
+index 000000000000..1a43683db831
+--- /dev/null
++++ b/sys/arm/include/fpu.h
+@@ -0,0 +1,7 @@
++/*-
++ * This file is in the public domain.
++ *
++ * $FreeBSD$
++ */
++#include <machine/ucontext.h>
++#include <machine/vfp.h>
+diff --git a/sys/arm/include/pcb.h b/sys/arm/include/pcb.h
+index 078a13c13796..849119d01056 100644
+--- a/sys/arm/include/pcb.h
++++ b/sys/arm/include/pcb.h
+@@ -66,6 +66,11 @@ struct pcb {
+ 
+ 	struct vfp_state pcb_vfpstate;          /* VP/NEON state */
+ 	u_int pcb_vfpcpu;                       /* VP/NEON last cpu */
++#define	PCB_FP_STARTED	0x01
++#define	PCB_FP_KERN	0x02
++#define	PCB_FP_NOSAVE	0x04
++	struct vfp_state *pcb_vfpsaved;          /* VP/NEON state */
++	int		pcb_fpflags;
+ } __aligned(8); /*
+ 		 * We need the PCB to be aligned on 8 bytes, as we may
+ 		 * access it using ldrd/strd, and ARM ABI require it
+diff --git a/sys/arm/include/reg.h b/sys/arm/include/reg.h
+index 4dc954816881..e5ed27921184 100644
+--- a/sys/arm/include/reg.h
++++ b/sys/arm/include/reg.h
+@@ -13,17 +13,9 @@ struct reg {
+ 	unsigned int r_cpsr;
+ };
+ 
+-struct fp_extended_precision {
+-	__uint32_t fp_exponent;
+-	__uint32_t fp_mantissa_hi;
+-	__uint32_t fp_mantissa_lo;
+-};
+-
+-typedef struct fp_extended_precision fp_reg_t;
+-
+ struct fpreg {
+-	unsigned int fpr_fpsr;
+-	fp_reg_t fpr[8];
++	__uint64_t	fpr_r[32];
++	__uint32_t	fpr_fpscr;
+ };
+ 
+ struct dbreg {
+diff --git a/sys/arm/include/vfp.h b/sys/arm/include/vfp.h
+index b9cc6efb9589..e15e088970b5 100644
+--- a/sys/arm/include/vfp.h
++++ b/sys/arm/include/vfp.h
+@@ -139,6 +139,11 @@
+ #define COPROC10		(0x3 << 20)
+ #define COPROC11		(0x3 << 22)
+ 
++#define	FPU_KERN_NORMAL	0x0000
++#define	FPU_KERN_NOWAIT	0x0001
++#define	FPU_KERN_KTHR	0x0002
++#define	FPU_KERN_NOCTX	0x0004
++
+ #ifndef LOCORE
+ struct vfp_state {
+ 	uint64_t reg[32];
+@@ -154,6 +159,18 @@ void	set_vfpcontext(struct thread *, mcontext_vfp_t *);
+ void    vfp_init(void);
+ void    vfp_store(struct vfp_state *, boolean_t);
+ void    vfp_discard(struct thread *);
++void	vfp_restore_state(void);
++void	vfp_save_state(struct thread *, struct pcb *);
++
++struct fpu_kern_ctx;
++
++struct fpu_kern_ctx *fpu_kern_alloc_ctx(u_int);
++void fpu_kern_free_ctx(struct fpu_kern_ctx *);
++void fpu_kern_enter(struct thread *, struct fpu_kern_ctx *, u_int);
++int fpu_kern_leave(struct thread *, struct fpu_kern_ctx *);
++int fpu_kern_thread(u_int);
++int is_fpu_kern_thread(u_int);
++
+ #endif	/* _KERNEL */
+ #endif	/* LOCORE */
+ 

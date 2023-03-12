@@ -1,0 +1,5 @@
+#!/bin/sh
+cd usr/bin
+ln -fs openssl lockssl
+cd ../include
+ln -fs openssl lockssl

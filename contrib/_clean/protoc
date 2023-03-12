@@ -1,0 +1,3 @@
+usr/lib/*lite*
+usr/lib/cmake
+usr/libdata/pkgconfig/*lite*

@@ -1,0 +1,2 @@
+#!/bin/sh
+/usr/bin/doas -u curl /usr/bin/curl

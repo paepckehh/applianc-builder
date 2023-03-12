@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="github.com/sourcegraph/go-diff/cmd/go-diff" goo $*

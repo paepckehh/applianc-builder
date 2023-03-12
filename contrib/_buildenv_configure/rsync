@@ -1,0 +1,20 @@
+#!/bin/sh
+sh ./configure \
+	--prefix=/usr \
+	--host=$CCT \
+	--target=$CCT \
+	--build=$LT_ARCH \
+	--disable-debug \
+	--disable-locale \
+	--disable-ipv6 \
+	--disable-md2man \
+	--disable-iconv-open \
+	--disable-iconv \
+	--disable-acl-support \
+	--disable-lz4 \
+	--disable-zstd
+
+################
+#       --disable-xattr-support \
+#	--disable-xxhash \
+# 	--disable-openssl

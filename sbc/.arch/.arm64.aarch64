@@ -1,0 +1,4 @@
+#!/bin/sh
+. $BSD_ARCH/.arm64
+export TARCH_L2=aarch64
+export BSD_KERNCONF_MACHINE="$TARCH_L1 $TARCH_L2"

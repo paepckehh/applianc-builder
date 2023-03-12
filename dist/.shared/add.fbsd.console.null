@@ -1,0 +1,5 @@
+#!/bin/sh
+X='
+console="nullconsole"
+'
+export BSD_LOADER_CONF="$BSD_LOADER_CONF $X"

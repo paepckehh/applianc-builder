@@ -1,0 +1,13 @@
+#!/bin/sh
+sh ./configure \
+	--host=$CCT \
+	--without-ndiff \
+	--without-zenmap \
+	--without-nping \
+	--without-ncat \
+	--disable-nls \
+	--disable-nmap-update \
+	--disable-debug \
+	--without-libssh2 \
+	--with-openssl=/usr \
+	>> /tmp/build-nmap.log

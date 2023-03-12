@@ -1,0 +1,4 @@
+#!/bin/sh
+export WITH_DHCP=true
+unset WITHOUT_DHCP
+export BSD_DIST_PKG="$BSD_DIST_PKG dhcp6c"

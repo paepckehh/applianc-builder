@@ -1,0 +1,342 @@
+### ( 2023-01-13 ) ( 1673588041 ) ### DO NOT EDIT ### auto-generated file / patchset by <appliance-builder/enhanced> ###
+--- ./calc.go.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./calc.go	1970-01-01 00:00:00.000000000 +0000
+@@ -15,10 +15,9 @@
+ 	"io"
+ 	"sort"
+ 
++	"github.com/cespare/xxhash"
+ 	"github.com/cxmcc/tiger"
+ 	"github.com/dchest/blake256"
+-	"github.com/dchest/blake2b"
+-	"github.com/dchest/blake2s"
+ 	"github.com/dchest/blake512"
+ 	"github.com/dchest/siphash"
+ 	"github.com/dchest/skein"
+@@ -30,7 +29,10 @@
+ 	"github.com/martinlindhe/gogost/gost34112012256"
+ 	"github.com/martinlindhe/gogost/gost34112012512"
+ 	"github.com/martinlindhe/gogost/gost341194"
++	"github.com/mengzhuo/sm3"
+ 	"github.com/mewpkg/hashutil/crc8"
++	"golang.org/x/crypto/blake2b"
++	"golang.org/x/crypto/blake2s"
+ 	"golang.org/x/crypto/md4"
+ 	"golang.org/x/crypto/ripemd160"
+ 	"golang.org/x/crypto/sha3"
+@@ -52,24 +54,33 @@
+ var (
+ 	algos = map[string]int{
+ 		// name, key size in bits
++		"adler":             32,
+ 		"adler32":           32,
+ 		"blake224":          224,
+ 		"blake256":          256,
+ 		"blake384":          384,
+ 		"blake512":          512,
++		"blake2b":           512,
+ 		"blake2b-256":       256,
+ 		"blake2b-512":       512,
++		"blake2s":           256,
+ 		"blake2s-256":       256,
+-		"blake3":            256,
++		"blake3":            512,
++		"blake3-224":        224,
++		"blake3-256":        256,
++		"blake3-384":        384,
++		"blake3-512":        512,
+ 		"crc8-atm":          8,
+ 		"crc16-ccitt":       16,
+ 		"crc16-ccitt-false": 16,
+ 		"crc16-ibm":         16,
+ 		"crc16-scsi":        16,
+ 		"crc24-openpgp":     24,
++		"crc32":             32,
+ 		"crc32-ieee":        32,
+ 		"crc32-castagnoli":  32,
+ 		"crc32-koopman":     32,
++		"crc64":             64,
+ 		"crc64-iso":         64,
+ 		"crc64-ecma":        64,
+ 		"fnv1-32":           32,
+@@ -89,46 +100,67 @@
+ 		"sha512":            512,
+ 		"sha512-224":        224,
+ 		"sha512-256":        256,
++		"sha512t256":        256,
++		"sha3":              512,
+ 		"sha3-224":          224,
+ 		"sha3-256":          256,
+ 		"sha3-384":          384,
+ 		"sha3-512":          512,
+ 		"shake128-256":      256,
+ 		"shake256-512":      512,
++		"siphash":           64,
+ 		"siphash-2-4":       64,
++		"skein":             512,
++		"skein512":          512,
+ 		"skein512-256":      256,
+ 		"skein512-512":      512,
+ 		"streebog-256":      256,
+ 		"streebog-512":      512,
++		"tiger":             192,
+ 		"tiger192":          192,
+ 		"whirlpool":         512,
++		"sm3":               256,
++		"xxHash":            64,
++		"xxHash64":          64,
+ 	}
+ 
+ 	hashers = map[string]func(io.Reader) ([]byte, error){
++		"adler":             adler32Sum,
+ 		"adler32":           adler32Sum,
+ 		"blake224":          blake224Sum,
+ 		"blake256":          blake256Sum,
+ 		"blake384":          blake384Sum,
+ 		"blake512":          blake512Sum,
++		"blake2b":           blake2b512Sum,
+ 		"blake2b-256":       blake2b256Sum,
+ 		"blake2b-512":       blake2b512Sum,
++		"blake2s":           blake2s256Sum,
+ 		"blake2s-256":       blake2s256Sum,
+-		"blake3":            blake3Sum,
++		"blake3":            blake3_512Sum,
++		"blake3-224":        blake3_224Sum,
++		"blake3-256":        blake3_256Sum,
++		"blake3-384":        blake3_384Sum,
++		"blake3-512":        blake3_512Sum,
+ 		"crc8-atm":          crc8AtmSum,
+ 		"crc16-ccitt":       crc16CcittSum,
+ 		"crc16-ccitt-false": crc16CcittFalseSum,
+ 		"crc16-ibm":         crc16IbmSum,
+ 		"crc16-scsi":        crc16ScsiSum,
+ 		"crc24-openpgp":     crc24OpenPGPSum,
++		"crc32":             crc32IEEESum,
+ 		"crc32-ieee":        crc32IEEESum,
+ 		"crc32-castagnoli":  crc32CastagnoliSum,
++		"crc32c":            crc32CastagnoliSum,
+ 		"crc32-koopman":     crc32KoopmanSum,
++		"crc32k":            crc32KoopmanSum,
++		"crc64":             crc64ISOSum,
+ 		"crc64-iso":         crc64ISOSum,
+ 		"crc64-ecma":        crc64ECMASum,
+ 		"fnv1-32":           fnv1_32Sum,
+ 		"fnv1a-32":          fnv1a32Sum,
+ 		"fnv1-64":           fnv1_64Sum,
+ 		"fnv1a-64":          fnv1a64Sum,
++		"gost":              gost94Sum,
+ 		"gost94":            gost94Sum,
+ 		"gost94-cryptopro":  gost94CryptoproSum,
+ 		"md2":               md2Sum,
+@@ -142,25 +174,36 @@
+ 		"sha512":            sha512Sum,
+ 		"sha512-224":        sha512_224Sum,
+ 		"sha512-256":        sha512_256Sum,
++		"sha512t256":        sha512_256Sum,
++		"sha3":              sha3_512Sum,
+ 		"sha3-224":          sha3_224Sum,
+ 		"sha3-256":          sha3_256Sum,
+ 		"sha3-384":          sha3_384Sum,
+ 		"sha3-512":          sha3_512Sum,
+ 		"shake128-256":      shake128_256Sum,
+ 		"shake256-512":      shake256_512Sum,
++		"siphash":           siphash2_4Sum,
+ 		"siphash-2-4":       siphash2_4Sum,
++		"skein":             skein512_512Sum,
++		"skein256":          skein512_256Sum,
++		"skein512":          skein512_512Sum,
+ 		"skein512-256":      skein512_256Sum,
+ 		"skein512-512":      skein512_512Sum,
+ 		"streebog-256":      streebog256Sum,
+ 		"streebog-512":      streebog512Sum,
++		"streebog2012-256":  streebog256Sum,
++		"streebog2012-512":  streebog512Sum,
++		"sm3":               sm3Sum,
++		"tiger":             tiger192Sum,
+ 		"tiger192":          tiger192Sum,
+ 		"whirlpool":         whirlpoolSum,
++		"xxhash":            xxhashSum,
++		"xxhash64":          xxhashSum,
+ 	}
+ )
+ 
+ // Sum returns the checksum
+ func (c *Calculator) Sum(algo string) ([]byte, error) {
+-	algo = resolveAlgoAliases(algo)
+ 	if checksum, ok := hashers[algo]; ok {
+ 		return checksum(c.reader)
+ 	}
+@@ -169,60 +212,14 @@
+ 
+ // AvailableHashes returns the available hash id's
+ func AvailableHashes() []string {
+-
+ 	res := []string{}
+-
+ 	for key := range hashers {
+ 		res = append(res, key)
+ 	}
+-
+ 	sort.Strings(res)
+ 	return res
+ }
+ 
+-func resolveAlgoAliases(s string) string {
+-
+-	if s == "crc32" {
+-		return "crc32-ieee"
+-	}
+-	if s == "crc32c" {
+-		return "crc32-castagnoli"
+-	}
+-	if s == "crc32k" {
+-		return "crc32-koopman"
+-	}
+-
+-	// "skein256" is used by sphsum
+-	if s == "skein256" {
+-		return "skein512-256"
+-	}
+-
+-	// "skein512" is used by sphsum
+-	if s == "skein512" {
+-		return "skein512-256"
+-	}
+-
+-	// "tiger" is used by rhash, sphsum
+-	if s == "tiger" {
+-		return "tiger192"
+-	}
+-
+-	// "gost" is used by rhash
+-	if s == "gost" {
+-		return "gost94"
+-	}
+-
+-	// streebog is sometimes referred to as GOST-2012
+-	if s == "gost2012-256" {
+-		return "streebog-256"
+-	}
+-	if s == "gost2012-512" {
+-		return "streebog-512"
+-	}
+-
+-	return s
+-}
+-
+ func adler32Sum(r io.Reader) ([]byte, error) {
+ 	buf := new(bytes.Buffer)
+ 	_, _ = buf.ReadFrom(r)
+@@ -265,7 +262,7 @@
+ }
+ 
+ func blake2b256Sum(r io.Reader) ([]byte, error) {
+-	h := blake2b.New256()
++	h, _ := blake2b.New256(nil)
+ 	if _, err := io.Copy(h, r); err != nil {
+ 		return nil, err
+ 	}
+@@ -273,7 +270,7 @@
+ }
+ 
+ func blake2b512Sum(r io.Reader) ([]byte, error) {
+-	h := blake2b.New512()
++	h, _ := blake2b.New512(nil)
+ 	if _, err := io.Copy(h, r); err != nil {
+ 		return nil, err
+ 	}
+@@ -281,21 +278,13 @@
+ }
+ 
+ func blake2s256Sum(r io.Reader) ([]byte, error) {
+-	h := blake2s.New256()
++	h, _ := blake2s.New256(nil)
+ 	if _, err := io.Copy(h, r); err != nil {
+ 		return nil, err
+ 	}
+ 	return h.Sum(nil), nil
+ }
+ 
+-func blake3Sum(r io.Reader) ([]byte, error) {
+-	h := blake3.New(256/8, nil)
+-	if _, err := io.Copy(h, r); err != nil {
+-		return nil, err
+-	}
+-	return h.Sum(nil), nil
+-}
+-
+ func crc8AtmSum(r io.Reader) ([]byte, error) {
+ 	h := crc8.NewATM()
+ 	if _, err := io.Copy(h, r); err != nil {
+@@ -625,6 +614,54 @@
+ 
+ func whirlpoolSum(r io.Reader) ([]byte, error) {
+ 	h := whirlpool.New()
++	if _, err := io.Copy(h, r); err != nil {
++		return nil, err
++	}
++	return h.Sum(nil), nil
++}
++
++func blake3_224Sum(r io.Reader) ([]byte, error) {
++	h := blake3.New(224/8, nil)
++	if _, err := io.Copy(h, r); err != nil {
++		return nil, err
++	}
++	return h.Sum(nil), nil
++}
++
++func blake3_256Sum(r io.Reader) ([]byte, error) {
++	h := blake3.New(256/8, nil)
++	if _, err := io.Copy(h, r); err != nil {
++		return nil, err
++	}
++	return h.Sum(nil), nil
++}
++
++func blake3_384Sum(r io.Reader) ([]byte, error) {
++	h := blake3.New(384/8, nil)
++	if _, err := io.Copy(h, r); err != nil {
++		return nil, err
++	}
++	return h.Sum(nil), nil
++}
++
++func blake3_512Sum(r io.Reader) ([]byte, error) {
++	h := blake3.New(512/8, nil)
++	if _, err := io.Copy(h, r); err != nil {
++		return nil, err
++	}
++	return h.Sum(nil), nil
++}
++
++func sm3Sum(r io.Reader) ([]byte, error) {
++	h := sm3.New()
++	if _, err := io.Copy(h, r); err != nil {
++		return nil, err
++	}
++	return h.Sum(nil), nil
++}
++
++func xxhashSum(r io.Reader) ([]byte, error) {
++	h := xxhash.New()
+ 	if _, err := io.Copy(h, r); err != nil {
+ 		return nil, err
+ 	}
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ ./gohash-unix-shell-wrapper.sh	1970-01-01 00:00:00.000000000 +0000
+@@ -0,0 +1,14 @@
++#!/bin/sh
++# ... adds some unix [bsd style] shell wrapper for gohash!
++HASHER_CMD=hasher
++DGST_LIST=$($HASHER_CMD -A | sed -e 's/\[//g' | sed -e 's/\]//g')
++for DGST in $DGST_LIST; do
++	echo "#!/bin/sh" >$DGST
++	echo if [ '$1' ]"; then" >>$DGST
++	echo "	$HASHER_CMD" --no-colors --skip-filename "$DGST" -i '$1' >>$DGST
++	echo else >>$DGST
++	echo "	$HASHER_CMD" --no-colors --skip-filename "$DGST" >>$DGST
++	echo fi >>$DGST
++	chmod +x $DGST
++	echo "... [done] wrapper for $DGST!"
++done

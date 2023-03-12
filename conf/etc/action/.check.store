@@ -1,0 +1,6 @@
+#!/bin/sh
+if [ ! $BSD_CONF_VERSION ]; then . /etc/.bsdconf; fi
+if [ ! -x /usr/store/eXchange ]; then
+	sh /etc/action/store mount
+	if [ ! -x /usr/store/eXchange ]; then echo "[err] [unable to mount store]" && exit 1; fi
+fi

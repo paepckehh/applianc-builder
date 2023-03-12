@@ -1,0 +1,65 @@
+#!/bin/sh
+#
+# PROVIDE: xxdevdname
+
+. /etc/rc.subr
+name="xxdevdname"
+desc="devdname - symbolic name device assistant"
+rcvar="xxdevdname_enable"
+load_rc_config $name
+
+devdname_start_cuaU() {
+	i=0
+	while [ $i -lt 10 ]; do
+		if [ "cua$(/sbin/sysctl -qn dev.umodem.$i.ttyname)" == "$device" ]; then
+			id=0 && while [ -e /dev/gps$id ]; do id=$((id + 1)); done
+			echo "$id" > /var/lock.init.gps.$device
+			logger "[xx] [devdname] activated [/dev/gps$id] [via:$device] [$xx_startservicegps]"
+			rm -f /dev/gps$id
+			ln -fs /dev/$device /dev/gps$id
+			sysctl -q hw.usb.ucom.pps_mode=0
+			sysctl -q hw.usb.ucom.cons_baud=9600
+			sysctl -q hw.usb.ucom.device_mode_console=0
+			if [ "$xx_devdname_gps_pps" == "YES" ]; then
+				ln -fs /dev/$ttyU$i /dev/pps$i
+				sysctl -q hw.usb.ucom.pps_mode=1
+			fi
+			if [ "$xx_devdname_startservicegps" != "" ]; then /usr/sbin/service $xx_startservicegps onerestart; fi
+		fi
+		if [ "cua$(/sbin/sysctl -qn dev.u3g.$i.ttyname).0" == "$device" ]; then
+			id=0 && while [ -e /dev/lte$id ]; do id=$((id + 1)); done
+			echo "$id" > /var/lock.init.lte.$device
+			logger "[xx] [devdname] activated [/dev/lte$id] [via:$device] [$xx_startservicelte]"
+			rm -f /dev/lte$id
+			ln -fs /dev/$device /dev/lte$id
+			if [ "$xx_devdname_startservicelte" != "" ]; then /usr/sbin/service $xx_startservicelte onerestart; fi
+		fi
+		i=$((i + 1))
+	done
+}
+
+devdname_stop_cuaU() {
+	if [ -e /var/lock.init.gps.$device ]; then
+		id="$(cat /var/lock.init.gps.$device)"
+		logger "Stopping [xx] [devdname] [/dev/gps$id] [$device]"
+		if [ "$xx_devdname_startservicegps" != "" ]; then /usr/sbin/service $xx_startservicegps onestop; fi
+		rm -rf /dev/gps$id
+		rm -rf /var/lock.init.gps.$device
+	fi
+	if [ -e /var/lock.init.lte.$device ]; then
+		id="$(cat /var/lock.init.lte.$device)"
+		logger "Stopping [xx] [devdname] [/dev/lte$id] [$device]"
+		if [ "$xx_devdname_startservicelte" != "" ]; then /usr/sbin/service $xx_startservicelte onstop; fi
+		rm -rf /dev/lte$id
+		rm -rf /var/lock.init.lte.$device
+	fi
+}
+case $2 in
+cuaU*)
+	device=$2
+	case $1 in
+	onestart) (devdname_start_cuaU | logger) & ;;
+	onestop) (devdname_stop_cuaU | logger) & ;;
+	esac
+	;;
+esac

@@ -1,0 +1,38 @@
+#!/bin/sh
+rm /var/lock.pkg.gpg
+BSDlive gpg
+sh ./autogen.sh
+case $CCT in
+x86)
+	sh ./configure \
+		--build=$LT_ARCH \
+		--host=$CCT \
+		--target=$CCT \
+		--prefix=$PREFIX \
+		--disable-debug \
+		--disable-locale \
+		--disable-doc \
+		--disable-man \
+		--disable-nls \
+		--disable-manual \
+		>> /tmp/build-$PTARGET.log
+	;;
+*)
+	sh ./configure \
+		--build=$LT_ARCH \
+		--host=$CCT \
+		--target=$CCT \
+		--prefix=$PREFIX \
+		--disable-debug \
+		--disable-locale \
+		--disable-doc \
+		--disable-man \
+		--disable-nls \
+		--disable-manual \
+		--disable-asm \
+		--enable-ciphers="arcfour blowfish cast5 des aes twofish serpent rfc2268 seed camellia idea salsa20 chacha20 sm4" \
+		>> /tmp/build-$PTARGET.log
+	;;
+esac
+###################################
+#	--enable-ciphers="arcfour blowfish cast5 des aes twofish serpent rfc2268 seed camellia idea salsa20 chacha20 sm4" \

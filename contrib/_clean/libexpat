@@ -1,0 +1,4 @@
+usr/bin
+usr/lib/*.a
+usr/lib/cmake
+usr/share

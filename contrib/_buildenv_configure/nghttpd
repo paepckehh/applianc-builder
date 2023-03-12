@@ -1,0 +1,18 @@
+#!/bin/sh
+cd /tmp
+ln -s /tmp/nghttp2-master nghttpd-master
+cd nghttpd-master
+autoreconf -i >> /tmp/build-nghttpd.log
+autoreconf -i >> /tmp/build-nghttpd.log
+automake >> /tmp/build-nghttpd.log
+autoconf >> /tmp/build-nghttpd.log
+sh ./configure \
+	--disable-debug \
+	--disable-locale \
+	--disable-nls \
+	--disable-failmalloc \
+	--disable-assert \
+	--disable-largefile \
+	--with-neverbleed \
+	--enable-app \
+	>> /tmp/build-nghttpd.log

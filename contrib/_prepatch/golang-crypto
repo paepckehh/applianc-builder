@@ -1,0 +1,37 @@
+### ( 2023-03-12 ) ( 1678605360 ) ### DO NOT EDIT ### auto-generated file / patchset by <appliance-builder/enhanced> ###
+--- ./scrypt/scrypt.go.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./scrypt/scrypt.go	1970-01-01 00:00:00.000000000 +0000
+@@ -11,6 +11,7 @@
+ 	"crypto/sha256"
+ 	"encoding/binary"
+ 	"errors"
++	"hash"
+ 	"math/bits"
+ 
+ 	"golang.org/x/crypto/pbkdf2"
+@@ -209,4 +210,25 @@
+ 	}
+ 
+ 	return pbkdf2.Key(password, b, 1, keyLen, sha256.New), nil
++}
++
++// Enhanced scrypt.Key interface, allows [similar to PBKDF2] a flexible scrypt hash support via default golang Hash.hash interface.
++
++func KeyEnhanced(password, salt []byte, N, r, p, keyLen int, hash func() hash.Hash) ([]byte, error) {
++	if N <= 1 || N&(N-1) != 0 {
++		return nil, errors.New("scrypt: N must be > 1 and a power of 2")
++	}
++	if uint64(r)*uint64(p) >= 1<<30 || r > maxInt/128/p || r > maxInt/256 || N > maxInt/128/r {
++		return nil, errors.New("scrypt: parameters are too large")
++	}
++
++	xy := make([]uint32, 64*r)
++	v := make([]uint32, 32*N*r)
++	b := pbkdf2.Key(password, salt, 1, p*128*r, hash)
++
++	for i := 0; i < p; i++ {
++		smix(b[i*128*r:], r, N, v, xy)
++	}
++
++	return pbkdf2.Key(password, b, 1, keyLen, hash), nil
+ }

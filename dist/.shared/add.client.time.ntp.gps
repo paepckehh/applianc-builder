@@ -1,0 +1,9 @@
+#!/bin/sh
+. $BSD_SBC/.device/gps.usb
+X='
+# xxntp_gps - parse/set NEMEA GPS CODE -> RTC
+xxntp_gps_enable="YES"
+xxntp_gps_device="cuaU0"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+export BSD_DIST_RC="$BSD_DIST_RC xxntp_gps"

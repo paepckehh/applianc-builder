@@ -1,0 +1,2 @@
+#!/bin/sh
+/usr/bin/ugrep -Ijrp --color=always --exclude='*hqx' --exclude='*hqs' $*

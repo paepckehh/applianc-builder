@@ -1,0 +1,9 @@
+#!/bin/sh
+sh ./bootstrap >> /tmp/build-brotli.log
+sh ./configure \
+	--host=$CCT \
+	--prefix=/usr/local \
+	--enable-shared \
+	--disable-debug \
+	--disable-static \
+	>> /tmp/build-brotli.log

@@ -1,0 +1,3 @@
+sys/dtb
+sys/dts/vendor
+bin/lsx

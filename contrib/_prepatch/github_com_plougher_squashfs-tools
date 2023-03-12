@@ -1,0 +1,75 @@
+### ( 20220823 ) ( 1661235778 ) ### DO NOT EDIT ### auto-generated file / patchset by <appliance-builder/enhanced> ###
+--- ./squashfs-tools/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./squashfs-tools/Makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -15,7 +15,7 @@
+ # Obviously, you must select at least one of the available gzip, lzma, lzo
+ # compression types.
+ #
+-GZIP_SUPPORT = 1
++#GZIP_SUPPORT = 1
+ 
+ ########### Building XZ support #############
+ #
+@@ -76,7 +76,7 @@
+ # To build install the library and uncomment
+ # the ZSTD_SUPPORT line below.
+ #
+-#ZSTD_SUPPORT = 1
++ZSTD_SUPPORT = 1
+ 
+ 
+ ######## Specifying default compression ########
+@@ -85,7 +85,7 @@
+ # in Mksquashfs.  Obviously the compression algorithm must have been
+ # selected to be built
+ #
+-COMP_DEFAULT = gzip
++COMP_DEFAULT = zstd
+ 
+ 
+ ###############################################
+@@ -97,7 +97,7 @@
+ # If your C library or build/target environment doesn't support XATTRs then
+ # comment out the next line to build Mksquashfs and Unsquashfs without XATTR
+ # support
+-XATTR_SUPPORT = 1
++# XATTR_SUPPORT = 1
+ 
+ # Select whether you wish xattrs to be stored by Mksquashfs and extracted
+ # by Unsquashfs by default.  If selected users can disable xattr support by
+@@ -105,7 +105,7 @@
+ #
+ # If unselected, Mksquashfs/Unsquashfs won't store and extract xattrs by
+ # default.  Users can enable xattrs by using the -xattrs option.
+-XATTR_DEFAULT = 1
++# XATTR_DEFAULT = 1
+ 
+ 
+ ###############################################
+@@ -116,7 +116,7 @@
+ # can disable reproducible builds using the not-reproducible option.
+ # If not selected, users can enable reproducible builds using the
+ # -reproducible option
+-REPRODUCIBLE_DEFAULT = 1
++# REPRODUCIBLE_DEFAULT = 1
+ 
+ ###############################################
+ #              INSTALL PATHS                  #
+@@ -128,7 +128,7 @@
+ # To skip building and installing manpages,
+ # unset INSTALL_MANPAGES_DIR or set to ""
+ #
+-INSTALL_PREFIX = /usr/local
++INSTALL_PREFIX = /usr
+ INSTALL_DIR = $(INSTALL_PREFIX)/bin
+ INSTALL_MANPAGES_DIR = $(INSTALL_PREFIX)/man/man1
+ 
+@@ -171,7 +171,7 @@
+ 	unsquash-4.o unsquash-123.o unsquash-34.o unsquash-1234.o unsquash-12.o \
+ 	swap.o compressor.o unsquashfs_info.o
+ 
+-CFLAGS ?= -O2
++CFLAGS ?= -Ofast
+ CFLAGS += $(EXTRA_CFLAGS) $(INCLUDEDIR) -D_FILE_OFFSET_BITS=64 \
+ 	-D_LARGEFILE_SOURCE -D_GNU_SOURCE -DCOMP_DEFAULT=\"$(COMP_DEFAULT)\" \
+ 	-Wall

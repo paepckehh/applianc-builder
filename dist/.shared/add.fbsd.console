@@ -1,0 +1,56 @@
+#!/bin/sh
+. $BSD_DIST/.shared/add.fbsd.consfix
+export BSD_ETC_TTYS='#
+ttyv0	"/usr/libexec/getty Pc"		xterm	onifexists secure
+ttyv1	"/usr/libexec/getty Pc"		xterm	onifexists secure
+ttyv2	"/usr/libexec/getty Pc"		xterm	onifexists secure
+ttyv3	"/usr/libexec/getty Pc"		xterm	onifexists secure
+ttyv4	"/usr/libexec/getty Pc"		xterm	onifexists secure
+ttyv5	"/usr/libexec/getty Pc"		xterm	onifexists secure
+ttyv6	"/usr/libexec/getty Pc"		xterm	onifexists secure
+ttyv7	"/usr/libexec/getty Pc"		xterm	onifexists secure
+ttyv8	"/usr/libexec/getty Pc"		xterm	onifexists secure
+ttyv9	"/usr/libexec/getty Pc"		xterm	onifexists secure
+ttyva	"/usr/libexec/getty Pc"		xterm	onifexists secure
+'
+if [ $BSD_BOOT_EFICONS ]; then
+	export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE vt_efifb"
+fi
+case $TARCH_L1 in
+amd64)
+	export
+	# export WITH_SYSCONS=true
+	# unset WITHOUT_SYSCONS
+	# export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS VT_FB_MAX_HEIGHT=1080 VT_FB_MAX_WIDTH=1920 SC_PIXEL_MODE"
+	export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE vt_vga vt_efifb vt_vbefb vga"
+	# export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE vt_vga vt_efifb vt_vbefb vga splash sc"
+	# export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE vt_vga vt_vbefb"
+	X='
+	vbe_max_resolution="1080p"
+	'
+	export BSD_LOADER_CONF="$BSD_LOADER_CONF $X"
+	;;
+esac
+X='
+
+# console hardening
+hw.kbd.keymap_restrict_change=4
+hw.hid.debug=1
+kern.vt.debug=1 
+kern.vt.kbd_debug=0
+kern.vt.kbd_panic=0
+kern.vt.kbd_reboot=0
+kern.vt.kbd_poweroff=0
+kern.vt.kbd_halt=0
+
+'
+export BSD_SYSCTL="$BSD_SYSCTL $X"
+export WITH_VT=true
+unset WITHOUT_VT
+. $BSD_SBC/.device/usb
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE hid ukbd kbdmux vt"
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS KBD_INSTALL_CDEV KBD_DISABLE_KEYMAP_LOAD"
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS KBD_DELAY1=200 KBD_DELAY2=15"
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS SC_NO_CUTPASTE SC_HISTORY_SIZE=1000 VT_ALT_TO_ESC_HACK=1 VT_MAXWINDOWS=12"
+export WITH_LEGACY_CONSOLE=true
+unset WITHOUT_LEGACY_CONSOLE

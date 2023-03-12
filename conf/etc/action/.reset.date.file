@@ -1,0 +1,10 @@
+#!/bin/sh
+#
+# example sh /action/.reset.file.dates /usr/store"
+ref="/usr/store/.posix-timestamp-zero"
+touch -a -m -d "1970-01-01T00:00:00" $ref
+find $1 -type d -newer $ref | xargs touch -a -m -d "1970-01-01T00:00:00" &
+find $1 -type f -newer $ref | xargs touch -a -m -d "1970-01-01T00:00:00" &
+find $1 -type l -newer $ref | xargs touch -a -m -h -d "1970-01-01T00:00:00" &
+wait
+echo "... [done] recursive timestamp adj: [$1] [posix-timestamp-zero]"

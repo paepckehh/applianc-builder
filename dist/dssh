@@ -1,0 +1,13 @@
+#!/bin/sh
+. $BSD_DIST/.base/bare
+. $BSD_DIST/.shared/add.fbsd.console.vertical
+. $BSD_DIST/.shared/add.worker.cssh
+. $BSD_DIST/.shared/add.client.ssh.airgap-ssproxy
+. $BSD_DIST/.shared/add.fbsd.tcpdump
+X='
+# xxcssh - prepare the sshclient worker
+xxcssh_enable="YES"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+export BSD_DIST_RC="$BSD_DIST_RC xxcssh"
+export BSD_TARGET_DIST="dssh" # full featured [debug|dev] cssh

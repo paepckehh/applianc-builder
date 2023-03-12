@@ -1,0 +1,2 @@
+#!/bin/sh
+if [ $1 ]; then /sbin/umount -f /mnt/store/$1; fi

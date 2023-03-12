@@ -1,0 +1,10 @@
+#!/bin/sh
+X='
+# devd generic
+devd_enable="YES" 
+devd_flags="-q"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+export BSD_DIST_RC="$BSD_DIST_RC devd"
+unset WITHOUT_DEVD
+export WITH_DEVD=true

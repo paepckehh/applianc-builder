@@ -1,0 +1,36 @@
+### ( 2023-03-12 ) ( 1678605360 ) ### DO NOT EDIT ### auto-generated file / patchset by <appliance-builder/enhanced> ###
+--- ./e2fsck/e2fsck.h.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./e2fsck/e2fsck.h	1970-01-01 00:00:00.000000000 +0000
+@@ -145,7 +145,7 @@
+ 
+ struct encrypted_file_info;
+ 
+-#define RESOURCE_TRACK
++#undef RESOURCE_TRACK
+ 
+ #ifdef RESOURCE_TRACK
+ /*
+--- ./resize/resource_track.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./resize/resource_track.c	1970-01-01 00:00:00.000000000 +0000
+@@ -27,7 +27,7 @@
+ 	io_stats io_start = 0;
+ 
+ 	track->desc = desc;
+-	track->brk_start = sbrk(0);
++	/* track->brk_start = sbrk(0); */
+ 	gettimeofday(&track->time_start, 0);
+ #ifdef HAVE_GETRUSAGE
+ #ifdef sun
+@@ -84,9 +84,9 @@
+ 		kbytes(malloc_info.arena), kbytes(malloc_info.hblkhd),
+ 		kbytes(malloc_info.uordblks), kbytes(malloc_info.fordblks));
+ #else
+-	printf("Memory used: %lu, ",
+-		(unsigned long) (((char *) sbrk(0)) -
+-				 ((char *) track->brk_start)));
++/*	printf("Memory used: %lu, ",
++ *		(unsigned long) (((char *) sbrk(0)) -
++ *				 ((char *) track->brk_start))); */
+ #endif
+ #ifdef HAVE_GETRUSAGE
+ 	getrusage(RUSAGE_SELF, &r);

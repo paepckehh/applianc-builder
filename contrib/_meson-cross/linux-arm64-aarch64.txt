@@ -1,0 +1,13 @@
+[binaries]
+c = '/usr/local/llvm/bin/cc'
+cpp = '/usr/local/llvm/bin/cpp'
+ar = '/usr/local/llvm/bin/ar'
+strip = '/usr/local/llvm/bin/strip'
+pkgconfig = '/usr/bin/pkgconfig'
+ld = '/usr/local/llvm/ld.lld'
+
+[host_machine]
+system = 'linux'
+cpu_family = 'aarch64'
+cpu = 'armv8' 
+endian = 'little'

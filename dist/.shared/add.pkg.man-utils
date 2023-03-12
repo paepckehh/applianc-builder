@@ -1,0 +1,3 @@
+#!/bin/sh
+unset WITHOUT_MAN_UTILS
+export WITH_MAN_UTILS=true

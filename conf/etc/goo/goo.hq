@@ -1,0 +1,2 @@
+#!/bin/sh
+CAPS_BLOCK="$CAPS_BLOCK network" GOODEBUG=true REPO_ALLOW_ASM=true REPO="paepcke.de/hq" goo $*

@@ -1,0 +1,33 @@
+#!/bin/sh
+. $BSD_DIST/.os/fbsd.current
+. $BSD_DIST/.shared/add.fbsd.randomkick
+. $BSD_DIST/.shared/add.fbsd.tmproot
+X='
+###########################
+# BASIC [non-jail] SETUP  #
+###########################
+
+# APPLIANCE [SBC|DIST] SPECIFIC CONFIG
+. /etc/rc.info
+
+dmesg_enable="YES"
+ldconfig_paths="/usr/local/lib"
+
+newsyslog_enable="YES"
+newsyslog_flags="-CN"
+
+syslogd_enable="YES"
+syslogd_program="/usr/sbin/syslogd"
+syslogd_flags="-s -s -n -4" 
+
+mfs_type="tmpfs"
+tmpmfs="YES"
+tmpsize="0"
+varmfs="YES"
+varsize="0"
+
+###########################
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+export BSD_MDROOT=lzma
+export BSD_TARGET_DIST="mini" 

@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="github.com/golang-jwt/jwt/cmd/jwt" goo $*

@@ -1,0 +1,18 @@
+#!/bin/sh
+if [ ! $1 ]; then echo "... please specify a target drive" && exit; fi
+if [ ! -c /dev/$1 ]; then
+	echo "### TARGET DRIVE  *** /dev/$1 *** does NOT exist! Please insert /dev/$1!"
+	while $LOOP; do
+		if [ ! -c /dev/$1 ]; then
+			echo -n "." && sleep 0.2
+		else
+			beep
+			echo "# HIT" && echo "... /dev/$1 found!" && break
+		fi
+	done
+fi
+sh /etc/action/mount-bsd-store $1
+cp -avf /usr/store/backup/DEV* /mnt/store/$1/.lts/DEV/
+sh /etc/action/umount-store $1
+beep 2
+echo "... done, please remove drive!"

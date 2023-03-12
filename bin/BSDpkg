@@ -1,0 +1,922 @@
+#!/bin/sh
+case $1 in
+.)
+	if [ ! -z "$FZF_CMD" ]; then
+		cd $BSD_CONTRIB
+		cp -af _src_cc/* _src_cc_no/* _src/
+		cd _src
+		BSDpkg $(ls | $FZF_CMD) all cleanstore
+		exit
+	fi
+	;;
+esac
+if [ ! -x /usr/bin/sponge ]; then echo "need /usr/bin/sponge" && exit; fi
+if [ ! -x /usr/local/llvm/bin ]; then BSDlive llvm; fi
+if [ ! -x /usr/local/goo/.goo ]; then BSDlive goo; fi
+. $BSD_SBC/$SBC
+. /etc/.bsdconf
+sh /etc/action/store rebuild
+export NO_COLOR=true
+export BUILD_DATE=$(date +%Y-%m-%d-%H-%M)
+export BUILD_CC_SYSROOT=true
+export PTARGET=$1
+export BUILDARCH=$(uname -p)
+export DTSF=$(date "+%Y%m%d")
+export DTSS=$(date "+%Y%m%d-%H%M%S")
+export LOCAL_GOOS=$GOOS
+export LOCAL_GOARCH=$GOARCH
+export LOCAL_GOARM=$GOARM
+export PTARGET_GOOS=$GOOS
+export PTARGET_GOARCH=$GOARCH
+export PTARGET_GOARM=$GOARM
+export TOS=fbsd
+export OSLEVEL=45
+export LOGDIR=/tmp/.build.pkg.log && mkdir -p $LOGDIR
+export CCACHE_DISABLE=true && unset CCACHE_NODISABLE
+export PATCHLOGDIR=/tmp/.build.pkg.patchlog && mkdir -p $PATCHLOGDIR
+export TMP=/tmp/.build.pkg.temp && export TMPDIR=$TMP && export TEMP=$TMP && export TEMPDIR=$TMP && mkdir -p $TMP
+if [ ! -w /usr/obj ]; then mkdir -p /usr/obj && mount -t tmpfs tmpfs /usr/obj; fi
+if [ ! -e /usr/sysroots/.temp/.done ]; then
+	sh /etc/action/store drop.sysroots
+	mount -t tmpfs tmpfs /usr/sysroots && mkdir -p /usr/sysroots/.temp
+	MD=$BSD_MD_SYSROOTS_START
+	for ITEM in $BSD_ENABLED_ROOTFS; do
+		case $ITEM in
+		fbsd.bsrv*)
+			if [ -e /dev/md$MD ]; then mdconfig -d -u $MD; fi
+			mkdir -p /usr/sysroots/$ITEM
+			mdconfig -u $MD -f $BSD_ROOTFS/$ITEM > /dev/null
+			if [ -e /dev/md$MD ]; then mount -r /dev/md$MD.uzip /usr/sysroots/$ITEM; fi
+			MD=$((MD + 1))
+			;;
+		esac
+	done
+	touch /usr/sysroots/.temp/.done
+fi
+syntax() {
+	echo ""
+	echo "SYNTAX:  BSDpkg <pkg> <plattform> <opt>"
+	echo "EXAMPLE: BSDpkg . (interactive mode)"
+	echo "EXAMPLE: BSDpkg hq amd64"
+	echo "EXAMPLE: BSDpkg hq rpi2 cleanstore"
+	echo "EXAMPLE: BSDpkg cc		(-> build all cc enabled packages for all available os/arch combinations)"
+	echo ""
+	echo "opt:"
+	echo " [arch]     -> cross-plattform-build for specified [target] arch | alias"
+	echo " clean      -> reset pkg build env!"
+	echo " cleanstore -> will remove all pre-existing older packages for the target"
+	echo ""
+	echo "... currently cross build target sets [sysroots]:"
+	echo "$BSD_ENABLED_ROOTFS"
+	echo ""
+	echo "... [cc-all-enabled] currently available ** ALL ARCH [set -> cc] ** cross plattform build target packages:"
+	ls -I $BSD_CONTRIB/_src_cc
+	echo ""
+	echo "... all others - cross plattform build target packages:"
+	ls -I $BSD_CONTRIB/_src_cc_no
+	echo ""
+	exit
+}
+export TOS=fbsd
+export GOOS=freebsd
+if [ ! $1 ]; then syntax; fi
+case $1 in
+linux*) TOS=linux && GOOS=linux ;;
+hbsd*) TOS=fbsd && GOOS=freebsd ;;
+openbsd*) TOS=obsd && GOOS=openbsd ;;
+netbsd*) TOS=nbsd && GOO=netbsd ;;
+dragon*) TOS=ybsd && GOOS=dragonfly ;;
+darwin*) TOS=darwin && GOOS=darwin ;;
+windows) TOS=windows && GOOS=windows ;;
+goo)
+	case $2 in
+	linux)
+		GOOOS=linux /usr/bin/time -lh sh $BSD_DEV/goo/.scripts/action-rebuild-goo.sh
+		exit
+		;;
+	* | freebsd)
+		GOOOS=freebsd /usr/bin/time -lh sh $BSD_DEV/goo/.scripts/action-rebuild-goo.sh
+		sh /etc/action/store drop.golang
+		BSDlive goo
+		exit
+		;;
+	esac
+	;;
+esac
+export MALLOC_PRODUCTION=true
+export LT_ARCH=$CCT
+MODE=default
+case $3 in
+cleanstore) export PTARGET_CLEAN=true ;;
+linux*) TOS=linux && GOOS=linux ;;
+hbsd*) TOS=fbsd && GOOS=freebsd ;;
+openbsd*) TOS=obsd && GOOS=openbsd ;;
+netbsd*) TOS=nbsd && GOO=netbsd ;;
+dragon*) TOS=ybsd && GOOS=dragonfly ;;
+darwin*) TOS=darwin && GOOS=darwin ;;
+windows) TOS=windows && GOOS=windows ;;
+*)
+	BUILDARCH=$3
+	echo "################## CROSS COMPILE RE-TARGET -> $BUILDARCH ######################"
+	if [ -e $BSD_SBC/.alias.cc/$BUILDARCH ]; then
+		. $BSD_SBC/.alias.cc/$BUILDARCH
+	elif [ -e $BSD_SBC/.alias/$BUILDARCH ]; then
+		. $BSD_SBC/.alias/$BUILDARCH
+		export CCO=$FBSD_CFLAGS
+	else
+		echo "... unsuported re-target cpu plattform, exit now! "
+		exit
+	fi
+	;;
+esac
+case $2 in
+all) echo "... build mode for $PTARGET for all plattforms" ;;
+cleanstore) export PTARGET_CLEAN=true ;;
+linux*) TOS=linux && GOOS=linux ;;
+hbsd*) TOS=fbsd && GOOS=freebsd ;;
+openbsd*) TOS=obsd && GOOS=openbsd ;;
+netbsd*) TOS=nbsd && GOO=netbsd ;;
+dragon*) TOS=ybsd && GOOS=dragonfly ;;
+darwin*) TOS=darwin && GOOS=darwin ;;
+windows) TOS=windows && GOOS=windows ;;
+*)
+	BUILDARCH=$2
+	echo "################## CROSS COMPILE RE-TARGET -> $BUILDARCH ######################"
+	if [ -e $BSD_SBC/.alias.cc/$BUILDARCH ]; then
+		. $BSD_SBC/.alias.cc/$BUILDARCH
+	elif [ -e $BSD_SBC/.alias/$BUILDARCH ]; then
+		. $BSD_SBC/.alias/$BUILDARCH
+		export CCO=$FBSD_CFLAGS
+	else
+		echo ".. unsuported re-target cpu plattform [$2], exit now!"
+		exit
+	fi
+	;;
+esac
+export TOS
+export GOOS
+export PTARGET_GOOS=$GOOS
+case $TOS in
+linux*)
+	if [ -e $BSD_CONTRIB/_linuxtarget/$PTARGET ]; then
+		echo "### $TOS -> $PTARGET ###!"
+	else
+		echo "... $PTARGET for $TOS  is disabled until we have a proper sysroot cc target vm in store!" && exit
+	fi
+	;;
+esac
+if [ -f $BSD_CONTRIB/_all/$PTARGET ] && [ "$TARCH_L3" != "x86-64-v3" ]; then echo "plattform independed _all, exit" && exit; fi
+export PTARGET_GOARCH=$GOARCH
+export PTARGET_GOARM=$GOARM
+case $BPKG in
+force) echo "### FORCE rebuild mode detected! FORCE stays till reboot! revert: BSDpkg clean!" ;;
+esac
+case $PTARGET_CLEAN in
+true) echo "############### CLEANSTORE rebuild mode enabled! #################" ;;
+esac
+
+########################
+# C COMPILER ENV SETUP #
+########################
+export ASLR="-fPIC -fPIE -pie"
+# export ASLR_LD="-Wl -z notext -s"
+export ASLR_LD="-z notext -s"
+export SYSROOTMOUNT=/usr/sysroots/$TOS.bsrv.$TARCH_L1.$TARCH_L2.$TARCH_L3
+export CDV=$LLVM_BASE
+export SRM=$SYSROOTMOUNT
+export LLVM_INCLUDE="-I/usr/local/llvm/include/clang/include"
+export LLVM_LIB_LDFLAGS="-L/usr/local/llvm/lib"
+export EXTRAINCLUDE="-I$SRM/usr/include"
+export EXTRAINCLUDE_SMALL="-I$SRM/usr/include"
+export EXTRALIB="-L$SRM/usr/lib"
+export PKG_CONFIG_SYSROOT_DIR=$SRM
+export PKG_CONFIG_LOG=$LOGDIR/pkgconf-$SRM.log
+export PKG_CONF=/usr/bin/pkgconf
+export PKG_CONFIG_LIBDIR=/usr/lib
+export PKG_CONFIG_PATH=/usr/libdata/pkgconfig:/usr/local/libdata/pkgconfig
+export EXTRAOPT="-pipe -w --ld-path=$LD"
+export FLTO="-flto=full"
+export LDOPT="-flto=full -O3"
+export EXTRACPP="-stdlib=libc++"
+export USE_DEV_URANDOM=1
+export PATH="$PATH:/usr/local/llvm/bin"
+if [ -e $BSD_CONTRIB/_bsd_elftoolchain/$1 ]; then
+	echo "... fallback bsd elf toolchain!"
+	. $BSD_ACTION/build.buildenv.sh
+	buildenv_conf_bsd_elftoolchain
+fi
+if [ -e $BSD_CONTRIB/_no-cc-aslr/$1 ]; then
+	echo "... apps that dont like ASLR options via shotgun!"
+	export ASLR=""
+	export ASLR_LD=""
+fi
+if [ -e $BSD_CONTRIB/_static/$1 ]; then
+	echo "... static linking activated! [not compatible with aslr]"
+	export ASLR=""
+	export ASLR_LD=""
+	export STATIC="-static"
+fi
+if [ -e $BSD_CONTRIB/_conf_must_warn/$1 ]; then
+	echo "... compiler warnings must be enabled for config phase"
+	export EXTRAOPT="-pipe --ld-path=$LD"
+fi
+if [ -e $BSD_CONTRIB/_no-flto/$1 ]; then
+	echo "... flto link time optimisation deactivated"
+	export LDOPT=""
+	export FLTO=""
+	if [ "$TARCH_L1" = "amd64" ] || [ "$TARCH_L1" = "arm64" ]; then
+		BSDlive mold
+		if [ -x /usr/local/bin/mold ]; then
+			export EXTRAOPT="-pipe -w --ld-path=/usr/local/bin/mold"
+		fi
+	fi
+fi
+if [ -e $BSD_CONTRIB/_no-cc-opt/$1 ]; then
+	echo "..  replace compiler opt "
+	export CCO="$(echo $CCO | sed -e 's/Ofast/O2/g')"
+fi
+case $TOS in
+fbsd)
+	export CFLAGS="-target $CCT --sysroot $SYSROOTMOUNT $EXTRAINCLUDE $CCO $ASLR $STATIC $FLTO $EXTRAOPT"
+	export LDFLAGS="-target $CCT --sysroot $SYSROOTMOUNT $LDOPT $EXTRALIB $CCO $ASLR $ASLR_LD $STATIC $FLTO $EXTRAOPT"
+	;;
+linux)
+	export CFLAGS="-target $LCT --sysroot $SYSROOTMOUNT $EXTRAINCLUDE $CCO $ASLR $EXTRAOPT"
+	export LDFLAGS="-target $LCT --sysroot $SYSROOTMOUNT $LDOPT $CCO $ASLR $ASLR_LD $LDSTATIC $EXTRAOPT"
+	export CCT=$LCT
+	;;
+esac
+if [ -e $BSD_CONTRIB/_no-cc-system-header/$1 ]; then
+	echo "... apps that dont like os system header!"
+	export CFLAGS="$CFLAGS -Wno-system-header"
+fi
+if [ -e $BSD_CONTRIB/_mini/$1 ]; then
+	echo "... minimal build"
+	export CFLAGS=$(echo $CFLAGS | sed -e 's/-Ofast//g' | sed -e 's/-O3//g' | sed -e 's/-O2//g')
+	export CFLAGS="$CFLAGS -Oz"
+	export LDFLAGS=$(echo $CFLAGS | sed -e 's/-Ofast//g' | sed -e 's/-O3//g' | sed -e 's/-O2//g')
+	export LDFLAGS="$CFLAGS -Oz"
+fi
+export CPPFLAGS=$CFLAGS
+export CXXFLAGS=$CFLAGS
+
+####################
+# TARGET SELECTION #
+####################
+build_set() {
+	echo "... build targets:"
+	cat $BSD_ACTIONLISTS/build-list
+	while read line; do
+		(sh $BSD_BIN/BSDpkg $line)
+	done < $BSD_ACTIONLISTS/build-list
+	rm -f $BSD_ACTIONLISTS/build-list
+	unset BPKG
+	unset PTARGET_CLEAN
+}
+case $PTARGET in
+manpages)
+	sh $BSD_ACTION/build.manpages.sh
+	exit
+	;;
+clean)
+	unset BPKG
+	unset PTARGET_CLEAN
+	rm -rf /tmp/build-*
+	rm -rf /tmp/*-master
+	echo "... cleanup done!"
+	cd /tmp
+	exit
+	;;
+cc)
+	echo "... CROSS BUILD build *** ALL CROSSBUILD *** target packages detected!"
+	rm -f $BSD_ACTIONLISTS/build-list
+	CCLIST=$(ls -I $BSD_CONTRIB/_src_cc)
+	for software in $CCLIST; do
+		for plattform in $BSD_ENABLED_ROOTFS; do
+			echo "$software $plattform" >> $BSD_ACTIONLISTS/build-list
+		done
+	done
+	echo "... rebuild auto patchset"
+	(cd $BSD_DEV/enhanced && make rebuild)
+	echo "... rebuild everything!"
+	build_set
+	beep 2
+	echo "Done!"
+	exit
+	;;
+!) echo "... no target build package or build set specified!" && syntax ;;
+-* | help | syntax | syntax) syntax ;;
+*) echo "... individual pkg build mode, starting default clang/make build env [$PTARGET]!" ;;
+esac
+case $2 in
+all)
+	echo "... CROSS BUILD build for ALL ARCH for $PTARGET !"
+	rm -f $BSD_ACTIONLISTS/build-list
+	for plattform in $BSD_ENABLED_ROOTFS; do
+		echo "$PTARGET $plattform" >> $BSD_ACTIONLISTS/build-list
+	done
+	build_set
+	beep 2
+	exit
+	;;
+esac
+if [ ! -e $BSD_CONTRIB/_src_cc/$PTARGET ] && [ ! -e $BSD_CONTRIB/_src_cc_no/$PTARGET ]; then
+	echo "... no matching source git repo / code tarball configured in contrib/src [$PTARGET]!"
+	echo "... you need to specify a valid build target!"
+	syntax
+fi
+if [ -e $BSD_CONTRIB/_restricted_build/$PTARGET ]; then
+	echo "########### RESCTRICTED BUILD MODE ############"
+	while read LINE; do
+		if [ "$TARCH_L1.$TARCH_L2.$TARCH_L3" = $LINE ]; then BUILDME=true; fi
+	done < $BSD_CONTRIB/_restricted_build/$PTARGET
+	if [ ! $BUILDME ]; then echo "... restricted buildmode: $PTARGET not a valid target!" && exit; fi
+fi
+
+#################################
+# SRC CHECKOUT / CONFIG SECTION #
+#################################
+pkg_build_info() {
+	echo "#################################################################################################"
+	echo "### START $PKGMODE ### >>> $PTARGET <<< ###  $MODE for target $BUILDARCH / $TOS"
+	echo "#################################################################################################"
+	echo "LOCAL     : $LT_ARCH"
+	echo "TARGET    : $CCT"
+	echo "SYSROOT   : $SYSROOTMOUNT"
+	echo "ASLR mode : $ASLR"
+	echo "LIBS      : $LIBS"
+	echo "LDFLAGS   : $LDFLAGS"
+	echo " "
+	echo "CFLAGS    : $CFLAGS"
+	echo " "
+	echo "CXXFLAGS  : $CXXFLAGS"
+	echo " "
+	echo "CPPFLAGS  : $CPPFLAGS"
+	echo " "
+	echo "CMAKE     : $CMAKE_CONFIG"
+	echo ""
+}
+pkg_build_info_go() {
+	echo "#################################################################################################"
+	echo "### START GO $PKGMODE ### >>> $PTARGET <<< ### $MODE for target $BUILDARCH / $TOS"
+	echo "#################################################################################################"
+	echo "GO BUILD  : $GOARCH $GOAMD64 $GOARM $GOBUILDMODE $GOOS"
+}
+PKGMODE="CHECKOUT AND CONFIGURATION"
+export LOGM=/tmp/build-$PTARGET-$TARCH_L3.log && touch $LOGM
+rm -rf /tmp/$PTARGET
+rm -rf /tmp/$PTARGET-master
+export BUILDDIR=/tmp/$PTARGET-master
+export GIT_COMMIT=HEAD
+export GITCHECKOUT_USE_TAG=true
+unset GITCHECKOUT_PATCH
+if [ -x $BSD_DEV/$PTARGET ]; then
+	echo "### DIRECT DEV BUILD: prod "
+	ln -fs $BSD_DEV/$PTARGET /tmp/$PTARGET-master
+elif [ -x $BSD_DEV/lab/$PTARGET ]; then
+	echo "### DIRECT DEV BUILD: lab "
+	ln -fs $BSD_DEV/lab/$PTARGET /tmp/$PTARGET-master
+elif [ -x $BSD_DEV/archive/$PTARGET ]; then
+	echo "### DIRECT DEV BUILD: archive "
+	ln -fs $BSD_DEV/lab/$PTARGET /tmp/$PTARGET-master
+elif [ -L $BSD_CONTRIB/_src_cc/$PTARGET ]; then
+	echo "### TARBARLL src mode detected "
+	tar -C /tmp/ -xf $BSD_CONTRIB/_src_cc/$PTARGET
+elif [ -L $BSD_CONTRIB/_src_cc_no/$PTARGET ]; then
+	echo "### TARBARLL src mode detected "
+	tar -C /tmp/ -xf $BSD_CONTRIB/_src_cc_no/$PTARGET
+elif [ -e $BSD_FOSSIL/$PTARGET.fossil ] || [ -x $BSD_GIT/.repo/$PTARGET ] || [ -e $BSD_GIT/.repo/.autoarchive/$PTARGET.git-deflate-tree.tar.* ]; then
+	cd /tmp
+	sh /etc/action/git.checkout $PTARGET patchclean > $PATCHLOGDIR/$PTARGET.$DTSF
+	mv -f $PTARGET $PTARGET-master
+else
+	echo "### NO REPO OR TARBALL $PTARGET FOUND! PREPARE DUMMY"
+	mkdir /tmp/$PTARGET-master && cd /tmp/$PTARGET-master && touch .tag .commit
+fi
+cd $BUILDDIR
+if [ -r .commit ]; then export GIT_COMMIT=$(cat .commit); fi
+echo "... prep pkg installation point!"
+export DESTDIR=/tmp/$PTARGET
+export SYSCONFDIR=/etc
+TX="" && if [ -e $BSD_CONTRIB/_install_target_local/$PTARGET ]; then TX="/local"; fi
+export PREFIX=/usr$TX
+export GOTARGET=/tmp/$PTARGET/usr$TX/bin
+for CUR in bin sbin lib libexec libdata/pkgconfig; do
+	mkdir -p /tmp/$PTARGET/usr$TX/$CUR
+done
+export BUILDDIR=/tmp/$PTARGET-master
+if [ -e $BSD_CONTRIB/_subdir/$PTARGET ]; then BUILDDIR=$BUILDDIR/$(cat $BSD_CONTRIB/_subdir/$PTARGET); fi
+echo "BUILD DIR: $BUILDDIR"
+
+##############################
+# Add tools needed for build #
+##############################
+LIST=$(cd $BSD_CONTRIB/_build_dependency && ls -I $PTARGET.*)
+for LINE in $LIST; do
+	NEED=$(echo $LINE | cut -d . -f 2)
+	echo "... needs $LINE $NEED!"
+	BSDlive $NEED
+	case $NEED in
+	gm4) export M4=/usr/local/bin/gm4 ;;
+	gmake) export MAKE=/usr/local/bin/gmake ;;
+	automake | autoconf)
+		echo "autoconf: automake libtool gm4 perl5"
+		BSDlive autoconf
+		# BSDlive autoconf-w
+		BSDlive automake
+		BSDlive libtool
+		BSDlive gm4
+		BSDlive perl5
+		BSDlive gettext-runtime-legacy
+		BSDlive pkgconf-legacy
+		export M4=/usr/local/bin/gm4
+		export AUTOCONF=/usr/local/bin/autoconf
+		export AUTOMAKE=/usr/local/bin/automake
+		;;
+	esac
+done
+
+#######################
+# FIGURE OUT BUILDENV #
+#######################
+cd $BUILDDIR
+export BSD_PKG_BUILDENV=$(ls $BSD_CONTRIB | grep '_buildenv_' | cut -c 11-)
+for ENTRY in $BSD_PKG_BUILDENV; do
+	if [ -e $CONTRIB/_buildenv_$ENTRY/$PTARGET ]; then
+		export BSD_PKG_BUILDENV=$ENTRY
+		break
+	fi
+done
+if [ -e .build.sh ]; then
+	export BSD_PKG_BUILDENV=native
+fi
+if [ "$BSD_PKG_BUILDENV" = "" ]; then
+	export BSD_PKG_BUILDENV="guess"
+fi
+echo "##### BUILDENV: $BSD_PKG_BUILDENV #####"
+
+###################################
+# CONFIGURE BUILDENV SPECIFIC ENV #
+###################################
+case $BSD_PKG_BUILDENV in
+native)
+	export DESTDIR=/tmp/$PTARGET$PREFIX/bin
+	export PLEASEMAKE=secure
+	;;
+meson)
+	echo "meson build system"
+	BSDlive meson
+	BSDlive python
+	BSDlive gettext-runtime-legacy
+	ln -fs "/usr/local/bin/python3.7" "/usr/local/bin/python3"
+	ln -fs "/usr/local/bin/python3.7" "/usr/local/bin/python"
+	mkdir -p $BUILDDIR/build
+	/usr/local/bin/meson.py setup . build --cross-file $BSD_CONTRIB/_meson-cross/$TOS-$TARCH_L1-$TARCH_L2.txt
+	export PLEASEMAKE=meson
+	;;
+mkconfigure)
+	echo "mkconfigure [autoconf* inplace]"
+	BSDlive mkconfigure
+	export PLEASEMAKE=mkconfigure
+	;;
+golang)
+	unset GOPATH
+	export GOROOT=/usr/local/goo/.$GOHOSTOS.$GOHOSTARCH
+	export GOGC=off
+	export PLEASEMAKE=golang
+	export GOLIVE=true
+	export CGO_ENABLED=0
+	export GOEXPERIMENT=none
+	if [ -r $BSD_CONTRIB/_buildenv_golang_cgo/$PTARGET ]; then
+		export CGO_ENABLED=1
+		export CGO_CFLAGS=$CFLAGS
+		export CGO_CXXFLAGS=$CFLAGS
+		export CGO_CPPFLAGS=$CFLAGS
+		echo "#### *** ATT *** ### CGO ENABLED: $CGO_CFLAGS"
+	fi
+	case $(cat $BSD_CONTRIB/_buildenv_golang/$PTARGET | sha224) in
+	d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f | 48837a787f07673545d9c610bcbcd8d46a2691a71966d856c197e69e)
+		export PLEASEMAKE=golang-generic
+		;;
+	*)
+		export PLEASEMAKE=golang-custom
+		;;
+	esac
+	;;
+configure)
+	export PLEASEMAKE=true
+	export USE_NLS=no
+	export MKDIR_P="/bin/mkdir -p"
+	export cross_compiling="yes"
+	pkg_build_info
+	sh $BSD_CONTRIB/_buildenv_configure/$PTARGET
+	;;
+cmake*)
+	if [ -e $BSD_CONTRIB/_no-samu/$1 ]; then
+		BSDlive ninja
+		export NINJA=/usr/local/bin/ninja
+		export NINJA_CMD=$NINJA
+		echo "### fallback from /usr/bin/samu -> /usr/bin/ninja!"
+	fi
+	BSDlive cmake
+	export PLEASEMAKE=ninja
+	export NINJA_STATUS="[%e] [%p] [%s/%t] [%r]"
+	export CMAKE_GENERATOR="Ninja"
+	export CMAKE_EXPORT_COMPILE_COMMANDS=true
+	export CMAKE_CONFIG="
+	--log-level=STATUS \
+	-G Ninja \
+	-DCMAKE_BUILD_TYPE=Release \
+	-DCPACK_STRIP_FILES=ON \
+	-DCMAKE_INSTALL_PREFIX=$PREFIX \
+	-DCMAKE_SYSROOT=/usr/sysroots/$TOS.bsrv.$TARCH_L1.$TARCH_L2.$TARCH_L3 \
+	-DCMAKE_LIBRARY_PATH=$SRM/usr/lib/ \
+	-DCMAKE_INCLUDE_PATH=$SRM/usr/include \
+	-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+	-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+	-DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
+	-DCMAKE_BUILD_TESTING=OFF \
+	-DENABLE_DEBUG=OFF \
+	-DENABLE_DEBUG_ALL=OFF \
+	-DENABLE_DOC=OFF \
+	-DENABLE_DOCUMENTATION=OFF \
+	-DENABLE_MANPAGES=OFF \
+	-DENABLE_TESTING=OFF \
+	-DENABLE_TRACING=OFF \
+	-DENABLE_SHARED=ON \
+	-DBUILD_TESTS=OFF \
+	-DBUILD_TESTING=OFF \
+	-DBUILD_EXAMPLES=OFF \
+	-DBUILD_TOOLS=OFF \
+	-DBUILD_BENCHMARKS=OFF \
+	-DBUILD_TESTS=OFF \
+	-DBUILD_DOXYGEN=OFF \
+	-DBUILD_DOC=OFF \
+	-DBUILD_DOCS=OFF \
+	-DBUILD_SHARED_LIBS=ON \
+	-DBUILD_STATIC_LIBS=OFF \
+	-DINSTALL_DOCS=OFF \
+	-DFUZZ=OFF"
+	# -DCMAKE_PREFIX_PATH=$SRM \
+	rm -rf build.old > /dev/null 2>&1
+	mv build build.old > /dev/null 2>&1
+	mkdir -p build
+	export BUILDDIR=$BUILDDIR/build && mkdir -p $BUILDDIR
+	cd $BUILDDIR
+	pkg_build_info
+	if [ -e $BSD_CONTRIB/_buildenv_cmake_vars/$PTARGET ]; then
+		while read line; do
+			export CMAKE_CONFIG="$CMAKE_CONFIG -$line"
+		done < $BSD_CONTRIB/_buildenv_cmake_vars/$PTARGET
+		echo "## FINAL CUSTOM CMAKE_CONFIG: "
+		echo "$CMAKE_CONFIG"
+	fi
+	case $(cat $BSD_CONTRIB/_buildenv_cmake/$PTARGET | sha224) in
+	d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f | 48837a787f07673545d9c610bcbcd8d46a2691a71966d856c197e69e)
+		export CMAKE_CONFIG="$CMAKE_CONFIG .."
+		cmake $CMAKE_CONFIG
+		;;
+	*)
+		sh $BSD_CONTRIB/_buildenv_cmake/$PTARGET
+		;;
+	esac
+	;;
+shell)
+	export PLEASEMAKE=true
+	pkg_build_info
+	sh $BSD_CONTRIB/_buildenv_shell/$PTARGET
+	;;
+shellonly)
+	unset PLEASEMAKE
+	pkg_build_info
+	sh $BSD_CONTRIB/_buildenv_shellonly/$PTARGET
+	;;
+make)
+	export PLEASEMAKE=true
+	pkg_build_info
+	;;
+rust)
+	BSDlive rust
+	if [ -x /usr/local/bin/cargo ]; then BSDlive rust-legacy; fi
+	pkg_build_info
+	sh $BSD_CONTRIB/_buildenv_rust/$PTARGET
+	export PLEASEMAKE=rust
+	;;
+v)
+	BSDlive v
+	unset PLEASEMAKE
+	pkg_build_info
+	sh $BSD_CONTRIB/_buildenv_v/$PTARGET
+	;;
+zig)
+	BSDlive zig
+	unset PLEASEMAKE
+	pkg_build_info
+	sh $BSD_CONTRIB/_buildenv_zig/$PTARGET
+	;;
+nim)
+	BSDlive nim
+	unset PLEASEMAKE
+	pkg_build_info
+	sh $BSD_CONTRIB/_buildenv_nim/$PTARGET
+	;;
+fbsd)
+	OPTFILE=$BSD_CONTRIB/_buildenv_fbsd/$PTARGET.opt
+	if [ -r $OPTFILE ]; then
+		cat $OPTFILE | while read line; do
+			export $line
+		done
+	fi
+	export SRC_CHECKOUT=HEAD
+	export SRCTOP=/usr/src/HEAD
+	unset PLEASEMAKE TCPUTYPE CPUOPT
+	sh $BSD_ACTION/build.src.lib.sh build
+	export MAKE_FBSD_BIN=$(cat $BSD_CONTRIB/_buildenv_fbsd/$PTARGET)
+	sh $BSD_ACTION/build.make.lib.sh custom
+	;;
+guess)
+	echo "##### NO BOOTSTRAP CONFIGURATION DETECTED! #####"
+	if [ -e /tmp/$PTARGET-master/CMakeLists.txt ]; then
+		cp /tmp/$PTARGET-master/CMakeLists.txt /tmp/CMakeLists.txt.$PTARGET.options.txt
+		CONFIT=cmake
+	elif [ -e /tmp/$PTARGET-master/configure ]; then
+		CONFIT=configure
+	elif [ -e /tmp/$PTARGET-master/configure.sh ]; then
+		CONFIT=configure.sh
+	elif [ -e /tmp/$PTARGET-master/configure.ac ]; then
+		echo "... found configure.ac, so we need autotools to build ./configure first!"
+		echo "... please check for .need.gmake manually if required!"
+		touch $BSD_CONTRIB/_build_dependency/$PTARGET.autoconf
+		CONFIT=configure
+		AUTORECONF=true
+	elif [ -e /tmp/$PTARGET-master/main.go ] || [ -e /tmp/$PTARGET-master/go.mod ]; then
+		CONFIT=golang
+	elif [ -e Makefile.BSD ]; then
+		CONFIT=Makefile.BSD
+	fi
+	case $CONFIT in
+	cmake)
+		echo "... found a cmake makefile, try auto-reconfigure for cmake crossbuild!"
+		touch $BSD_CONTRIB/_buildenv_cmake/$PTARGET
+		touch $BSD_CONTRIB/_install_target_local/$PTARGET
+		RESTART=true
+		;;
+	configure*)
+		echo "... found a $CONFIT file!"
+		echo "... generate build glue clues now and try to build it!"
+		echo "... here are the options, please review and update if needed!"
+		sh /tmp/$PTARGET/$CONFIT --help > /tmp/$PTARGET-configure-options.txt
+		cat /tmp/$PTARGET-configure-options.txt
+		echo '#!/bin/sh
+		# autogenerated by BSDPKG configure defaults - please modify/adapt! ' > $BSD_CONTRIB/_buildenv_configure/$PTARGET
+		if [ -e /tmp/$PTARGET-master/autogen.sh ]; then
+			echo "sh ./autogen.sh" >> $BSD_CONTRIB/_buildenv_configure/$PTARGET
+		fi
+		if [ -n "$AUTORECONF" ]; then
+			echo "autoreconf -if" >> $BSD_CONTRIB/_buildenv_configure/$PTARGET
+			echo "autoreconf -if" >> $BSD_CONTRIB/_buildenv_configure/$PTARGET
+		fi
+		echo "sh ./$CONFIT \\" >> $BSD_CONTRIB/_buildenv_configure/$PTARGET
+		echo '  --build=$LT_ARCH \
+		 	--host=$CCT \
+			--target=$CCT \
+			--prefix=/usr/local \
+			--disable-debug \
+			--disable-tests \
+			--disable-locale \
+			--disable-debug \
+			--disable-man \
+			--disable-manpages \
+			--disable-doc \
+			--disable-maintainer-mode \
+			--enable-shared \
+			--release \
+     			cross_compiling=yes' >> $BSD_CONTRIB/_buildenv_configure/$PTARGET
+		touch $BSD_CONTRIB/_install_target_local/$PTARGET
+		RESTART=true
+		;;
+	golang)
+		echo "... found generic golang code! Try to reconfigure BSDpkg and build it!"
+		touch $BSD_CONTRIB/_buildenv_golang/$PTARGET
+		touch $BSD_CONTRIB/_install_target_local/$PTARGET
+		RESTART=true
+		;;
+	Makefile.BSD)
+		echo "... BSD specific Makefile found, lets try to activate it and do a generic build!"
+		echo "#!/bin/sh
+		cp -f Makefile.BSD Makefile" > $BSD_CONTRIB/_buildenv_shell/$PTARGET
+		touch $BSD_CONTRIB/_install_target_local/$PTARGET
+		RESTART=true
+		;;
+	esac
+	if [ $RESTART ]; then
+		BSDpkg $1 $2 $3
+		exit
+	fi
+	echo "... lets try generic make!"
+	if [ -e Makefile ] || [ -e makefile ]; then
+		echo "... Makefile found, lets try a generic build!"
+		export PLEASEMAKE=true
+		pkg_build_info
+	else
+		echo "##### NO CONFIGURATION, NO MAKE FILE!"
+	fi
+	;;
+none)
+	echo "### BUILDENV NONE"
+	unset PLEASEMAKE
+	;;
+*)
+	echo "ERROR: unable to figure build env out, exit!"
+	exit
+	;;
+esac
+
+#############################
+# POST CONFIG PATCH SECTION #
+#############################
+#cd $BUILDDIR
+#if [ -f $BSD_CONTRIB/_patch/$PTARGET ]; then
+#	echo "... post config patches detected, starting _patch/$PTARGET inidividual patch for $BUILDDIR!"
+#	cd /tmp/$PTARGET-master
+#	patch --batch -i $BSD_CONTRIB/_patch/$PTARGET | tee -a $PATCHLOG
+#fi
+
+###########################
+# BUILD & INSTALL SECTION #
+###########################
+if [ $CONFIGSTOP ]; then exit; fi
+export PKGMODE=BUILD
+echo "... bootstrap / prep done, now we build!"
+if [ -e $BSD_CONTRIB/_builddir/$1 ]; then export BUILDDIR="$(cat $BSD_CONTRIB/_builddir/$1)"; fi
+if [ -e $BSD_CONTRIB/_no-make/$1 ]; then export PLEASEMAKE="no"; fi
+cd $BUILDDIR
+case $PLEASEMAKE in
+secure)
+	pkg_build_info_go
+	(sh .build.sh $PTARGET)
+	;;
+meson)
+	pkg_build_info
+	echo "... building via meson !"
+	cd $BUILDDIR/build
+	/usr/local/bin/meson.py compile
+	/usr/local/bin/meson.py install
+	;;
+mkconfigure)
+	pkg_build_info
+	echo "... building via mkconfigure !"
+	mkcmake all install
+	;;
+golang-generic)
+	echo "... starting go generic build mode! [cgo:$CGO_ENABLED]"
+	export GOFLAGS="-ldflags=-s -ldflags=-w -mod=vendor -trimpath -tags=nethttpomithttp2 -tags=purego"
+	if [ -e $BSD_CONTRIB/_no-golang-purego/$1 ]; then
+		export GO_BUILD_TAGS=""
+		export GOFLAGS="-ldflags=-s -ldflags=-w -mod=vendor -trimpath -tags=nethttpomithttp2"
+		echo "... removing go build-tag: purego [enable:unsafe-asm-optimisations] [unlock:unsafe-crypto]"
+	fi
+	pkg_build_info_go
+	$GOROOT/bin/go build -o $GOTARGET ./...
+	$STRIPBIN -s $GOTARGET/*
+	;;
+golang-custom)
+	echo "... starting individual go build mode script!"
+	pkg_build_info_go
+	(sh $BSD_CONTRIB/_buildenv_golang/$PTARGET)
+	;;
+ninja)
+	pkg_build_info
+	echo "... [### $NINJA_CMD -j $JFLAGS ###] build system build!"
+	time -h $NINJA_CMD -j $JFLAGS
+	if [ $BUILDSTOP ]; then exit; fi
+	if [ -r $BSD_CONTRIB/_postbuild/$PTARGET ]; then
+		echo "... build done, found post-build-action!"
+		sh $BSD_CONTRIB/_postbuild/$PTARGET
+	fi
+	echo "... [ ###N NINJA ###] build done, starting installation & pkg building!"
+	cd $BUILDDIR
+	if [ ! -e $BSD_CONTRIB/_no-install/$PTARGET ]; then
+		$NINJA_CMD install
+	fi
+	;;
+true | cmake | gmake)
+	pkg_build_info
+	echo "... $MAKETHREADS via  $MAKE thread(s) will be used for [$BUILDDIR]!"
+	time -h $MAKE -j $MAKETHREADS >> $LOGM
+	if [ $BUILDSTOP ]; then exit; fi
+	if [ -r $BSD_CONTRIB/_postbuild/$PTARGET ]; then
+		echo "... build done, found post-build-action!"
+		sh $BSD_CONTRIB/_postbuild/$PTARGET
+	fi
+	echo "... build done, starting installation & pkg building!"
+	cd $BUILDDIR
+	if [ ! -e $BSD_CONTRIB/_no-install/$PTARGET ]; then
+		$MAKE INSTALL_STRIP=-s install >> $LOGM
+	fi
+	;;
+rust)
+	pkg_build_info
+	echo "... building rust!"
+	cargo build
+	;;
+esac
+if [ $BUILDSTOP ]; then exit; fi
+cd /tmp/$PTARGET
+if [ -r $BSD_CONTRIB/_postinstall/$PTARGET ]; then
+	echo "... post build/install actions detected, starting $PTARGET inidividual post actionset!"
+	(cd /tmp/$PTARGET && sh $BSD_CONTRIB/_postinstall/$PTARGET)
+fi
+if [ -r $BSD_CONTRIB/_no-pkg/$PTARGET ]; then exit; fi
+if [ $INSTALLSTOP ]; then exit; fi
+echo "... build done, performing pkgconfig mess consoldiation!"
+cd /tmp/$PTARGET
+if [ -e $BSD_CONTRIB/_install_target_local/$PTARGET ]; then
+	PKG_CONF_TARGET="usr/local/libdata/pkgconfig/"
+else
+	PKG_CONF_TARGET="usr/libdata/pkgconfig/"
+fi
+mkdir -p $PKG_CONF_TARGET && for CUR in usr/lib usr/libexec usr/share usr/local/lib usr/local/libexec usr/local/share; do
+	if [ "$PKG_CONF_TARGET" != "$CUR" ]; then
+		mv $CUR/pkgconfig/* $PKG_CONF_TARGET > /dev/null 2>&1
+		rm -rf $CUR/pkgconfig
+	fi
+done
+echo "... performing final symbol strip and remove the strip/bmake/objcopy leftovers!"
+if [ -e $BSD_CONTRIB/_no-strip/$PTARGET ]; then
+	export DONTSTRIP
+	echo "... explicit no strip option activated!"
+else
+	find . -type f -exec $STRIPBIN -s {} \; > /dev/null 2>&1
+fi
+if [ -r $BSD_CONTRIB/_clean/$PTARGET ]; then
+	echo "... final pkg cleanup action detected!"
+	echo "### PKG CLEANUP / REMOVE ###" >> $LOGM
+	cd /tmp/$PTARGET
+	while read LINE; do
+		rm -rvf $LINE >> $LOGM
+	done < $BSD_CONTRIB/_clean/$PTARGET
+fi
+for LINE in usr/lib usr/local/lib; do
+	rm -rf $LINE/*.a
+	rm -rf $LINE/*.la
+done
+if [ -x $BSD_CONTRIB/_add_pkg/$PTARGET ]; then
+	echo "... adding additional files from _add repo!"
+	cd /tmp/$PTARGET
+	cp -avf $BSD_CONTRIB/_add_pkg/$PTARGET/ .
+fi
+echo "... performing pkg prep!"
+if [ -e $BSD_CONTRIB/_no_pkg/$1 ]; then
+	exit
+fi
+
+#####################
+# PKG STORE CHECKIN #
+#####################
+if [ -e $BSD_CONTRIB/_all/$PTARGET ]; then
+	export STORE_DIRS="$BSD_PKG/.store/all"
+	export STORE_DIRL="$BSD_PKG/all"
+	export STORE_PKG="$STORE_DIRS/$PTARGET-$DTSF.tar.zst"
+	export STORE_LNK="../.store/all/$PTARGET-$DTSF.tar.zst"
+else
+	export STORE_DIRS="$BSD_PKG/.store/$TOS.$TARCH_L1.$TARCH_L2.$TARCH_L3.llvm$LLVM_BASE"
+	export STORE_DIRL="$BSD_PKG/$TOS.$TARCH_L1.$TARCH_L2.$TARCH_L3"
+	export STORE_PKG="$STORE_DIRS/$PTARGET-$DTSF.tar.zst"
+	export STORE_LNK="../.store/$TOS.$TARCH_L1.$TARCH_L2.$TARCH_L3.llvm$LLVM_BASE/$PTARGET-$DTSF.tar.zst"
+fi
+
+######################
+# STORE CLEANUP MODE #
+######################
+case $PTARGET_CLEAN in
+true)
+	echo "... cleanup target mode!"
+	rm -rf $STORE_DIRL/$PTARGET > /dev/null 2>&1
+	rm -rf $STORE_DIRS/$PTARGET-2* > /dev/null 2>&1
+	rm -rf $BSD_PKG/.store/$TOS.$TARCH_L1.$TARCH_L2.$TARCH_L3.llvm"$((LLVM_BASE - 1))"/$PTARGET-2* > /dev/null 2>&1
+	;;
+esac
+echo "... performing $PTARGET check-in for $STORE_PKG"
+mkdir -p $STORE_DIRS $STORE_DIRL
+cd /tmp/$PTARGET
+echo "... prep $STORE_PKG"
+if [ -n "$FSDD_CMD" ]; then $FSDD_CMD .; fi
+if [ -e $BSD_CONTRIB/_dereference_symbolic_links/$1 ]; then
+	echo "### TAR PKG DEREFERENCE SYMLINKS MODE"
+	tar -cLf - . | $COMPRESS > $STORE_PKG
+else
+	tar -cf - . | $COMPRESS > $STORE_PKG
+fi
+cd $STORE_DIRL && rm -rf $PTARGET
+ln -fvs $STORE_LNK $PTARGET
+rm /var/lock.pkg.$PTARGET > /dev/null 2>&1
+###################
+# CLEANUP SCRATCH #
+###################
+cd /tmp && rm -rf $XTARGET $PTARGET $PTARGET-master $PTARGET.tar current-pkg.log GIT > /dev/null 2>&1
+mv $LOGM $LOGDIR/
+case $BSD_PKG_BUILDENV in
+fbsd) umount -f /usr/obj ;;
+esac

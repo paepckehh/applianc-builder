@@ -1,0 +1,58 @@
+commit cb7cc72c546e0f87598961c3860e17391f42866c
+Author: John Baldwin <jhb@FreeBSD.org>
+Date:   2021-02-03 22:59:32 +0000
+
+    serf: Fix the default return value of the BIO control method.
+    
+    OpenSSL BIO classes provide an abstraction for dealing with I/O.
+    OpenSSL provides BIO classes for commonly used I/O primitives backed
+    by file descriptors, sockets, etc. as well as permitting consumers
+    of OpenSSL to define custom BIO classes.
+    
+    One of the methods BIO classes implement is a control method invoked
+    by BIO_ctrl() for various ancillary tasks somewhat analgous to
+    fcntl() and ioctl() on file descriptors.  According to the BIO_ctrl(3)
+    manual page, control methods should return 0 for unknown control
+    requests.
+    
+    KTLS support in OpenSSL adds new control requests.  Two of those new
+    requests are queries to determine if KTLS is enabled for either
+    reading or writing.  These control reuquest return 1 if KTLS is
+    enabled and 0 if it is not.
+    
+    serf includes two custom BIO classes for wrapping I/O requests from
+    files and from a buffer in memory.  These BIO classes both use a
+    custom control method.  However, this custom control method was
+    returning 1 for unknown or unsupported control requests instead of 0.
+    As a result, OpenSSL with KTLS believed that these BIOs were using
+    KTLS and were thus adding headers and doing encryption/decryption in
+    the BIO.  Correcting the return value removes this confusion.
+    
+    PR:             253135
+    Reported by:    Guido Falsi <mad@madpilot.net>
+    Reviewed by:    emaste
+    MFC after:      3 days
+    Sponsored by:   Netflix
+    Differential Revision:  https://reviews.freebsd.org/D28472
+
+diff --git a/contrib/serf/buckets/ssl_buckets.c b/contrib/serf/buckets/ssl_buckets.c
+index b01e5359db0..3c8b7e2a685 100644
+--- a/contrib/serf/buckets/ssl_buckets.c
++++ b/contrib/serf/buckets/ssl_buckets.c
+@@ -407,7 +407,7 @@ static int bio_bucket_destroy(BIO *bio)
+ 
+ static long bio_bucket_ctrl(BIO *bio, int cmd, long num, void *ptr)
+ {
+-    long ret = 1;
++    long ret = 0;
+ 
+     switch (cmd) {
+     default:
+@@ -415,6 +415,7 @@ static long bio_bucket_ctrl(BIO *bio, int cmd, long num, void *ptr)
+         break;
+     case BIO_CTRL_FLUSH:
+         /* At this point we can't force a flush. */
++        ret = 1;
+         break;
+     case BIO_CTRL_PUSH:
+     case BIO_CTRL_POP:

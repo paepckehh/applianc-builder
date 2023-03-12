@@ -1,0 +1,94 @@
+#!/bin/sh
+# mountpoint and size from commandline parameter
+TARGET=$1
+SIZE=$2
+FS_OPT="async,noatime,noexec"
+if [ ! $3 ]; then FS_OPT="$FS_OPT,nosymfollow"; fi
+
+# config section
+#
+# XXX ... needs patch 103 to fix the clowns geli AES-XTS crap
+# XXX ... but in general -> drop/avoid geli if possible anyhow! :-)
+
+ENC="AES-XTS"
+case $(uname -m) in
+amd64 | arm64)
+	AUTH="HMAC/SHA512"
+	KSIZE="256"
+	;;
+*)
+	AUTH="HMAC/SHA256"
+	KSIZE="128"
+	;;
+esac
+
+# XXX ... needs patch 103 to add chacha20-poly1305 support, still flaky, inherent auth needs re-work
+if [ $AES_HW_DISABLED ] || [ $AES_HW_NO ]; then
+	if [ $(sysctl -nq kern.geom.eli.version) = "7x" ]; then
+		ENC="CHACHA20-POLY1305"
+	fi
+fi
+
+info() {
+	echo "SYNTAX:  sh /etc/action/create.fs.ram.enc TARGET SIZE"
+	echo "EXAMPLE: sh /etc/action/create.fs.ram.enc /var/mykeys 32M SYMFOLLOW"
+	echo ""
+	exit
+}
+
+if [ $(sysctl -nq kern.geom.eli.version) = "7" ]; then
+	if [ -z "$TARGET" ]; then echo "... target directory missing" && info; fi
+	if [ -z "$SIZE" ]; then echo "... partition size missing" && info; fi
+
+	echo "... creating a new encrypted memory file system with an one-time key!"
+	echo "... overwriting the new encrypted memory partition with /dev/rnd data might take a minute!"
+	echo "	 	--> mountpoint: $TARGET"
+	echo "	 	--> size: 	$SIZE [available: 50% -> HMAC & XTS overhead ]"
+	echo "		--> security: 	$AUTH $ENC $KSIZE, random throw-away one-time key"
+	echo "	 	--> fs options: $FS_OPT"
+
+	## temporary tone down the geom.eli debug messages, during inicial HMAC checksum
+	ENCDEV=$(mdconfig -a -t swap -s $SIZE)
+	DEBUG_ELI=$(sysctl -n kern.geom.eli.debug)
+	echo "... toning down the geom.eli debug console noise during initial HMAC checksum calculation!"
+	sysctl kern.geom.eli.debug=-1
+	geli onetime -T -a $AUTH -e $ENC -l $KSIZE $ENCDEV
+	case $DEBUG_ELI in
+	-1)
+		echo "SECURITY ALERT! Abnormal low default geom.eli debug level detected!"
+		echo "... correction done to fbsd default, please investigate root cause!"
+		sysctl kern.geom.eli.debug=0
+		;;
+	0)
+		echo "... fbsd default debug level detected, please review and consider to raise it!"
+		sysctl kern.geom.eli.debug=0
+		;;
+
+	[1-3])
+		echo "... restoring geom.eli debug message level!"
+		sysctl kern.geom.eli.debug=$DEBUG_ELI
+		;;
+	[4-9])
+		echo "... unusual high geom.eli debug message lebel detected! Please have a look!"
+		sysctl kern.geom.eli.debug=$DEBUG_ELI
+		;;
+	*)
+		echo "SECURITY ALERT! Unknown problem detected with your geom.eli debug value $DEBUG_ELI!"
+		echo "... correction done to fbsd default, please investigate root cause and re-adjust!"
+		sysctl kern.geom.eli.debug=0
+		;;
+	esac
+	dd if=/dev/random of=/dev/$ENCDEV.eli bs=4M status=none > /dev/null 2>&1
+	newfs -U -n -E /dev/$ENCDEV.eli > /dev/null 2>&1
+	mkdir -p $TARGET
+	mount -o $FS_OPT /dev/$ENCDEV.eli $TARGET
+	echo "... init done!"
+	exit
+else
+	if [ -n "$SIZE" ]; then FS_OPT="$FSOPT,size=$SIZE"; fi
+	echo "############## OS SUPPORT FOR ENCRYPTED DRIVES MISSING ##################"
+	echo "... fallback to default tempfs!"
+	mount -o $FS_OPT -t tmpfs tmpfs $TARGET
+	exit
+fi
+##################

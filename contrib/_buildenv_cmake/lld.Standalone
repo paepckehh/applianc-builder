@@ -1,0 +1,49 @@
+#!/bin/sh
+cd /tmp
+sh /etc/action/store drop.golang
+sh /etc/action/store gitcheckout llvm patch
+mv llvm llvm-master
+cd llvm-master/lld
+mkdir build
+cd build
+
+cmake --log-level="STATUS" \
+	-G Ninja \
+	-DCMAKE_BUILD_TYPE="Release" \
+	-DLLVM_ENABLE_LTO="Full" \
+	-DLLVM_BUILD_STATIC=ON \
+	-DLLVM_PARALLEL_LINK_JOBS=1 \
+	-DLLVM_PARALLEL_COMPILE_JOBS=4 \
+	..
+
+ninja
+# -DLLVM_INSTALL_UTILS=ON \
+# -DLLVM_LINK_LLVM_DYLIB=OFF \
+# -DLLVM_ENABLE_RUNTIMES="" \
+# -DLLVM_CCACHE_BUILD=OFF \
+# -DCMAKE_BUILD_TYPE="MinSizeRel"
+# -DLLVM_PARALLEL_LINK_JOBS=1 \
+# -DLLVM_ENABLE_LTO=ON \
+# CFLAGS="$CFLAGS -Wno-dev"
+# -DLLVM_BUILD_STATIC=ON \
+# -DBUILD_SHARED_LIBS=OFF \
+# -DLLVM_ENABLE_PIC=ON \
+#
+# ccache build
+#ln -fs /usr/bin/ccache /usr/local/bin/ccache
+#unset CCACHE_DISABLE
+#unset CCACHE_NOSTATS
+#unset CCACHE_READONLY
+#export CCACHE_STATS=true
+#export CCACHE_STATSLOG=/tmp/llvm.ccache.stats
+#export CCACHE_LOG_FILE=/tmp/llvm.ccache.log
+#export CCACHE_DIR=/usr/ccache/llvm
+#umount -f /usr/ccache > /dev/null 2>&1
+#umount -f /usr/ccache > /dev/null 2>&1
+#umount -f /usr/ccache > /dev/null 2>&1
+#mount -t tmpfs tmpfs /usr/ccache
+#mkdir -p $CCACHE_DIR $CCACHE_TEMPDIR
+#set > /tmp/llvm.env
+#-DLLVM_CCACHE_BUILD=ON \
+#-DLLVM_CCACHE_DIR=$CCACHE_DIR \
+#-DLLVM_CCACHE_MAXSIZE="10G" \

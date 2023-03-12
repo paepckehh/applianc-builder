@@ -1,0 +1,5 @@
+#!/bin/sh
+export STORE_FS=ext2fs
+export STORE_DEV=/dev/"$1"s2
+if [ ! -c $STORE_DEV ]; then echo "ERROR: $STORE_DEV not found!" && exit; fi
+sh /etc/action/.mount $1 $2 $3

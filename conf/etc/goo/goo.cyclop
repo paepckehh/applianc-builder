@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="github.com/bkielbasa/cyclop/cmd/cyclop" goo $*

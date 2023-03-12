@@ -1,0 +1,62 @@
+#!/bin/sh
+# PROVIDE: xxworker
+# REQUIRE: syslogd var tmp
+# KEYWORD: nojail
+
+. /etc/rc.subr
+name="xxworker"
+desc="provide worker env"
+rcvar="xxworker_enable"
+start_cmd="worker_start"
+stop_cmd="worker_stop"
+load_rc_config $name
+
+worker_start_main() {
+	logger "[xx] worker setup start [$target_worker]"
+	if [ ! -e /.worker/.done ]; then
+		mount -t tmpfs tmpfs /.worker
+		touch /.worker/.done
+	fi
+	if [ -x /.worker/$target_worker/etc ]; then
+		logger "[xx] worker existst, trying cleanup -> [$target_worker]"
+		worker_stop
+	fi
+	cd /.worker
+	mkdir $target_worker
+	mount -t nullfs / $target_worker
+	cd $target_worker
+	mount -t tmpfs tmpfs var
+	mount -t tmpfs tmpfs tmp
+	mount -t unionfs /etc/worker/etc.$target_worker etc
+	mount -t nullfs /etc/.empty etc/worker
+	logger "[xx] worker setup done [$target_worker]"
+}
+
+worker_stop_main() {
+	if [ -x /.worker/$target_worker ]; then
+		cd /.worker/$target_worker
+		umount -f etc/worker > /dev/null 2>&1
+		umount -f etc tmp var usr/store/git > /dev/null 2>&1
+		umount -f usr/store > /dev/null 2>&1
+		cd /.worker
+		umount -f $target_worker > /dev/null 2>&1
+		rm -rf $target_worker > /dev/null 2>&1
+	fi
+	rm -rf /var/lock.worker.$target_worker 2>&1
+	logger "[xx] worker cleanup done -> [$target_worker]"
+}
+
+worker_start() {
+	worker_start_main | logger
+}
+worker_stop() {
+	worker_stop_main | logger
+}
+
+target_worker=$2
+if [ "$target_worker" = "" ]; then
+	logger "[xx] worker [error] [no worker specified] [exit] [$1] [$2]"
+	exit 1
+fi
+
+run_rc_command "$1"

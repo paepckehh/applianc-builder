@@ -1,0 +1,25 @@
+#!/bin/sh
+PARALLEL=4
+LIST=$(ls)
+action()
+{
+	FILE_TAR="$(echo $FILE | sed 's/.zst//')"
+	zstd -v --rm --decompress $FILE
+	zstd -v --rm --compress --long --ultra -22 $FILE_TAR
+}
+for FILE in $LIST; do
+	case $FILE in
+	*.zst)
+		action &
+		jobs -lp > /var/.$PPID
+		while [ $(cat /var/.$PPID | wc -l) -gt $PARALLEL ]; do
+			sleep 0.1 && jobs -lp > /var/.$PPID
+		done
+		;;
+	esac
+done
+wait
+sync && sync && sync
+beep
+exit
+##############

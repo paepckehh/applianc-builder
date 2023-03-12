@@ -1,0 +1,2 @@
+#!/bin/sh
+sh $BSD_DEVOPS/action-code-cleanup.sh

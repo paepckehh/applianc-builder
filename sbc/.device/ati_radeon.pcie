@@ -1,0 +1,3 @@
+#!/bin/sh
+# gpu
+# export BSD_KERNCONF_DEVICE_GFX=""

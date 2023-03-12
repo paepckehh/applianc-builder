@@ -1,0 +1,14 @@
+#!/bin/sh
+BSDlive goo
+APP=${PWD##*/}
+export HTTPS_PROXY=127.0.0.80:8080
+export SSL_CERT_FILE=/etc/ssl/rootCA.pem
+export GOPROXY="proxy.golang.org"
+export GOSUMDB="sum.golang.org+033de0ae+Ac4zctda0e5eza+HJyk9SxEdh+s3Ux18htTTAD8OuAn8"
+rm -rf go.mod go.sum > /dev/null 2>&1
+/usr/local/goo/.freebsd.arm/bin/go mod init paepcke.de/$APP
+case $APP in
+gps*) ;;
+*) sed -i '' -e 's/go 1\.20/go 1\.19/g' go.mod ;;
+esac
+/usr/local/goo/.freebsd.arm/bin/go mod tidy

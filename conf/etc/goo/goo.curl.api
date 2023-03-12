@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO_USER="curl" REPO="github.com/alecthomas/kingpin/_examples/curl" goo $*

@@ -1,0 +1,26 @@
+#!/bin/sh
+export BSD_DIST_PKG="$BSD_DIST_PKG pf"
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE pf pflog"
+export BSD_DIST_RC="$BSD_DIST_RC pf pflog"
+X='
+# pf firewall
+pf_enable="YES"
+pf_rules="/etc/pf.conf"
+pf_program="/sbin/pfctl"
+pf_flags=""
+pf_fallback_rules_enable="YES"
+pf_fallback_rules_file="/etc/pf.conf.blockall"
+pf_fallback_rules="block drop log all"
+pflog_enable="YES"
+pflog_logfile="/var/log/pflog"
+pflog_program="/sbin/pflogd"
+pflog_flags=""
+pfsync_enable="NO"
+
+# avoid any changes net/fw/pf changes [w/o reboot]
+lockdown="NO"
+lockdown_wait_ntp_gate="NO"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+export WITH_PF=true
+unset WITHOUT_PF

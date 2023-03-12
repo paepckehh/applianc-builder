@@ -1,0 +1,11 @@
+--- m4/ax_cc_for_build.m4.orig	2020-10-14 19:40:33.939061000 +0000
++++ m4/ax_cc_for_build.m4	2020-10-14 19:41:23.143690000 +0000
+@@ -50,7 +50,7 @@
+   if test "x$cross_compiling" = "xno"; then
+     CC_FOR_BUILD='$(CC)'
+   else
+-    CC_FOR_BUILD=gcc
++    CC_FOR_BUILD=cc
+   fi
+ fi
+ AC_SUBST(CC_FOR_BUILD)

@@ -1,0 +1,51 @@
+### ( 2023-03-12 ) ( 1678605360 ) ### DO NOT EDIT ### auto-generated file / patchset by <appliance-builder/enhanced> ###
+--- ./testes/libs/makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./testes/libs/makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -2,10 +2,10 @@
+ # of the version being tested
+ LUA_DIR = ../../
+ 
+-CC = gcc
++#CC = gcc
+ 
+ # compilation should generate Dynamic-Link Libraries
+-CFLAGS = -Wall -std=gnu99 -O2 -I$(LUA_DIR) -fPIC -shared
++CFLAGS += -std=gnu99 -I$(LUA_DIR) -fPIC -shared
+ 
+ # libraries used by the tests
+ all: lib1.so lib11.so lib2.so lib21.so lib2-v2.so
+--- ./all.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./all	1970-01-01 00:00:00.000000000 +0000
+@@ -1,4 +1,4 @@
+-make -s -j
++make -s -j $( sysctl -n hw.ncpu )
+ cd testes/libs; make -s
+ cd ..     # back to directory 'testes'
+ ulimit -S -s 1000
+--- ./makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -63,19 +63,21 @@
+ 
+ LOCAL = $(TESTS) $(CWARNS)
+ 
+-
+ # enable Linux goodies
+ MYCFLAGS= $(LOCAL) -std=c99 -DLUA_USE_LINUX -DLUA_USE_READLINE
+ MYLDFLAGS= $(LOCAL) -Wl,-E
+ MYLIBS= -ldl -lreadline
+ 
+ 
+-CC= gcc
+-CFLAGS= -Wall -O2 $(MYCFLAGS) -fno-stack-protector -fno-common -march=native
++#CC= gcc
++CFLAGS+= $(MYCFLAGS) -fno-stack-protector -fno-common 
++CFLAGS+= -I${SRCTOP}/lib/libedit -I${SRCTOP}/contrib/libedit
+ AR= ar rc
+ RANLIB= ranlib
+ RM= rm -f
+ 
++LIBADD+= edit
++LDFLAGS+= -Wl,-E
+ 
+ 
+ # == END OF USER SETTINGS. NO NEED TO CHANGE ANYTHING BELOW THIS LINE =========

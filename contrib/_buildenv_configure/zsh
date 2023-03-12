@@ -1,0 +1,42 @@
+#!/bin/sh
+patch() {
+	case $TARCH_L1 in
+	amd64)
+		echo "ZSH normal build mode for intel 64bit !"
+		unset RLIMITS_INC_H
+		unset resourcefile_list
+		unset zsh_cv_path_rlimit_h
+		;;
+	*)
+		echo "ZSH workaround for freeebsd / non intel!"
+		patch --batch -i $BSD_CONTRIB/_patch/zsh-fbsd32
+		;;
+	esac
+}
+# patch
+sh ./Util/preconfig >> /tmp/build-zsh.log
+sh ./configure \
+	--host=$CCT \
+	--build=$LT_ARCH \
+	--prefix=/usr \
+	--disable-restricted-r \
+	--disable-locale \
+	--disable-debug \
+	--disable-nls \
+	--disable-dynamic-nss \
+	--disable-dynamic \
+	--disable-largefile \
+	--disable-debug \
+	--disable-tests \
+	--disable-locale \
+	--disable-debug \
+	--disable-man \
+	--disable-manpages \
+	--disable-doc \
+	--disable-shared \
+	--enable-static \
+	cross_compiling=yes
+#
+#	--enable-cap \
+#	--with-tcsetpgrp \
+# 	--disable-multibyte

@@ -1,0 +1,93 @@
+commit 5866c369e4fd917c0d456f0f10b92ee354b82279
+Author: Dimitry Andric <dim@FreeBSD.org>
+Date:   2021-07-02 22:35:42 +0000
+
+    Revert libunwind change to fix backtrace segfault on aarch64
+    
+    Revert commit 22b615a96593 from llvm git (by Daniel Kiss):
+    
+      [libunwind] Support for leaf function unwinding.
+    
+      Unwinding leaf function is useful in cases when the backtrace finds a
+      leaf function for example when it caused a signal.
+      This patch also add the support for the DW_CFA_undefined because it marks
+      the end of the frames.
+    
+      Ryan Prichard provided code for the tests.
+    
+      Reviewed By: #libunwind, mstorsjo
+    
+      Differential Revision: https://reviews.llvm.org/D83573
+    
+      Reland with limit the test to the x86_64-linux target.
+    
+    Bisection has shown that this particular upstream commit causes programs
+    using backtrace(3) on aarch64 to segfault. This affects the lang/rust
+    port, for instance. Until we can upstream to fix this problem, revert
+    the commit for now.
+    
+    Reported by:    mikael
+    PR:             256864
+
+diff --git a/contrib/llvm-project/libunwind/src/DwarfInstructions.hpp b/contrib/llvm-project/libunwind/src/DwarfInstructions.hpp
+index c39cabe1f78..ee98f538d43 100644
+--- a/contrib/llvm-project/libunwind/src/DwarfInstructions.hpp
++++ b/contrib/llvm-project/libunwind/src/DwarfInstructions.hpp
+@@ -93,8 +93,7 @@ typename A::pint_t DwarfInstructions<A, R>::getSavedRegister(
+ 
+   case CFI_Parser<A>::kRegisterInRegister:
+     return registers.getRegister((int)savedReg.value);
+-  case CFI_Parser<A>::kRegisterUndefined:
+-    return 0;
++
+   case CFI_Parser<A>::kRegisterUnused:
+   case CFI_Parser<A>::kRegisterOffsetFromCFA:
+     // FIX ME
+@@ -118,7 +117,6 @@ double DwarfInstructions<A, R>::getSavedFloatRegister(
+ 
+   case CFI_Parser<A>::kRegisterIsExpression:
+   case CFI_Parser<A>::kRegisterUnused:
+-  case CFI_Parser<A>::kRegisterUndefined:
+   case CFI_Parser<A>::kRegisterOffsetFromCFA:
+   case CFI_Parser<A>::kRegisterInRegister:
+     // FIX ME
+@@ -142,7 +140,6 @@ v128 DwarfInstructions<A, R>::getSavedVectorRegister(
+ 
+   case CFI_Parser<A>::kRegisterIsExpression:
+   case CFI_Parser<A>::kRegisterUnused:
+-  case CFI_Parser<A>::kRegisterUndefined:
+   case CFI_Parser<A>::kRegisterOffsetFromCFA:
+   case CFI_Parser<A>::kRegisterInRegister:
+     // FIX ME
+@@ -193,10 +190,6 @@ int DwarfInstructions<A, R>::stepWithDwarf(A &addressSpace, pint_t pc,
+                                     prolog.savedRegisters[i]));
+           else
+             return UNW_EBADREG;
+-        } else if (i == (int)cieInfo.returnAddressRegister) {
+-            // Leaf function keeps the return address in register and there is no
+-            // explicit intructions how to restore it.
+-            returnAddress = registers.getRegister(cieInfo.returnAddressRegister);
+         }
+       }
+ 
+diff --git a/contrib/llvm-project/libunwind/src/DwarfParser.hpp b/contrib/llvm-project/libunwind/src/DwarfParser.hpp
+index de0eb6de9d7..b41cc7bcfda 100644
+--- a/contrib/llvm-project/libunwind/src/DwarfParser.hpp
++++ b/contrib/llvm-project/libunwind/src/DwarfParser.hpp
+@@ -69,7 +69,6 @@ public:
+   };
+   enum RegisterSavedWhere {
+     kRegisterUnused,
+-    kRegisterUndefined,
+     kRegisterInCFA,
+     kRegisterOffsetFromCFA,
+     kRegisterInRegister,
+@@ -503,7 +502,7 @@ bool CFI_Parser<A>::parseFDEInstructions(A &addressSpace,
+               "malformed DW_CFA_undefined DWARF unwind, reg too big");
+           return false;
+         }
+-        results->setRegisterLocation(reg, kRegisterUndefined, initialState);
++        results->setRegisterLocation(reg, kRegisterUnused, initialState);
+         _LIBUNWIND_TRACE_DWARF("DW_CFA_undefined(reg=%" PRIu64 ")\n", reg);
+         break;
+       case DW_CFA_same_value:

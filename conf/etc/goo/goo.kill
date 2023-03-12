@@ -1,0 +1,2 @@
+#!/bin/sh
+cd $GOOCACHE && rm -f $(ls -I | $FZF_CMD --query=$1)

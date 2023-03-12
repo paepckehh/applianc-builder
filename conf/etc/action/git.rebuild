@@ -1,0 +1,8 @@
+#!/bin/sh
+case $1 in
+.)
+	ACTION="sh /etc/action/store git.rebuild" sh /etc/action/.action.repo.active $*
+	exit
+	;;
+esac
+sh /etc/action/store git.rebuild $*

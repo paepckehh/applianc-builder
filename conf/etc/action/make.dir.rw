@@ -1,0 +1,37 @@
+#!/bin/sh
+# example sh make.dir.rw /root
+#
+# enable experimental/unstable unionfs support. expect endless kernel panic fun!
+UNION_FS=true
+UNION_STORE=/var/rw_overlays
+if [ ! $1 ]; then
+	echo "Please provide a target directory as parameter!"
+	exit
+else
+	TARGET=$1
+fi
+if [ -x /sbin/mount_unionfs ] && [ $UNION_FS ]; then
+	TDIR="$UNION_STORE$TARGET-$(uuidgen | cut -c 1-8)"
+	echo "... unionfs support endabled! -> $TDIR"
+	mkdir -p $TDIR
+	mount -t unionfs $TDIR $TARGET
+
+else
+
+	TEMPSTORE=/tmp/$(uuidgen).tar.zstd
+	CURRENT=$(pwd)
+	rm -rf $TEMPSTORE > /dev/null 2>&1
+	cd $TARGET
+	tar -cf - . | zstd > $TEMPSTORE
+	cd $CURRENT
+	umount $TARGET > /dev/null 2>&1
+	umount $TARGET > /dev/null 2>&1
+	umount $TARGET > /dev/null 2>&1
+	umount $TARGET > /dev/null 2>&1
+	mount -t tmpfs tmpfs $TARGET
+	cd $TARGET
+	tar -xf $TEMPSTORE
+	cd $CURRENT
+	rm -rf $TEMPSTORE > /dev/null 2>&1
+fi
+#######################################################################

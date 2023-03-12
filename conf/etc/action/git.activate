@@ -1,0 +1,2 @@
+#!/bin/sh
+ACTION="sh /etc/action/store git.activate" sh /etc/action/.action.repo.active $*

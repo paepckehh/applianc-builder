@@ -1,0 +1,21 @@
+#!/bin/sh
+rm /var/lock.pkg.gpg
+BSDlive gpg
+cp build-aux/git-hooks/* .git/hooks/
+sh ./autogen.sh
+# autoreconf -i --force
+sh ./configure \
+	--enable-maintainer-mode \
+	--build=$LT_ARCH \
+	--host=$CCT \
+	--target=$CCT \
+	--prefix=$PREFIX \
+	--disable-debug \
+	--disable-locale \
+	--disable-doc \
+	--disable-man \
+	--disable-nls \
+	--disable-manual
+exit
+###################################
+# >>/tmp/build-$PTARGET.log

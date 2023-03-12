@@ -1,0 +1,11 @@
+#!/bin/sh
+# export PCSC_CFLAGS=$CFLAGS
+# export PCSC_LIBS=$LDFLAGS
+# PCSC_CFLAGS="-target $CCT"
+# PCSC_LIBS="-target $CCT"
+sh ./bootstrap
+sh ./configure \
+	--build=$LT_ARCH \
+	--host=$CCT \
+	--target=$CCT \
+	--prefix=/usr/local

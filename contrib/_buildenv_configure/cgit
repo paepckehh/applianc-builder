@@ -1,0 +1,9 @@
+#!/bin/sh
+export NO_LUA=1
+export GITCHECKOUT_PATCH=true
+cd /tmp/cgit-master
+/etc/action/store gitcheckout git "v2.32.0"
+cd git
+sh $BSD_CONTRIB/_buildenv_configure/git
+cd ..
+gmake -j4 NO_LUA=1

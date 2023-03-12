@@ -1,0 +1,2 @@
+#!/bin/sh
+CAPS_BLOCK="network" REPO="filippo.io/age" goo $* # age should never gain the cabability to communicate via network

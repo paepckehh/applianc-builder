@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="github.com/zoulux/go-remove-all-comment" goo $*

@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="code.gitea.io/gitea" goo $*

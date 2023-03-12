@@ -1,0 +1,41 @@
+### ( 20220422 ) ### DO NOT EDIT ### auto-generated file / patchset by appliance-builder enhance env ###
+--- ./makefile.orig	2022-04-22 05:23:17.768927000 +0000
++++ ./makefile	2022-04-22 05:32:48.611856000 +0000
+@@ -5,24 +5,25 @@
+ # 10/03/2020  TLJ  0.9  Move headers to fix build on osx
+ #
+ 
+-
+-C=gcc
+-CFLAGS=-c -Wall 
+-LDFLAGS= -lm -lstdc++
++CFLAGS+=-c -Wall 
++LDFLAGS+= -lm -lstdc++
+ SOURCES=sunwait.cpp sunriset.cpp print.cpp
+ HEADERS=sunwait.h sunriset.h print.h
+-OBJECTS=$(SOURCES:.cpp=.o)
+-EXECUTABLE=sunwait
++OBJ=$(SOURCES:.cpp=.o)
++PROG=sunwait
+ 
+-all: $(SOURCES) $(EXECUTABLE)
++all: $(SOURCES) $(PROG)
+ 	
+-$(EXECUTABLE): $(OBJECTS)
+-	$(C) $(OBJECTS) -o $@ $(LDFLAGS)
++$(PROG): $(OBJ)
++	$(CXX) $(OBJ) -o $@ $(LDFLAGS)
+ 
+ .cpp.o:
+-	$(C) $(CFLAGS) $< -o $@
++	$(CXX) $(CFLAGS) $< -o $@
+ 
+ clean:
+-	rm -f *.o sunwait
++	rm -f *.o $(PROG)
+ 
+-
++install:
++	mkdir -p     $(DESTDIR)/bin
++	cp  $(PROG)  $(DESTDIR)/bin/
++	chmod +x $(DESTDIR)/bin/$(PROG)

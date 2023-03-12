@@ -1,0 +1,8 @@
+#!/bin/sh
+export BSD_TARGET_SBC=rpi0b32
+export BSD_TARGET_SBC_ALIAS_LIST="rpi0 rpi0-w rpi0z rpi-b"
+. $BSD_SOC/bcm2708
+. $BSD_VENDOR/rpi
+export BSD_VENDOR_BOOT="rpi/rpi0"
+export BSD_KERNCONF_DEVICE_GFX="$BSD_KERNCONF_DEVICE_GFX vchiq"
+export BSD_KERNCONF_DEVICE_SND="$BSD_KERNCONF_DEVICE_SND vchiq"

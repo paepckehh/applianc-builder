@@ -1,0 +1,4 @@
+#!/bin/sh
+. $BSD_DIST/.os/bsd
+export SRC_CHECKOUT=HEAD
+export TOS=hbsd

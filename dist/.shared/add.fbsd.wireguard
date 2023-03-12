@@ -1,0 +1,4 @@
+#!/bin/sh
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE wg"
+export WITH_WIREGUARD=true
+unset WITHOUT_WIREGUARD

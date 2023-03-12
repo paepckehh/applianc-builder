@@ -1,0 +1,17 @@
+#!/bin/sh
+pkill cat
+export LTELOG="/var/tmp/.ltelog"
+sh /etc/action/lte-raw-log &
+echo 'AT+CMGF=1' >> /dev/lte0
+sleep 1
+echo 'AT+CPMS="SM"' >> /dev/lte0
+counter=0
+echo "LOG: $LTELOG"
+while [ "$counter" -lt 30 ]; do
+	# echo "## SMS SLOT: $counter : " >> $LTELOG
+	echo "AT+CMGR=$counter" >> /dev/lte0
+	counter=$((counter + 1))
+	sleep 0.2
+done
+pkill cat
+cat $LTELOG

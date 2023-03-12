@@ -1,0 +1,7 @@
+dnscrypt-proxy/*.pem
+dnscrypt-proxy/testdata
+dnscrypt-proxy/static
+dnscrypt-proxy/*test*
+utils
+*logo*
+windows

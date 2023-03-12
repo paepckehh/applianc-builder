@@ -1,0 +1,12 @@
+#!/bin/sh
+sh ./configure \
+	--host=$CCT \
+	--prefix=/usr \
+	--enable-threads=posix \
+	--disable-nls \
+	--disable-browser \
+	--disable-extra \
+	--disable-libmagic \
+	--disable-mouse \
+	--disable-speller \
+	>> /tmp/build-nano.log

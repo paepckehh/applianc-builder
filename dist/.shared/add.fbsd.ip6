@@ -1,0 +1,47 @@
+#!/bin/sh
+# . $BSD_DIST/.shared/add.fbsd.nic # enable w/o ip4
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS INET6 CC_CUBIC"
+export WITH_INET6=true
+export WITH_INET6_SUPPORT=true
+unset WITHOUT_INET6
+unset WITHOUT_INET6_SUPPORT
+X='
+
+# ipv6 defaults 
+
+# config 
+ipv6_privacy="NO"
+ipv6_network_interfaces="none"
+ipv6_activate_all_interfaces="NO"
+ipv6_default_interface="NO"
+ipv6_defaultrouter="NO"	
+ipv6_gateway_enable="NO"
+ipv6_ipv4mapping="NO"		
+
+ip6addrctl_enable="YES"	
+ip6addrctl_verbose="NO"
+ip6addrctl_policy="AUTO"
+
+rtsold_enable="NO"	
+rtadvd_enable="NO"	
+route6d_enable="NO"		
+
+ipv6_cpe_wanif="NO"		
+xxnetfix_enable="YES"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+export BSD_DIST_RC="$BSD_DIST_RC xxnetfix ip6addrctl rtadvd rtsold"
+X='
+# network ipv6
+net.inet6.ip6.forwarding=0
+net.inet6.ip6.auto_linklocal=1
+net.inet6.ip6.redirect=0
+net.inet6.ip6.use_tempaddr=1
+net.inet6.ip6.prefer_tempaddr=1
+net.inet6.ip6.accept_rtadv=1
+net.inet6.ip6.no_radr=1
+net.inet6.ip6.maxfragpackets=0
+net.inet6.ip6.maxfragsperpacket=0
+net.inet6.icmp6.rediraccept=0
+net.inet6.icmp6.nodeinfo=0'
+export BSD_SYSCTL="$BSD_SYSCTL$X"

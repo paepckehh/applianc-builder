@@ -1,0 +1,97 @@
+#!/bin/sh
+#
+# PROVIDE: xxsquid
+# REQUIRE: NETWORKING var tmp syslogd xxworker
+
+. /etc/rc.subr
+name="xxsquid"
+desc="squid - https proxy"
+start_cmd="squid_start"
+stop_cmd="squid_stop"
+rcvar="xxsquid_enable"
+worker="gate"
+load_rc_config $name
+chroot="/.worker/$worker/var/squid"
+c1="-f /etc/app/squid/squid.conf"
+c2="-f /etc/app/squid/squid.perm.conf"
+
+squid_start_main() {
+	if [ -e /var/lock.init.squid ]; then logger "[squid] already running, exit" && exit 1; fi
+	touch /var/lock.init.squid
+	logger "Starting [xx] squid [worker:$worker]."
+	case $worker in
+	proxy)
+		while [ ! -e /var/uplink.0.done ]; do sleep 0.2; done
+		/usr/sbin/service jail onestart $worker | logger
+		while [ ! -e /var/lock.worker.$worker ]; do sleep 0.2; done
+		mkdir -p $chroot
+		UP="$(cat /var/uplink.0.done)"
+		XCMD="/usr/sbin/jail -m -n proxy ip4.addr=ue0|192.168.10.80/24,lo0|127.0.0.80/24,$UP" && $XCMD
+		/usr/sbin/jexec proxy /usr/libexec/security_file_certgen -s /var/squid/ssl_db -c -M 16MB | logger
+		chown -R squid:squid $chroot
+		XCMD="/usr/sbin/jexec proxy/usr/sbin/setfib 6 $xxsquid_program $c1" && $XCMD
+		;;
+	gate)
+		cat /usr/bin/squid /usr/libexec/squidr >> /dev/null
+		/usr/bin/squid --version >> /dev/null
+		/usr/libexec/security_file_certgen -v >> /dev/null
+		while [ ! -e /var/lock.init.gate ]; do sleep 0.2; done
+		mkdir -p $chroot
+		UP="$(cat /var/uplink.0.done)"
+		XCMD="/usr/sbin/jail -m -n gate ip4.addr=ue0|192.168.10.80/24,ue0|192.168.10.250,lo0|127.0.0.80/24,lo0|127.0.0.153,$UP"
+		$XCMD
+		/usr/sbin/jexec gate /usr/libexec/security_file_certgen -s /var/squid/ssl_db -c -M 8MB | logger
+		chown -R squid:squid $chroot
+		XCMD="/usr/sbin/jexec gate /usr/sbin/setfib 6 $xxsquid_program $c1" && $XCMD
+		XCMD="/usr/sbin/jexec gate /usr/sbin/setfib 6 $xxsquid_program $c2" && $XCMD
+		;;
+	*)
+		chroot="/var/squid"
+		rm -rf $chroot
+		mkdir -p $chroot
+		/usr/libexec/security_file_certgen -s /var/squid/ssl_db -c -M 16MB
+		chown -R squid:squid $chroot
+		/usr/sbin/setfib 6 $xxsquid_program $c1
+		;;
+	esac
+	touch /var/lock.init.proxy
+	chgrp display $chroot/*log
+	if [ "$xxsquid_cache" != "" ]; then
+		cmd="su curl -c"
+		export HTTPS_PROXY="http://proxy.paepcke.pnoc:8080"
+		squid_check_systime
+		for target in $xxsquid_cache; do
+			echo "$cmd /usr/bin/curl -Ik https://$target" >> /var/cache.squid.log
+			$cmd "/usr/bin/curl -Ik https://$target" >> /var/cache.squid.log 2>&1
+		done
+	fi
+	touch /var/lock.init.dnscache
+	chgrp display $chroot/*log
+	while [ ! -e /.worker/gate/var/squid/reports ]; do sleep 0.2; done
+	cp -af /etc/worker/etc.gate/app/www /.worker/gate/var/squid/reports/
+	logger "[xx] squid [worker:$worker] startup done"
+}
+
+squid_check_systime() {
+	while [ $(date +%s) -lt 1659070000 ]; do
+		sleep 0.5
+	done
+}
+
+squid_stop_main() {
+	startmsg "Stopping [xx] squid [worker:$worker]."
+	pkill squid
+	case $worker in
+	proxy) /usr/sbin/service jail onestop $worker ;;
+	esac
+	rm -rf /var/lock.init.proxy /var/lock.init.squid
+}
+
+squid_stop() {
+	(squid_stop_main | logger)
+}
+squid_start() {
+	(squid_start_main | logger) &
+}
+
+run_rc_command "$1"

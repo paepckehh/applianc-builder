@@ -1,0 +1,6 @@
+#!/bin/sh
+SRCOBJ=/usr/obj/usr/src/$SRC_CHECKOUT/$TARCH_L1.$TARCH_L2/usr.bin/xinstall/xinstall
+$STRIPBIN -s $SRCOBJ
+TARGETDIR=/tmp/xinstall/usr/bin
+mkdir -p $TARGETDIR
+mv -v $SRCOBJ $TARGETDIR/install

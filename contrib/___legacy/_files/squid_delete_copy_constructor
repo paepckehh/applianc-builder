@@ -1,0 +1,11 @@
+--- ServerOptions.h.org	2019-05-27 12:47:45.101008000 +0000
++++ ServerOptions.h	2019-05-27 12:49:20.676424000 +0000
+@@ -35,7 +35,7 @@
+         // is more secure to have only a small set of trusted CA.
+         flags.tlsDefaultCa.defaultTo(false);
+     }
+-    ServerOptions(const ServerOptions &) = default;
++    ServerOptions(const ServerOptions &) = delete;
+     ServerOptions &operator =(const ServerOptions &);
+     ServerOptions(ServerOptions &&o) { this->operator =(o); }
+     ServerOptions &operator =(ServerOptions &&o) { this->operator =(o); return *this; }

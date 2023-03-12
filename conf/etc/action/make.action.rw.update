@@ -1,0 +1,20 @@
+#!/bin/sh
+if [ ! $BSD_CONF_VERSION ]; then . /etc/.bsdconf; fi
+hq u
+sh /etc/action/store mount
+cd $BSD_CONF/etc/action
+hq s store
+mv *hqx ../action.hqx/
+rm -rf BSD* create.img code.compact
+ln -fs /usr/store/appliance-builder/bin/BSD* .
+ln -fs /usr/store/appliance-builder/bin/action/.code.compact.sh code.compact
+ln -fs /usr/store/appliance-builder/bin/action/.create.img.sh create.img
+chmod 755 *
+umount -f /etc/action /etc/action.hqx /etc/goo > /dev/null 2>&1
+umount -f /etc/action /etc/action.hqx /etc/goo > /dev/null 2>&1
+sh /etc/action/make.dir.rw /etc/action
+sh /etc/action/make.dir.rw /etc/action.hqx
+sh /etc/action/make.dir.rw /etc/goo
+cp -af $BSD_CONF/etc/action/ /etc/action/
+cp -af $BSD_CONF/etc/action.hqx/ /etc/action.hqx/
+cp -af $BSD_CONF/etc/goo/ /etc/goo/

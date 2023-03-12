@@ -1,0 +1,8 @@
+nvmecontrol logpage -p 1 nvme0 > /tmp/nvmelog.page0.log
+nvmecontrol logpage -p 2 nvme0
+nvmecontrol logpage -p 3 nvme0
+nvmecontrol logpage -p 6 nvme0
+nvmecontrol devlist
+nvmecontrol identify -v nvme0
+pciconf -lbace nvme0
+diskinfo -t /dev/nvd0

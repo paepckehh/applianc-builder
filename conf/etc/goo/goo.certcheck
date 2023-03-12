@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="github.com/google/certificate-transparency-go/x509util/certcheck" goo $*

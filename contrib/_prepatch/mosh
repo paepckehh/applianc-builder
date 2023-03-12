@@ -1,0 +1,30 @@
+### ( 20220410 ) ### DO NOT EDIT ### auto-generated file / patchset by appliance-builder enhance env ###
+--- ./src/frontend/mosh-server.cc.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./src/frontend/mosh-server.cc	1970-01-01 00:00:00.000000000 +0000
+@@ -593,13 +593,14 @@
+     /* Wait for parent to release us. */
+     char linebuf[81];
+     if (fgets(linebuf, sizeof linebuf, stdin) == NULL) {
+-      err( 1, "parent signal" );
++      perror("parent signal" ); 
++      exit( 1 );
+     }
+ 
+     Crypto::reenable_dumping_core();
+ 
+     if ( execvp( command_path.c_str(), command_argv ) < 0 ) {
+-      warn( "execvp: %s", command_path.c_str() );
++      perror( "execvp");
+       sleep( 3 );
+       exit( 1 );
+     }
+@@ -822,7 +823,8 @@
+ 	  /* Tell child to start login session. */
+ 	  if ( !child_released ) {
+ 	    if ( swrite( host_fd, "\n", 1 ) < 0) {
+-	      err( 1, "child release" );
++	      perror("child release" );
++      		exit( 1 );
+ 	    }
+ 	    child_released = true;
+ 	  }

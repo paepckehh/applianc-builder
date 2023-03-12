@@ -1,0 +1,52 @@
+### ( 2023-03-12 ) ( 1678605360 ) ### DO NOT EDIT ### auto-generated file / patchset by <appliance-builder/enhanced> ###
+--- ./pkg/files.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./pkg/files	1970-01-01 00:00:00.000000000 +0000
+@@ -1,11 +1,2 @@
+-PROGRAM:%%OBJDIR%%/powerd++:%%PREFIX%%/sbin/powerd++
+-SYMLINK:powerd++:%%PREFIX%%/sbin/powerdxx
+-PROGRAM:%%OBJDIR%%/loadrec:%%PREFIX%%/bin/loadrec
+-PROGRAM:%%OBJDIR%%/loadplay:%%PREFIX%%/bin/loadplay
+-LIB:%%OBJDIR%%/libloadplay.so:%%PREFIX%%/lib/libloadplay.so
+-MAN:%%CURDIR%%/README.md:%%DOCSDIR%%/README.md
+-MAN:%%CURDIR%%/man/powerd++.8:%%PREFIX%%/man/man8/powerd++.8.gz
+-SYMLINK:powerd++.8.gz:%%PREFIX%%/man/man8/powerdxx.8.gz
+-MAN:%%CURDIR%%/man/loadrec.1:%%PREFIX%%/man/man1/loadrec.1.gz
+-MAN:%%CURDIR%%/man/loadplay.1:%%PREFIX%%/man/man1/loadplay.1.gz
+-SCRIPT:%%CURDIR%%/powerd++.rc:%%PREFIX%%/etc/rc.d/powerdxx
++PROGRAM:%%OBJDIR%%/powerd++:%%PREFIX%%/sbin/powerdxx
++SCRIPT:%%CURDIR%%/powerd++.rc:/etc/rc.d/powerdxx
+--- ./Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./Makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -4,10 +4,10 @@
+ PFLAGS=        -fstack-protector -fsanitize=undefined -fsanitize-undefined-trap-on-error
+ TESTBUILDS=    clang++10 clang++90 clang++80 g++9
+ 
+-PREFIX?=       /usr/local
++PREFIX?=       /usr
+ DOCSDIR?=      ${PREFIX}/share/doc/powerdxx
+ 
+-BINCPPS=       src/powerd++.cpp src/loadrec.cpp src/loadplay.cpp
++BINCPPS=       src/powerd++.cpp
+ SOCPPS=        src/libloadplay.cpp
+ SRCFILES!=     cd ${.CURDIR} && find src/ -type f
+ HPPS=          ${SRCFILES:M*.hpp}
+@@ -92,7 +92,7 @@
+ 
+ install deinstall: pkg/${.TARGET:C,.*/,,}.sh pkg/files
+ 	@${.CURDIR}/pkg/${.TARGET:C,.*/,,}.sh < ${.CURDIR}/pkg/files \
+-		DESTDIR="${DESTDIR}" PREFIX="${PREFIX}" DOCSDIR="${DOCSDIR}" \
++		DESTDIR="${DESTDIR}" PREFIX="${PREFIX}"  \
+ 		CURDIR="${.CURDIR}" OBJDIR="${.OBJDIR}"
+ 
+ # Clean
+--- ./powerd++.rc.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./powerd++.rc	1970-01-01 00:00:00.000000000 +0000
+@@ -9,7 +9,7 @@
+ 
+ name="powerdxx"
+ rcvar="powerdxx_enable"
+-command="%%PREFIX%%/sbin/powerd++"
++command="/usr/sbin/powerdxx"
+ pidfile="/var/run/powerd.pid"
+ 
+ load_rc_config $name

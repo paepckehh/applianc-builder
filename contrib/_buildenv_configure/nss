@@ -1,0 +1,8 @@
+#!/bin/sh
+export FREEBL_LOWHASH=1
+export NSS_DISABLE_GTESTS=1
+export NSS_USE_SYSTEM_SQLITE=1
+export BUILD_OPT=1
+export LIBRARY_PATH=/usr/lib
+cd /tmp/nss-master
+/usr/local/bin/bash build.sh --clang --disable-keylog --with-nspr=/usr/local/include: >> /tmp/build-nss.log

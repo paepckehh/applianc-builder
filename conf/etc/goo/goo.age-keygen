@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="filippo.io/age/cmd/age-keygen" goo $*

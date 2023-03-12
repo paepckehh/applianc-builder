@@ -1,0 +1,44 @@
+#!/bin/sh
+#
+# PROVIDE: xxunbound
+# REQUIRE: NETWORKING netif pf var tmp syslogd xxworker
+
+. /etc/rc.subr
+name="xxunbound"
+desc="unbound - local dns resolver"
+start_cmd="unbound_start"
+stop_cmd="unbound_stop"
+rcvar="xxunbound_enable"
+worker="dns"
+load_rc_config $name
+prg="$xxunbound_program $xxunbound_args"
+ctl="$xxunbound_control $xxunbound_args"
+
+unbound_start() {
+	(
+		logger "Starting [xx] unbound [worker:$worker]. "
+		if [ -e /var/lock.init.unbound ]; then logger "[unbound] already running, exit" && exit 1; fi
+		touch /var/lock.init.unbound
+		/usr/sbin/service jail onestart $worker | logger
+		while [ ! -e /var/lock.worker.$worker ]; do sleep 0.2; done
+		/usr/sbin/jexec $worker $prg | logger
+		logger "[xx] unbound.local [worker:$worker] started"
+		touch /var/lock.init.unbound.local
+		while [ ! -e /var/uplink.0.done ]; do sleep 0.2; done
+		ip="$(cat /var/uplink.0.ip4)"
+		/usr/sbin/jexec $worker $ctl local_data_remove uplink.local | logger
+		/usr/sbin/jexec $worker $ctl local_data uplink.local A $ip | logger
+		touch /var/lock.init.dnsuplink
+		logger "[xx] unbound.uplink started [worker:$worker]"
+	) &
+}
+
+unbound_stop() {
+	startmsg "Stopping [xx] unbound [worker:$worker]. "
+	pkill unbound
+	/usr/sbin/service jail onestop $worker
+	rm -rf /var/lock.init.unbound* /var/lock.init.dnsuplink
+	logger "[xx] unbound stopped [worker:$worker]"
+}
+
+run_rc_command "$1"

@@ -1,0 +1,44 @@
+#!/bin/sh
+# patch shlib and version to align fbsd logic
+sed -i '' -e "s/xx XXX xxxx/LockSSL ( RELEASE:$(cat openssl/RELEASE) ) ( COMMIT:$(cat openssl/.commit | cut -c 1-12) )/g" \
+	include/openssl/opensslv.h
+sed -i '' -e "s/25 Mar 2021/LockSSL ( RELEASE:$(cat openssl/RELEASE) ) ( COMMIT:$(cat openssl/.commit) )/g" \
+	include/openssl/opensslv.h
+sed -i '' -e 's/"1.1.1"/"111"/g' include/openssl/opensslv.h
+sed -i '' -e 's/"1.1"/"111"/g' include/openssl/opensslv.h
+./config \
+	--cross-compile-config=$CCT \
+	--prefix=/usr \
+	--release \
+	--no-autoload-config \
+	--no-capi-eng \
+	--no-cms \
+	--no-comp \
+	--no-ct \
+	--no-dgram \
+	--no-engine \
+	--no-err \
+	--no-filenames \
+	--no-gost \
+	--no-ocsp \
+	--no-psk \
+	--no-srp \
+	--no-srtp \
+	--enable-ssl-trace \
+	--no-tests \
+	--no-ts \
+	--no-ssl \
+	--no-ssl3 \
+	--no-tls1 \
+	--no-tls1_1 \
+	--no-dtls \
+	--no-des \
+	--no-dh \
+	--no-dsa \
+	--no-idea \
+	--no-camellia \
+	--no-aria \
+	--no-ocb \
+	--no-rc4 \
+	--no-rc2
+patch --batch --reject-file $LOGSRC/.auto.patch.openssl.fail.shlib -i $BSD_CONTRIB/_patch/openssl.shlib

@@ -1,0 +1,5 @@
+usr/share/man
+usr/include
+usr/bin/tar*
+usr/bin/rd*
+usr/bin/sq*

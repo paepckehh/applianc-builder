@@ -1,0 +1,2 @@
+#!/bin/sh
+cat /dev/lte0 | grep -A 3 ':'

@@ -1,0 +1,39 @@
+#!/bin/sh
+rm -rf glibc meson slirp dtc ui/keycodemapdb > /dev/null 2>&1
+mkdir -p glibc meson slirp dtc ui/keycodemapdb
+git.checkout glibc
+git.checkout meson
+git.checkout dtc
+git.checkout libslirp && mv libslirp slirp
+(cd ui && git.checkout keycodemapdb)
+sh ./configure \
+	--host=$CCT \
+	--build=$LT_ARCH \
+	--prefix=/usr \
+	--cc=${CC} \
+	--disable-kvm \
+	--disable-linux-aio \
+	--disable-linux-user \
+	--disable-xen \
+	--disable-gtk \
+	--disable-libnfs \
+	--disable-gettext \
+	--disable-gcrypt \
+	--disable-alsa \
+	--disable-auth-pam \
+	--disable-dbus-display \
+	--disable-bpf \
+	--disable-dmg \
+	--disable-jack \
+	--disable-png \
+	--enable-fdt=system \
+	--python="/usr/local/bin/python3.7" \
+	cross_compiling=yes
+
+#	--enable-netmap \
+#	--extra-cflags=-I${WRKSRC}\ -I${LOCALBASE}/include\ -DPREFIX=\\\"\"${PREFIX}\\\"\" \
+#	--extra-ldflags=-L${LOCALBASE}/lib \
+#	--extra-ldflags=-L/usr/lib \
+#	--localstatedir=/var \
+#	--mandir=${PREFIX}/man \
+#	--python=${PYTHON_CMD}

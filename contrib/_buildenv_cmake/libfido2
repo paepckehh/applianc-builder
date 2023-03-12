@@ -1,0 +1,6 @@
+#/bin/sh
+cp -vrf $BSD_CONTRIB/_patch/hidapi.pc /usr/local/libdata/pkgconfig/hidapi.pc
+cmake $CMAKE_CONFIG \
+	-DLIBFUZZER=OFF \
+	-DUSE_HIDAPI=ON \
+	..

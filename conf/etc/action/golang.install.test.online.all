@@ -1,0 +1,25 @@
+#!/bin/sh
+cd /tmp
+BSDlive goo
+export HTTPS_PROXY=127.0.0.80:8080
+export SSL_CERT_FILE=/etc/ssl/rootCA.pem
+export GOPROXY="proxy.golang.org"
+export GOSUMDB="sum.golang.org+033de0ae+Ac4zctda0e5eza+HJyk9SxEdh+s3Ux18htTTAD8OuAn8"
+export APPS="aiagent airloctag asn2pf cliqr codereview codescore daylight dnsinfo fsdd gitkeys gpsinfo gpstime hq lteinfo npad squidr tlsinfo"
+export GOFLAGS="-ldflags=-s -ldflags=-w -trimpath" && if [ "$DIST" = "bsrv" ]; then export GOFLAGS="$GOFLAGS -mod=readonly"; fi
+echo "# GOAPPS : $APPS"
+echo "# GOFLAGS: $GOFLAGS"
+XCMD="go install paepcke.de/mkcert-delux@latest"
+echo "  => $XCMD" && $XCMD
+for APP in $APPS; do
+	XCMD="cd $BSD_DEV/$APP"
+	echo "# $XCMD" && $XCMD || exit 1
+	XCMD="go install paepcke.de/$APP/cmd/$APP@latest"
+	echo "  => $XCMD" && $XCMD
+	XCMD="go vet -mod=readonly ./..."
+	echo "  => $XCMD" && $XCMD
+	XCMD="fmt.golang"
+	echo "  => $XCMD" && $XCMD
+	# XCMD="codescore -v ."
+	# echo "  => $XCMD" && $XCMD
+done

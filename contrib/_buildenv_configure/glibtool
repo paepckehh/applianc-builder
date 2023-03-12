@@ -1,0 +1,14 @@
+#!/bin/sh
+rm -rf /tmp/gnulib-master
+tar -C /tmp -xvf $BSD_CONTRIB/___legacy/gnulib
+export GNULIB_SRCDIR="/tmp/gnulib-master"
+sh ./bootstrap \
+	--skip-git \
+	--skip-po \
+	--verbose \
+	--gnulib-srcdir=/tmp/gnulib-master \
+	>> /tmp/build-libtool.log
+sh ./configure \
+	--prefix=/usr/local\ 
+--program-prefix=g \
+	>> /tmp/build-libtool.log

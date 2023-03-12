@@ -1,0 +1,47 @@
+#!/bin/sh
+# PROVIDE: xxgitclient
+# REQUIRE: var tmp jail xxworker
+
+. /etc/rc.subr
+name="xxgitclient"
+desc="git client devops"
+start_cmd="gitclient_start"
+stop_cmd="gitclient_stop"
+update_cmd="gitclient_update"
+extra_commands="update"
+rcvar="xxgitclient_enable"
+load_rc_config $name
+
+GITROOT=/usr/store/git
+REPO_ROOT=/.worker/gitclient/usr/store
+REPO_GIT=$REPO_ROOT/git
+
+gitclient_update() {
+	if [ ! $BSD_CONF_VERSION ]; then . /etc/.bsdconf; fi
+	gitclient_start
+	if [ ! -x $REPO_GIT ]; then echo "[gitclient] [update] [unable to access] [$REPO_ROOT]" && exit; fi
+	/usr/sbin/jexec -U gitclient gitclient sh /etc/action/.action-git-update.sh $UPDATE
+	gitclient_stop
+}
+
+gitclient_start() {
+	echo "Starting [xx] [worker:gitclient] [$UPDATE]."
+	if [ ! -x /usr/store/git ]; then echo "[gitclient] [start worker] [unable to access] [/usr/store/git]" && exit; fi
+	/usr/sbin/service jail onestart gitclient
+	while [ ! -e /var/lock.worker.gitclient ]; do sleep 0.2; done
+	mkdir -p $REPO_ROOT
+	mount -t tmpfs tmpfs $REPO_ROOT
+	mkdir -p $REPO_GIT
+	chown gitclient:gitclient $REPO_GIT
+	mount -t nullfs /usr/store/.cache-external-resources/git $REPO_GIT
+}
+
+gitclient_stop() {
+	. /etc/.bsdconf
+	echo "Stopping [xx] [worker:gitclient]"
+	/usr/sbin/service jail onestop gitclient
+	umount -f $DEVSRC $REPO $REPO_ROOT > /dev/null 2>&1
+}
+
+if [ $2 ]; then UPDATE=$2; fi
+run_rc_command "$1"

@@ -1,0 +1,7 @@
+#!/bin/sh
+sh ./autogen.sh >> /tmp/build-libxml2.log 2>&1
+sh ./configure \
+	--host=$CCT \
+	--prefix=/usr/local \
+	--enable-shared \
+	>> /tmp/build-libxml2.log 2>&1

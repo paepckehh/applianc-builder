@@ -1,0 +1,8 @@
+#!/bin/sh
+rm -rf .git
+git init --initial-branch=main
+git checkout -b main
+. /etc/action/git.config
+git add .
+git commit -m "init"
+git remote add origin https://codeberg.org/paepcke/${PWD##*/}.git

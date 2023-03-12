@@ -1,0 +1,42 @@
+### ( 20220410 ) ### DO NOT EDIT ### auto-generated file / patchset by appliance-builder enhance env ###
+--- ./Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./Makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -1,23 +1,11 @@
+ # Base CFLAGS
+-CFLAGS := -O2 -fomit-frame-pointer -std=c99 \
+-		  -pedantic -Wall -Wextra -MMD -pipe
++CFLAGS += -fomit-frame-pointer -std=c99 -pedantic -Wall -Wextra -MMD -pipe
+ 
+ # Base LDFLAGS
+-LDFLAGS := -lcursesw -lm
++LDFLAGS += -lcursesw -lm
+ 
+ # -----------
+ 
+-# When make is invoked by "make VERBOSE=1" print
+-# the compiler and linker commands.
+-
+-ifdef VERBOSE
+-Q :=
+-else
+-Q := @
+-endif
+-
+-# -----------
+-
+ # Phony targets
+ .PHONY : all clean
+ 
+@@ -39,10 +27,8 @@
+ 
+ install: powermon
+ 	@echo "===> Installing powermon"
+-	$(Q)install -s release/powermon /usr/local/sbin/powermon
+-	$(Q)cp misc/powermon.8 release
+-	$(Q)gzip release/powermon.8
+-	$(Q)install -m 644 release/powermon.8.gz /usr/local/man/man8/powermon.8.gz
++	$(Q)mkdir -p $(DESTDIR)/usr/sbin
++	$(Q)install -s release/powermon $(DESTDIR)/usr/sbin/powermon
+ 
+ # -----------
+ 

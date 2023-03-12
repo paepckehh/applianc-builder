@@ -1,0 +1,14 @@
+#!/bin/sh
+if [ -r /var/gps/.location ]; then 
+	. /var/gps/.location
+else 
+	export GPS_MODE="static"
+	export GPS_LAT="53.5643"
+	export GPS_LONG="9.9576"
+	export GPS_ELEVATION="0"
+	if [ -x /usr/bin/daylight ]; then
+		mkdir -p /var/gps
+		/usr/bin/daylight unix > /var/gps/.location
+		. /var/gps/.location
+	fi
+fi

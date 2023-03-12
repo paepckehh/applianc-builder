@@ -1,0 +1,53 @@
+#!/bin/sh
+# PROVIDE: xxpnoc
+# REQUIRE: netif var tmp syslogd
+
+. /etc/rc.subr
+name="xxpnoc"
+desc="Personal Network Operation Center"
+start_cmd="pnoc_start"
+stop_cmd="pnoc_stop"
+rcvar="xxpnoc_enable"
+load_rc_config $name
+
+pnoc_console() {
+	/usr/bin/ifconfig ipfw0 create > /dev/null 2>&1
+	/usr/bin/ifconfig pflog0 create > /dev/null 2>&1
+	MANAGED_DEVICES="/dev/ttyv4 /dev/ttyv5 /dev/ttyv6 /dev/ttyv7 /dev/ttyv8"
+	PF_MANAGED_DEVICES="/dev/ttyv9 /dev/ttyva /dev/bpf*"
+	chown 0:display $MANAGED_DEVICES
+	chown 0:displaypf $PF_MANAGED_DEVICES
+	chmod 660 $MANAGED_DEVICES $PF_MANAGED_DEVICES
+	su display -c "tail -F -n 100 /.worker/gate/var/squid/log > /dev/ttyv4 &"
+	su display -c "tail -F -n 100 /.worker/gate/var/squid/perm.log > /dev/ttyv5 &"
+	su display -c "tail -F -n 100 /.worker/dns/var/unbound/log > /dev/ttyv6 &"
+	su display -c "tail -F -n 100 /.worker/gate/var/dnscrypt/log.5353 > /dev/ttyv7 &"
+	su display -c "tail -F -n 100 /.worker/gate/var/dnscrypt/logquery.5353 > /dev/ttyv8 &"
+	tail -F -n 100 /.worker/gate/var/tmp/squidrdebug.log > /dev/ttyv9 &
+	# su displaypf -c "tcpdump -vvvKXXA -i ipfw0 > /dev/ttyva 2>&1 &"
+	su displaypf -c "tcpdump -vvvKXXA -i pflog0 > /dev/ttyva 2>&1 &"
+	echo '
+	PNOC INFO DISPLAYS                                         TTY                  KEY
+	===================================================================================
+	[SQUID     ] outbound and cache http/https proxy           ttyv4          [ALT-F5 ]
+	[SQUID PERM] outbound and cache http/https proxy perm      ttyv5          [ALT-F6 ]
+	[UNBOUND   ] dns local unbound   log [port 53]             ttyv6          [ALT-F7 ]
+	[DNSCRYPT  ] dns crypt status    log [port 5353]           ttyv7          [ALT-F8 ]
+	[DNSCRYPT  ] dns crypt query     log [port 5353]           ttyv8          [ALT-F9 ]
+	[SQUIDR    ] squidr redirect srv log []                    ttyv9          [ALT-F10]
+	[PFFIREWALL] pf pcap drop        log [/dev/pflog0]         ttyva          [ALT-F11]
+	[SYSLOG    ] system log messages log [/var/log/messages]   ttyvb          [ALT-F12]'
+	touch /var/lock.init.pnoc.console
+}
+pnoc_start() {
+	startmsg 'Starting [xx] pnoc.'
+	if [ -e /var/lock.init.pnoc ]; then logger "[pnoc] already running, exit" && exit 1; fi
+	touch /var/lock.init.pnoc
+	(pnoc_console | logger) &
+}
+pnoc_stop() {
+	startmsg 'Stopping [xx] pnoc.'
+	pkill -U display,displaypf
+	rm -rf /var/lock.init.pnoc*
+}
+run_rc_command "$1"

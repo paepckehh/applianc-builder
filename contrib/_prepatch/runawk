@@ -1,0 +1,11 @@
+### ( 2022-10-11 ) ( 1665468956 ) ### DO NOT EDIT ### auto-generated file / patchset by <appliance-builder/enhanced> ###
+--- ./Makefile.orig	2022-10-11 05:53:50.096612000 +0000
++++ ./Makefile	2022-10-11 06:15:32.443582000 +0000
+@@ -1,6 +1,6 @@
+ ##################################################
+ 
+-SUBPRJ       =	runawk:test modules examples a_getopt doc
++SUBPRJ       =	runawk:test modules examples a_getopt
+ SUBPRJ_DFLT ?=	runawk modules
+ 
+ WITH_ALT_GETOPT ?=	yes

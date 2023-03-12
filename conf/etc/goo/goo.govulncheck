@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="golang.org/x/vuln/cmd/govulncheck" goo $*

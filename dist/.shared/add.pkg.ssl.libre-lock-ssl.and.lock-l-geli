@@ -1,0 +1,5 @@
+#/bin/sh
+export WITH_LOCKSSL=true
+export WITH_LIBRESSL=true
+if [ $BSD_KERNCONF_GEOM_ELI ]; then export BSD_DIST_PKG="$BSD_DIST_PKG lock-l-geli"; fi
+export BSD_DIST_PKG="$BSD_DIST_PKG lock-l-ssl"

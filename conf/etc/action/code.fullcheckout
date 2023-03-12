@@ -1,0 +1,3 @@
+#!/bin/sh
+hq u
+FULL=true /etc/action.hqx/store.hqx checkout

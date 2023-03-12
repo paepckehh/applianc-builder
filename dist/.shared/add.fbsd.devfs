@@ -1,0 +1,12 @@
+#!/bin/sh
+X='
+
+# DEVFS
+devfs_load_rulesets="YES"
+devfs_rulesets="/etc/devfs.rules" 
+devfs_system_ruleset=""
+devfs_set_rulesets=""
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+export BSD_DIST_RC="$BSD_DIST_RC devfs"
+export BSD_DIST_PKG="$BSD_DIST_PKG devfs"

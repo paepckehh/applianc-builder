@@ -1,0 +1,17 @@
+#!/bin/sh
+# . $BSD_ARCH/.efi
+. $BSD_ARCH/.all
+. $BSD_ARCH/.pci
+. $BSD_ARCH/.acpi
+. $BSD_ARCH/.64bit
+export TARCH_L1=amd64
+export GOARCH=amd64
+export GOBUILDMODE=pie
+export BSD_KERNCONF_CPU=HAMMER
+export BSD_KERNCONF_MACHINE="$TARCH_L1"
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS SMP EARLY_AP_STARTUP SCHED_4BSD" # optional SCHED_ULE
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE coretemp cpufreq speaker"
+X='
+hw.intrbalance=1
+'
+export BSD_SYSCTL="$BSD_SYSCTL$X"

@@ -1,0 +1,3 @@
+#!/bin/sh
+SSL_CERT_FILE="/etc/ssl/rootCA.pem" HTTPS_PROXY="127.0.0.80:8080" GITSTORE="/usr/store/git" /etc/goo/goo.gitkeys fetch
+ln -f $BSD_GIT/.keys $BSD_DEV/keys/.keys

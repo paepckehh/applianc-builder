@@ -1,0 +1,10 @@
+#!/bin/sh
+case $TARGET in
+amd64)
+	BASE_OPT="virtio virtio_pci virtio_blk virtio_random virtio_console vtnet"
+	OPTI_OPT="virtio_scsi virtio_balloon"
+	export BSD_DIST_PKG="$BSD_DIST_PKG"
+	export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS"
+	export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE $BSD_OPT"
+	;;
+esac

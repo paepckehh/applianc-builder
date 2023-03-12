@@ -1,0 +1,8 @@
+usr/bin/env*
+usr/bin/sem
+usr/bin/parcat
+usr/bin/parset
+usr/bin/parsort
+usr/bin/sql
+usr/bin/niceload
+usr/share

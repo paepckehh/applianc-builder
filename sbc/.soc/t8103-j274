@@ -1,0 +1,3 @@
+#!/bin/sh
+export BSD_TARGET_SOC=t8103-j274
+. $BSD_ARCH/arm64.aarch64.apple-latest

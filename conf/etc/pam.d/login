@@ -1,0 +1,6 @@
+auth		sufficient	pam_self.so		no_warn
+auth		include		system
+account		requisite	pam_securetty.so
+account		include		system
+session		include		system
+password	include		system

@@ -1,0 +1,8 @@
+#!/bin/sh
+sh ./bootstrap.sh >> /tmp/build-yara.log
+sh ./configure \
+	--host=$CCT \
+	--disable-static \
+	--disable-debug \
+	--prefix=/usr/local \
+	>> /tmp/build-yara.log

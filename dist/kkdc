@@ -1,0 +1,34 @@
+#!/bin/sh
+. $BSD_DIST/.base/mini
+. $BSD_DIST/.shared/embedded
+. $BSD_DIST/.shared/add.fbsd.mdroot
+. $BSD_DIST/.shared/add.fbsd.capa
+. $BSD_DIST/.shared/add.fbsd.ip4
+. $BSD_DIST/.shared/add.fbsd.pf
+. $BSD_DIST/.shared/add.fbsd.console.vertical
+. $BSD_DIST/.shared/add.pkg.powerdxx
+. $BSD_DIST/.shared/add.worker.kkdc
+X='
+# xxkkdc - spin up kerberos worker isolation
+xxkkdc_enable="YES"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+export BSD_DIST_RC="$BSD_DIST_RC xxkkdc"
+export BSD_TARGET_DIST="kkdc" # kerberos KDC
+#
+#
+# -= DEBUG ONLY SECTION =-
+#
+#
+BSD_DEBUG_CONS=true
+# BSD_DEBUG_SSH_AIRGAP=true
+#
+#
+if [ $BSD_DEBUG_CONS ]; then
+	. $BSD_DIST/.shared/add.fbsd.console.vertical
+else
+	. $BSD_DIST/.shared/add.fbsd.console.null
+fi
+if [ $BSD_DEBUG_SSH_AIRGAP ]; then
+	. $BSD_DIST/.shared/add.server.ssh.airgap-ssproxy
+fi

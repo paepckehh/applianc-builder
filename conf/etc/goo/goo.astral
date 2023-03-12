@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="github.com/sj14/astral/cmd/astral" goo -elev $GPS_ELEVATION -lat $GPS_LAT -long $GPS_LONG

@@ -1,0 +1,3 @@
+#!/bin/sh
+if [ ! $BSD_CONF_VERSION ]; then . /etc/.bsdconf; fi
+cd $BSD_PNOC && $BSD_PNOC/.action-update-dnscrypt-resolver.hqx

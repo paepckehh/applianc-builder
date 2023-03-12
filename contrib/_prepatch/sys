@@ -1,0 +1,12 @@
+### ( 2022-09-14 ) ( 1663143745 ) ### DO NOT EDIT ### auto-generated file / patchset by <appliance-builder/enhanced> ###
+--- ./sys/_eventhandler.h.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/_eventhandler.h	1970-01-01 00:00:00.000000000 +0000
+@@ -55,7 +55,7 @@
+  */
+ struct eventhandler_list;
+ #define	EVENTHANDLER_LIST_DECLARE(name)					\
+-extern struct eventhandler_list *_eventhandler_list_ ## name		\
++extern struct eventhandler_list *_eventhandler_list_ ## name		
+ 
+ /*
+  * Event handlers need to be declared, but do not need to be defined. The

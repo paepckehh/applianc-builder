@@ -1,0 +1,2 @@
+#!/bin/sh
+mv /tmp/e2fsprogs/usr/local/sbin/* /tmp/e2fsprogs/usr/local/bin/

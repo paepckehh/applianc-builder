@@ -1,0 +1,16 @@
+#!/bin/sh
+unset DISPATCH
+export XXH_INLINE_ALL=1
+case $TARCH_L1 in
+amd64)
+	case $TARCH_L3 in
+	skylake) export XXH_VECTOR=XXH_AVX2 ;;
+	*) export XXH_VECTOR=XXH_SSE2 ;;
+	esac
+	;;
+arm*) export XXH_VECTOR=NEON ;;
+esac
+export CFLAGS="$CFLAGS -DXXH_VECTOR=$XXH_VECTOR -flto=full"
+export CXXFLAGS=$CFLAGS
+export CPPFLAGS=$CFLAGS
+$MAKE -j$MAKETHREADS all install

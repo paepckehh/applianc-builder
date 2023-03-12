@@ -1,0 +1,4 @@
+#!/bin/sh
+. /etc/action/.check.store
+if [ ! -x /usr/local/goo/.goo ]; then sh /etc/action/BSDlive goo; fi
+if [ ! -x /usr/local/goo/.goo ]; then echo "[UNABLE TO ACTIVATE GOO]" && exit 1; fi

@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="aead.dev/minisign/cmd/minisign" goo $*

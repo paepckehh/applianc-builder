@@ -1,0 +1,29 @@
+#!/bin/sh
+. $BSD_DIST/.shared/add.worker
+X='
+# pnoc specifc worker setup 
+jail_conf="/etc/worker/worker.pnoc.conf"
+
+# pnoc localhost interface [worker] infrastructure
+ifconfig_lo0_descr="[LOCALHOST] [LOCALNET]"
+ifconfig_lo0_alias1="inet 127.0.0.2/32"
+ifconfig_lo0_alias2="inet 127.0.0.53/32"
+ifconfig_lo0_alias3="inet 127.0.0.80/32"
+ifconfig_lo0_alias4="inet 127.0.0.123/32"
+ifconfig_lo0_alias5="inet 127.0.0.153/32"
+ifconfig_lo0_alias6="inet 127.0.0.222/32"
+ifconfig_lo0_alias7="inet 127.0.0.241/32"
+ifconfig_lo0_alias8="inet 127.0.0.243/32"
+ifconfig_lo0_alias9="inet 127.0.0.246/32"
+ifconfig_lo0_alias10="inet 127.0.0.254/32"
+
+# pnoc intranet client services interfaces
+ifconfig_ue0_name="intra0"
+ifconfig_intra0_descr="[INTRANET] [CLIENTNET]"
+ifconfig_intra0="inet 192.168.10.2/24"
+ifconfig_intra0_alias1="inet 192.168.10.53/32"
+ifconfig_intra0_alias2="inet 192.168.10.80/32"
+ifconfig_intra0_alias3="inet 192.168.10.123/32"
+ifconfig_intra0_alias4="inet 192.168.10.240-254/32"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"

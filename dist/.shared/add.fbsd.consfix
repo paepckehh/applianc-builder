@@ -1,0 +1,7 @@
+#!/bin/sh
+X='
+#
+xxconsfix_enable="YES"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+export BSD_DIST_RC="$BSD_DIST_RC xxconsfix"

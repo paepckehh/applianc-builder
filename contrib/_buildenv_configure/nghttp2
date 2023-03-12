@@ -1,0 +1,16 @@
+#!/bin/sh
+autoreconf -i >> /tmp/build-nghttp2.log
+autoreconf -i >> /tmp/build-nghttp2.log
+automake >> /tmp/build-nghttp2.log
+autoconf >> /tmp/build-nghttp2.log
+sh ./configure \
+	--host=$CCT \
+	--with-sysroot=$SYSROOTMOUNT \
+	--prefix=/usr \
+	--disable-debug \
+	--disable-failmalloc \
+	--disable-assert \
+	--disable-largefile \
+	--with-neverbleed \
+	--enable-lib-only \
+	>> /tmp/build-nghttp2.log

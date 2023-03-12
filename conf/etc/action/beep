@@ -1,0 +1,88 @@
+#!/bin/sh
+led2() {
+	case $CODE in
+	ERR* | err*)
+		echo 1 > /dev/led/led1
+		;;
+	alert)
+		echo 1 > /dev/led/led1
+		;;
+	off)
+		echo 0 > /dev/led/led0
+		echo 0 > /dev/led/led1
+		;;
+	*)
+		echo 1 > /dev/led/led0 && sleep 0.1
+		echo 0 > /dev/led/led0
+		;;
+	esac
+}
+
+speaker() {
+	if [ -x /usr/bin/morse ]; then
+		case $CODE in
+		2)
+			morse -p h
+			;;
+		3 | INF)
+			morse -p ok
+			;;
+		ERR* | err*)
+			morse -p error
+			;;
+		alert)
+			morse -p sos
+			;;
+		*)
+			morse -p e
+			;;
+		esac
+	else
+		case $CODE in
+		2)
+			echo "EA" > /dev/speaker
+			;;
+		3 | INF)
+			echo "AAAEEE" > /dev/speaker
+			;;
+		ERR* | err*)
+			echo "EAEAEAEAEA" > /dev/speaker
+			;;
+		alert)
+			echo "AAEEAAEEA" > /dev/speaker
+			;;
+		*)
+			echo "A" > /dev/speaker
+			;;
+		esac
+	fi
+}
+
+snd() {
+	case $CODDE in
+	2)
+		/usr/bin/beep -D 50
+		/usr/bin/beep -D 50
+		;;
+	3 | INF)
+		/usr/bin/beep -D 50
+		/usr/bin/beep -D 50
+		/usr/bin/beep -D 50
+		;;
+	ERR* | err*)
+		/usr/bin/beep -D 500
+		;;
+	alert)
+		/usr/bin/beep -D 1000
+		;;
+	*)
+		/usr/bin/beep
+		;;
+	esac
+}
+
+CODE=$1
+if [ -e /dev/led/led0 ] && [ -e /dev/led/led1 ]; then led2; fi
+if [ -e /dev/speaker ]; then speaker; fi
+if [ -e /dev/dsp ] && [ -e /usr/bin/beep ]; then snd; fi
+###################################################################

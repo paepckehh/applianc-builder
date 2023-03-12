@@ -1,0 +1,61 @@
+#!/bin/sh
+cd /tmp
+tar -xf $BSD_CONTRIB/_src/curl
+ln -s curl-master curl-wolfssl-master
+cd /tmp/curl-wolfssl-master
+sh ./buildconf >> /tmp/build-curl-wolfssl.log
+sh ./configure \
+	--host=$CCT \
+	--with-sysroot=$SYSROOTMOUNT \
+	--disable-debug \
+	--disable-locale \
+	--disable-man \
+	--disable-curldebug \
+	--disable-ares \
+	--disable-shared \
+	--disable-libcurl-option \
+	--disable-cookies \
+	--disable-alt-svc \
+	--disable-tls-srp \
+	--disable-ntlm-wb \
+	--disable-crypto-auth \
+	--disable-sspi \
+	--disable-versioned-symbols \
+	--disable-threaded-resolver \
+	--disable-tftp \
+	--disable-ftp \
+	--disable-file \
+	--disable-ldap \
+	--disable-ldaps \
+	--disable-rtsp \
+	--disable-dict \
+	--disable-telnet \
+	--disable-tftp \
+	--disable-pop3 \
+	--disable-imap \
+	--disable-smb \
+	--disable-smtp \
+	--disable-unix-sockets \
+	--disable-gopher \
+	--disable-manual \
+	--disable-doh \
+	--without-ca-fallback \
+	--without-libpsl \
+	--without-libmetalink \
+	--without-librtmp \
+	--without-libidn2 \
+	--without-libssh \
+	--without-libssh2 \
+	--without-gssapi \
+	--without-gssapi-libs \
+	--without-mesalink \
+	--enable-proxy \
+	--enable-http \
+	--enable-static \
+	--enable-optimize \
+	--with-nghttp2 \
+	--with-zlib \
+	--without-brotli \
+	--with-wolfssl \
+	--program-prefix=w \
+	>> /tmp/build-curl-wolfssl.log

@@ -1,0 +1,13 @@
+#!/bin/sh - level 2 plus AVX
+. $BSD_ARCH/.amd64.amd64
+export TX86_64_LEVEL=v2
+export TARCH_L3=sandybridge
+export TARGET=$TARCH_L1
+export TARGETARCH=$TARCH_L2
+export BUILDARCH=$TARCH_L3
+export TCPUTYPE=$TARCH_L3
+export CCO="-Ofast -march=$TARCH_L3"
+export CCT="x86_64-unknown-$BSD_BASE"
+export LCT="x86_64-unknown-linux"
+export CFLAGS=$CCO
+export FBSD_CFLAGS=$CCO

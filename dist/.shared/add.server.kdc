@@ -1,0 +1,10 @@
+#!/bin/sh
+unset WITHOUT_KERBEROS WITHOUT KERBEROS_SUPPORT
+export WITH_KERBEROS=true WITH_KERBEROS_SUPPORT=true
+X='
+# xxkdc
+xxkdc_enable="YES"
+xxkdc_program="/usr/sbin/kdc"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+export BSD_DIST_RC="$BSD_DIST_RC xxkdc"

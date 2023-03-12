@@ -1,0 +1,3 @@
+#!/bin/sh
+sh /etc/action/buildlock
+sh /etc/action/store src.rebuild

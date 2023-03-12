@@ -1,0 +1,3 @@
+#!/bin/sh
+. $BSD_DIST/.shared/add.fbsd.sctp
+export BSD_DIST_PKG="$BSD_DIST_PKG openssh-sctp ccid hidapi libcbor libfido2 pcsc"

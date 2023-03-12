@@ -1,0 +1,18 @@
+#!/bin/sh
+X='
+hw.acpi.cpu.cx_lowest=C8
+dev.hwpstate_intel.11.epp=50
+dev.hwpstate_intel.10.epp=50
+dev.hwpstate_intel.9.epp=50
+dev.hwpstate_intel.8.epp=50
+dev.hwpstate_intel.7.epp=50
+dev.hwpstate_intel.6.epp=50
+dev.hwpstate_intel.5.epp=50
+dev.hwpstate_intel.4.epp=50
+dev.hwpstate_intel.3.epp=50
+dev.hwpstate_intel.2.epp=50
+dev.hwpstate_intel.1.epp=50
+dev.hwpstate_intel.0.epp=50
+'
+export BSD_LOADER_CONF_SYSCTL="$BSD_LOADER_CONF_SYSCTL $X"
+export BSD_SYSCTL="$BSD_SYSCTL$X"

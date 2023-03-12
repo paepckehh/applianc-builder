@@ -1,0 +1,23 @@
+--- update.sh.orig	2021-04-19 16:26:40.593124000 +0000
++++ update.sh	2021-04-19 16:26:58.865442000 +0000
+@@ -4,20 +4,6 @@
+ openbsd_branch=`cat OPENBSD_BRANCH`
+ openntpd_version=`cat VERSION`
+ 
+-# pull in latest upstream code
+-echo "pulling upstream openbsd source"
+-if [ ! -d openbsd ]; then
+-	if [ -z "${OPENNTPD_GIT}" ]; then
+-		git clone https://github.com/openntpd-portable/openntpd-openbsd.git openbsd
+-	else
+-		git clone "${OPENNTPD_GIT}/openbsd"
+-	fi
+-fi
+-(cd openbsd
+- git fetch
+- git checkout "${openbsd_branch}"
+- git pull --rebase)
+-
+ # setup source paths
+ dir=`pwd`
+ patches="${dir}/patches"

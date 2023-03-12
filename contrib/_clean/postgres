@@ -1,0 +1,5 @@
+usr/bin/*bench*
+usr/bin/*test*
+usr/bin/ecpg
+usr/bin/pg_dump*
+usr/bin/postmaster

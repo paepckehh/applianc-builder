@@ -1,0 +1,24 @@
+#!/bin/sh
+#
+# PROVIDE: xxconsfix
+# REQUIRE: syslogd
+
+. /etc/rc.subr
+name="xxconsfix"
+desc="fix console output"
+start_cmd="consfix_start"
+stop_cmd=":"
+rcvar="xxconsfix_enable"
+load_rc_config $name
+
+consfix_start() {
+	(
+		startmsg 'Starting [xx] consfix .'
+		if [ -e /dev/ttyv0 ]; then
+			/usr/bin/conscontrol delete ttyv0 | logger
+		fi
+		logger "[xx] consfix done!"
+	) &
+}
+
+run_rc_command "$1"

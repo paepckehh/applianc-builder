@@ -1,0 +1,3 @@
+#!/bin/sh
+/sbin/pfctl -F all 2>&1
+/sbin/pfctl -f /etc/app/uplink/pf.conf.uplink || /sbin/pfctl -f /etc/pf.conf 2>&1

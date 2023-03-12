@@ -1,0 +1,17 @@
+#!/bin/sh
+. $BSD_ARCH/.arm64.aarch64
+export TARCH_L3=apple-m1
+export CPUOPT=""
+export TARGET=$TARCH_L1
+export TARGETARCH=$TARCH_L2
+export BUILDARCH=$TARCH_L3
+export TCPUTYPE=$TARCH_L3
+export CCO="-Ofast -mcpu=$TARCH_L3$CPUOPT"
+export CCT="$TARCH_L2-unknown-$BSD_BASE"
+export LCT="$TARCH_L2-unknown-linux"
+export CFLAGS=$CCO
+export FBSD_CFLAGS=$CCO
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE armv8crypto"
+. $BSD_ARCH/.boot.arm64
+export XBOOT=uefi
+export CMAKE_APPLE_SILICON_PROCESSOR=apple-latest

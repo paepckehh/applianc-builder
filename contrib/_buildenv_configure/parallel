@@ -1,0 +1,8 @@
+#!/bin/sh
+autoreconf --install -W gnu
+sh ./configure \
+	--prefix=/usr \
+	--host=$CCT \
+	--target=$CCT \
+	--build=$LT_ARCH \
+	cross_compiling=yes

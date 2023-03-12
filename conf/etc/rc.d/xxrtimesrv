@@ -1,0 +1,37 @@
+#!/bin/sh
+#
+# PROVIDE: xxrtimesrv
+# REQUIRE: login syslogd var tmp xxworker xxunbound xxgpstime
+
+. /etc/rc.subr
+name="xxrtimesrv"
+desc="rtimesrv roughtime time protocol secure time server"
+rcvar="xxrtimesrv_enable"
+start_cmd="rtimesrv_start"
+stop_cmd="rtimesrv_stop"
+worker="time"
+load_rc_config $name
+
+rtimesrv_start() {
+	(
+		logger "Starting [xx] rtimesrv [worker:$worker]"
+		sleep 8
+		if [ -e /var/lock.init.rtimesrv ]; then logger "[rtimesrv] already running, exit" && exit 1; fi
+		touch /var/lock.init.rtimesrv
+		/usr/sbin/service jail onestart $worker
+		while [ ! -e /var/lock.worker.$worker ]; do sleep 1; done
+		/usr/sbin/jexec $worker /usr/bin/daemon -rS $xxrtimesrv_program
+		touch /var/lock.init.rtimesrv.running
+		sleep 4
+		logger "[xx] rtimesrv [worker:$worker] started"
+	) &
+}
+
+rtimesrv_stop() {
+	startmsg 'Stopping [xx] rtimesrv.'
+	pkill rtimesrv
+	/usr/sbin/service jail onestop $worker
+	rm -rf /var/lock.init.rtimesrv*
+}
+
+run_rc_command "$1"

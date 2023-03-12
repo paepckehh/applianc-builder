@@ -1,0 +1,968 @@
+### ( 20211228 ) ### DO NOT EDIT ### auto-generated file / patchset by appliance-builder enhance env ###
+--- ./bpf_dump.c.orig	2021-12-28 07:04:55.335527000 +0000
++++ ./bpf_dump.c	2021-12-28 07:06:38.668030000 +0000
+@@ -33,10 +33,10 @@
+ #include <stdio.h>
+ 
+ 
+-extern void bpf_dump(struct bpf_program *, int);
++extern void bpf_dump(const struct bpf_program *, int);
+ 
+ void
+-bpf_dump(struct bpf_program *p, int option)
++bpf_dump(const struct bpf_program *p, int option)
+ {
+ 	struct bpf_insn *insn;
+ 	int i;
+--- ./cache.c.orig	2021-12-28 07:05:05.680545000 +0000
++++ ./cache.c	2021-12-28 07:06:50.971869000 +0000
+@@ -118,12 +118,21 @@
+ 
+ 	cache_size--;
+ 
++#ifdef HAVE_PFSYNC_STATE
++#ifdef HAVE_FINE_GRAINED_LOCKING
++	ent->id = st->id;
++#else
++	ent->id[0] = st->id[0];
++	ent->id[1] = st->id[1];
++#endif
++#else
+ 	ent->addr[0] = st->lan.addr;
+ 	ent->port[0] = st->lan.port;
+ 	ent->addr[1] = st->ext.addr;
+ 	ent->port[1] = st->ext.port;
+ 	ent->af = st->af;
+ 	ent->proto = st->proto;
++#endif
+ #ifdef HAVE_INOUT_COUNT
+ 	ent->bytes = COUNTER(st->bytes[0]) + COUNTER(st->bytes[1]);
+ #else
+@@ -147,13 +156,21 @@
+ 	if (cache_max == 0)
+ 		return (NULL);
+ 
++#ifdef HAVE_PFSYNC_STATE
++#ifdef HAVE_FINE_GRAINED_LOCKING
++	ent.id = st->id;
++#else
++	ent.id[0] = st->id[0];
++	ent.id[1] = st->id[1];
++#endif
++#else
+ 	ent.addr[0] = st->lan.addr;
+ 	ent.port[0] = st->lan.port;
+ 	ent.addr[1] = st->ext.addr;
+ 	ent.port[1] = st->ext.port;
+ 	ent.af = st->af;
+ 	ent.proto = st->proto;
+-
++#endif
+ 	old = RB_FIND(sc_tree, &sctree, &ent);
+ 
+ 	if (old == NULL) {
+@@ -210,8 +227,25 @@
+ static __inline int
+ sc_cmp(struct sc_ent *a, struct sc_ent *b)
+ {
++#ifdef HAVE_PFSYNC_STATE
++#ifdef HAVE_FINE_GRAINED_LOCKING
++	if (a->id > b->id)
++		return (1);
++	if (a->id < b->id)
++		return (-1);
++#else
++	if (a->id[0] > b->id[0])
++		return (1);
++	if (a->id[0] < b->id[0])
++		return (-1);
++	if (a->id[1] > b->id[1])
++		return (1);
++	if (a->id[1] < b->id[1])
++		return (-1);
++#endif
++#else	
+        	int diff;
+-	
++
+ 	if ((diff = a->proto - b->proto) != 0)
+ 		return (diff);
+ 	if ((diff = a->af - b->af) != 0)
+@@ -269,6 +303,6 @@
+ 		return (diff);
+ 	if ((diff = a->port[1] - b->port[1]) != 0)
+ 		return (diff);
+-
++#endif
+ 	return (0);
+ }
+--- ./cache.h.orig	2021-12-28 07:05:02.810614000 +0000
++++ ./cache.h	2021-12-28 07:06:55.517569000 +0000
+@@ -31,14 +31,24 @@
+ struct sc_ent {
+         RB_ENTRY(sc_ent)    tlink;
+ 	TAILQ_ENTRY(sc_ent) qlink;
++#ifdef HAVE_PFSYNC_STATE
++#ifdef HAVE_FINE_GRAINED_LOCKING
++	u_int64_t	    id;
++#else
++	u_int32_t	    id[2];
++#endif
++#else
+ 	struct pf_addr      addr[2];
++#endif
+ 	double		    peak;
+ 	double		    rate;
+ 	time_t		    t;
+ 	u_int32_t	    bytes;
++#ifndef HAVE_PFSYNC_STATE
+         u_int16_t           port[2];
+         u_int8_t            af;
+         u_int8_t            proto;
++#endif
+ };
+ 
+ int cache_init(int);
+--- ./config.h.orig	2021-12-28 07:05:10.571600000 +0000
++++ ./config.h	2021-12-28 07:07:02.991460000 +0000
+@@ -74,11 +74,20 @@
+ #define HAVE_PFSYNC_STATE
+ #endif
+ 
++#if OS_LEVEL > 43
++#define HAVE_PFSYNC_KEY
++#define HAVE_NETWORK_ORDER
++#endif
++
+ #ifdef HAVE_PFSYNC_STATE
+ typedef struct pfsync_state pf_state_t;
+ typedef struct pfsync_state_host pf_state_host_t;
+ typedef struct pfsync_state_peer pf_state_peer_t;
++#ifdef HAVE_NETWORK_ORDER
++#define COUNTER(c) ((((u_int64_t) ntohl(c[0]))<<32) + ntohl(c[1]))
++#else
+ #define COUNTER(c) ((((u_int64_t) c[0])<<32) + c[1])
++#endif
+ #define pfs_ifname ifname
+ #else
+ typedef struct pf_state pf_state_t;
+--- ./engine.c.orig	2021-12-28 07:05:20.491912000 +0000
++++ ./engine.c	2021-12-28 07:07:10.083365000 +0000
+@@ -809,6 +809,9 @@
+ {
+ 	order_type *o, *oc;
+ 
++	if (curr_view->mgr->order_list == NULL)
++		return;
++
+ 	oc = curr_view->mgr->order_curr;
+ 
+ 	for (o = curr_view->mgr->order_list; o->name != NULL; o++) {
+--- ./pftop.c.orig	2021-12-28 07:05:24.874942000 +0000
++++ ./pftop.c	2021-12-28 07:21:47.004912000 +0000
+@@ -44,10 +44,10 @@
+ #include <arpa/inet.h>
+ 
+ #ifdef HAVE_ALTQ
+-#include <altq/altq.h>
+-#include <altq/altq_cbq.h>
+-#include <altq/altq_priq.h>
+-#include <altq/altq_hfsc.h>
++#include <net/altq/altq.h>
++#include <net/altq/altq_cbq.h>
++#include <net/altq/altq_priq.h>
++#include <net/altq/altq_hfsc.h>
+ #endif
+ 
+ #include <ctype.h>
+@@ -127,6 +127,13 @@
+ #define PT_NOROUTE(x) (0)
+ #endif
+ 
++#ifdef HAVE_NETWORK_ORDER
++#define PF_TSTAMP(x) ntohl(x)
++#else
++#define PF_TSTAMP(x) (x)
++#endif
++
++
+ /* view management */
+ int select_states(void);
+ int read_states(void);
+@@ -445,11 +452,11 @@
+ int
+ sort_age_callback(const void *s1, const void *s2)
+ {
+-	if (state_buf[* (u_int32_t *) s2].creation >
+-	    state_buf[* (u_int32_t *) s1].creation)
++	if (PF_TSTAMP(state_buf[* (u_int32_t *) s2].creation) >
++	    PF_TSTAMP(state_buf[* (u_int32_t *) s1].creation))
+ 		return sortdir;
+-	if (state_buf[* (u_int32_t *) s2].creation <
+-	    state_buf[* (u_int32_t *) s1].creation)
++	if (PF_TSTAMP(state_buf[* (u_int32_t *) s2].creation) <
++	    PF_TSTAMP(state_buf[* (u_int32_t *) s1].creation))
+ 		return -sortdir;
+ 	return 0;
+ }
+@@ -457,11 +464,11 @@
+ int
+ sort_exp_callback(const void *s1, const void *s2)
+ {
+-	if (state_buf[* (u_int32_t *) s2].expire >
+-	    state_buf[* (u_int32_t *) s1].expire)
++	if (PF_TSTAMP(state_buf[* (u_int32_t *) s2].expire) >
++	    PF_TSTAMP(state_buf[* (u_int32_t *) s1].expire))
+ 		return sortdir;
+-	if (state_buf[* (u_int32_t *) s2].expire <
+-	    state_buf[* (u_int32_t *) s1].expire)
++	if (PF_TSTAMP(state_buf[* (u_int32_t *) s2].expire) <
++	    PF_TSTAMP(state_buf[* (u_int32_t *) s1].expire))
+ 		return -sortdir;
+ 	return 0;
+ }
+@@ -535,6 +542,8 @@
+ 	return 0;
+ }
+ 
++#ifdef HAVE_PFSYNC_KEY
++
+ #ifdef __GNUC__
+ __inline__
+ #endif
+@@ -542,6 +551,113 @@
+ sort_addr_callback(const pf_state_t *s1,
+ 		   const pf_state_t *s2, int dir)
+ {
++	const struct pf_addr *aa, *ab;
++	u_int16_t pa, pb;
++	int af, ret, ii, io;
++
++	af = s1->af;
++
++
++	if (af > s2->af)
++		return sortdir;
++	if (af < s2->af)
++		return -sortdir;
++	
++       	ii = io = 0;
++
++	if (dir == PF_OUT)	/* looking for source addr */
++		io = 1;
++	else			/* looking for dest addr */
++		ii = 1;
++	
++	if (s1->direction == PF_IN) {
++		aa = &s1->key[PF_SK_STACK].addr[ii];
++		pa =  s1->key[PF_SK_STACK].port[ii];
++	} else {
++		aa = &s1->key[PF_SK_WIRE].addr[io];
++		pa =  s1->key[PF_SK_WIRE].port[io];
++	}
++
++	if (s2->direction == PF_IN) {
++		ab = &s2->key[PF_SK_STACK].addr[ii];;
++		pb =  s2->key[PF_SK_STACK].port[ii];
++	} else {
++		ab = &s2->key[PF_SK_WIRE].addr[io];;
++		pb =  s2->key[PF_SK_WIRE].port[io];
++	}
++
++	ret = compare_addr(af, aa, ab);
++	if (ret)
++		return ret * sortdir;
++
++	if (ntohs(pa) > ntohs(pb))
++		return sortdir;
++	return -sortdir;
++}
++
++#ifdef __GNUC__
++__inline__
++#endif
++int
++sort_port_callback(const pf_state_t *s1,
++		   const pf_state_t *s2, int dir)
++{
++	const struct pf_addr *aa, *ab;
++	u_int16_t pa, pb;
++	int af, ret, ii, io;
++
++	af = s1->af;
++
++
++	if (af > s2->af)
++		return sortdir;
++	if (af < s2->af)
++		return -sortdir;
++	
++       	ii = io = 0;
++
++	if (dir == PF_OUT)	/* looking for source addr */
++		io = 1;
++	else			/* looking for dest addr */
++		ii = 1;
++	
++	if (s1->direction == PF_IN) {
++		aa = &s1->key[PF_SK_STACK].addr[ii];
++		pa =  s1->key[PF_SK_STACK].port[ii];
++	} else {
++		aa = &s1->key[PF_SK_WIRE].addr[io];
++		pa =  s1->key[PF_SK_WIRE].port[io];
++	}
++
++	if (s2->direction == PF_IN) {
++		ab = &s2->key[PF_SK_STACK].addr[ii];;
++		pb =  s2->key[PF_SK_STACK].port[ii];
++	} else {
++		ab = &s2->key[PF_SK_WIRE].addr[io];;
++		pb =  s2->key[PF_SK_WIRE].port[io];
++	}
++
++
++	if (ntohs(pa) > ntohs(pb))
++		return sortdir;
++	if (ntohs(pa) < ntohs(pb))
++		return - sortdir;
++
++	ret = compare_addr(af, aa, ab);
++	if (ret)
++		return ret * sortdir;
++	return -sortdir;
++}
++
++#else	/* HAVE_PFSYNC_KEY */
++
++#ifdef __GNUC__
++__inline__
++#endif
++int
++sort_addr_callback(const pf_state_t *s1,
++		   const pf_state_t *s2, int dir)
++{
+ 	const pf_state_host_t *a, *b;
+ 	int af, ret;
+ 
+@@ -573,20 +689,6 @@
+ 	return -sortdir;
+ }
+ 
+-int sort_sa_callback(const void *p1, const void *p2)
+-{
+-	pf_state_t *s1 = state_buf + (* (u_int32_t *) p1);
+-	pf_state_t *s2 = state_buf + (* (u_int32_t *) p2);
+-	return sort_addr_callback(s1, s2, PF_OUT);
+-}
+-
+-int sort_da_callback(const void *p1, const void *p2)
+-{
+-	pf_state_t *s1 = state_buf + (* (u_int32_t *) p1);
+-	pf_state_t *s2 = state_buf + (* (u_int32_t *) p2);
+-	return sort_addr_callback(s1, s2, PF_IN);
+-}
+-
+ #ifdef __GNUC__
+ __inline__
+ #endif
+@@ -625,7 +727,22 @@
+ 		return sortdir;
+ 	return -sortdir;
+ }
++#endif	/* HAVE_PFSYNC_KEY */
+ 
++int sort_sa_callback(const void *p1, const void *p2)
++{
++	pf_state_t *s1 = state_buf + (* (u_int32_t *) p1);
++	pf_state_t *s2 = state_buf + (* (u_int32_t *) p2);
++	return sort_addr_callback(s1, s2, PF_OUT);
++}
++
++int sort_da_callback(const void *p1, const void *p2)
++{
++	pf_state_t *s1 = state_buf + (* (u_int32_t *) p1);
++	pf_state_t *s2 = state_buf + (* (u_int32_t *) p2);
++	return sort_addr_callback(s1, s2, PF_IN);
++}
++
+ int
+ sort_sp_callback(const void *p1, const void *p2)
+ {
+@@ -865,7 +982,48 @@
+ 			tbprintf("/%u", unmask(mask, af));
+ 	}
+ }
++#ifdef HAVE_PFSYNC_KEY
++void
++print_fld_host2(field_def *fld, struct pfsync_state_key *ks,
++		struct pfsync_state_key *kn, int idx, int af)
++{
++	struct pf_addr *as = &ks->addr[idx];
++	struct pf_addr *an = &kn->addr[idx];
+ 
++	u_int16_t ps = ntohs(ks->port[idx]);
++	u_int16_t pn = ntohs(kn->port[idx]);
++
++	if (fld == NULL)
++		return;
++
++	if (fld->width < 3) {
++		print_fld_str(fld, "*");
++		return;
++	}
++
++	tb_start();
++	tb_print_addr(as, NULL, af);
++
++	if (af == AF_INET)
++		tbprintf(":%u", ps);
++	else
++		tbprintf("[%u]", ps);
++
++	print_fld_tb(fld);
++
++	if (PF_ANEQ(as, an, af) || ps != pn) {
++		tb_start();
++		tb_print_addr(an, NULL, af);
++
++		if (af == AF_INET)
++			tbprintf(":%u", pn);
++		else
++			tbprintf("[%u]", pn);
++		print_fld_tb(FLD_GW);
++	}
++
++}
++#else
+ void
+ print_fld_host(field_def *fld, pf_state_host_t * h, int af)
+ {
+@@ -889,6 +1047,7 @@
+ 
+ 	print_fld_tb(fld);
+ }
++#endif
+ 
+ void
+ print_fld_state(field_def *fld, unsigned int proto,
+@@ -960,7 +1119,20 @@
+ 	else
+ 		print_fld_uint(FLD_PROTO, s->proto);
+ 
++#ifdef HAVE_PFSYNC_KEY
+ 	if (s->direction == PF_OUT) {
++		print_fld_host2(FLD_SRC, &s->key[PF_SK_WIRE],
++		    &s->key[PF_SK_STACK], 1, s->af);
++		print_fld_host2(FLD_DEST, &s->key[PF_SK_WIRE],
++		    &s->key[PF_SK_STACK], 0, s->af);
++	} else {
++		print_fld_host2(FLD_SRC, &s->key[PF_SK_STACK],
++		    &s->key[PF_SK_WIRE], 0, s->af);
++		print_fld_host2(FLD_DEST, &s->key[PF_SK_STACK],
++		    &s->key[PF_SK_WIRE], 1, s->af);
++	}
++#else
++	if (s->direction == PF_OUT) {
+ 		print_fld_host(FLD_SRC, &s->lan, s->af);
+ 		print_fld_host(FLD_DEST, &s->ext, s->af);
+ 	} else {
+@@ -972,6 +1144,7 @@
+ 	    (s->lan.port != s->gwy.port)) {
+ 		print_fld_host(FLD_GW, &s->gwy, s->af);
+ 	}
++#endif
+ 
+ 	if (s->direction == PF_OUT)
+ 		print_fld_str(FLD_DIR, "Out");
+@@ -979,8 +1152,8 @@
+ 		print_fld_str(FLD_DIR, "In");
+ 
+ 	print_fld_state(FLD_STATE, s->proto, src->state, dst->state);
+-	print_fld_age(FLD_AGE, s->creation);
+-	print_fld_age(FLD_EXP, s->expire);
++	print_fld_age(FLD_AGE, PF_TSTAMP(s->creation));
++	print_fld_age(FLD_EXP, PF_TSTAMP(s->expire));
+ #ifdef HAVE_INOUT_COUNT
+ 	{
+ 		u_int64_t sz = COUNTER(s->bytes[0]) + COUNTER(s->bytes[1]);
+@@ -988,18 +1161,18 @@
+ 		print_fld_size(FLD_PKTS, COUNTER(s->packets[0]) +
+ 			       COUNTER(s->packets[1]));
+ 		print_fld_size(FLD_BYTES, sz);
+-		print_fld_rate(FLD_SA, (s->creation > 0) ?
+-			       ((double)sz/(double)s->creation) : -1);
++		print_fld_rate(FLD_SA, (s->creation) ?
++			       ((double)sz/PF_TSTAMP(s->creation)) : -1);
+ 	}
+ #else
+ 	print_fld_size(FLD_PKTS, s->packets);
+ 	print_fld_size(FLD_BYTES, s->bytes);
+-	print_fld_rate(FLD_SA, (s->creation > 0) ?
+-		       ((double)s->bytes/(double)s->creation) : -1);
++	print_fld_rate(FLD_SA, (s->creation) ?
++		       ((double)s->bytes/PF_TSTAMP(s->creation)) : -1);
+ 
+ #endif
+ #ifdef HAVE_PFSYNC_STATE
+-	print_fld_uint(FLD_RULE, s->rule);
++	print_fld_uint(FLD_RULE, ntohl(s->rule));
+ #else
+ #ifdef HAVE_RULE_NUMBER
+ 	print_fld_uint(FLD_RULE, s->rule.nr);
+@@ -1475,8 +1648,12 @@
+ 	print_fld_str(FLD_LABEL, pr->label);
+ #endif
+ #ifdef HAVE_RULE_STATES
++#ifdef HAVE_PFSYNC_KEY
++	print_fld_size(FLD_STATS, pr->states_tot);
++#else
+ 	print_fld_size(FLD_STATS, pr->states);
+ #endif
++#endif
+ 
+ #ifdef HAVE_INOUT_COUNT_RULES
+ 	print_fld_size(FLD_PKTS, pr->packets[0] + pr->packets[1]);
+@@ -1729,12 +1906,19 @@
+ 			prev->next = node;
+ 		}
+ 	}
+-	if (*root != node) {
+-		struct pf_altq_node	*prev_flat = *root;
+-		while (prev_flat->next_flat != NULL) {
+-			prev_flat = prev_flat->next_flat;
+-		}
+-		prev_flat->next_flat = node;
++}
++
++void
++pfctl_set_next_flat(struct pf_altq_node *node, struct pf_altq_node *up)
++{
++	while (node) {
++		struct pf_altq_node *next = node->next ? node->next : up;
++		if (node->children) {
++			node->next_flat = node->children;
++			pfctl_set_next_flat(node->children, next);
++		} else
++			node->next_flat = next;
++		node = node->next;
+ 	}
+ }
+ 
+@@ -1747,6 +1931,7 @@
+ 	u_int32_t		 nr;
+ 	struct queue_stats	 qstats;
+ 	u_int32_t		 nr_queues;
++	int			 ret = 0;
+ 
+ 	*inserts = 0;
+ 	memset(&pa, 0, sizeof(pa));
+@@ -1757,13 +1942,15 @@
+ 			  strerror(errno));
+ 		return (-1);
+ 	}
++
+ 	num_queues = nr_queues = pa.nr;
+ 	for (nr = 0; nr < nr_queues; ++nr) {
+ 		pa.nr = nr;
+ 		if (ioctl(pf_dev, DIOCGETALTQ, &pa)) {
+ 			msgprintf("Error Reading Queue (DIOCGETALTQ): %s",
+ 				  strerror(errno));
+-			return (-1);
++			ret = -1;
++			break;
+ 		}
+ 		if (pa.altq.qid > 0) {
+ 			pq.nr = nr;
+@@ -1773,7 +1960,8 @@
+ 			if (ioctl(pf_dev, DIOCGETQSTATS, &pq)) {
+ 				msgprintf("Error Reading Queue (DIOCGETQSTATS): %s",
+ 					  strerror(errno));
+-				return (-1);
++				ret = -1;
++				break;
+ 			}
+ 			qstats.valid = 1;
+ 			gettimeofday(&qstats.timestamp, NULL);
+@@ -1794,7 +1982,10 @@
+ 		else
+ 			--num_queues;
+ 	}
+-	return (0);
++
++	pfctl_set_next_flat(*root, NULL);
++
++	return (ret);
+ }
+ 
+ void
+--- ./sf-gencode.h.orig	2021-12-28 07:05:35.942463000 +0000
++++ ./sf-gencode.h	2021-12-28 07:19:31.050530000 +0000
+@@ -28,7 +28,7 @@
+ #ifndef _SF_GENCODE_H_
+ #define _SF_GENCODE_H_
+ 
+-#include "pcap-int.h"
++#include "pcap/pcap-inttypes.h"
+ 
+ /* Address qualifiers. */
+ #define Q_HOST		1
+@@ -188,7 +188,7 @@
+ const char *sf_get_error(void);
+ int sf_compile(struct bpf_program *, char *, int, bpf_u_int32);
+ void sf_freecode(struct bpf_program *);
+-void bpf_dump(struct bpf_program *, int);
++void bpf_dump(const struct bpf_program *, int);
+ 
+ extern int no_optimize;
+ 
+--- ./sf-gencode.c.orig	2021-12-28 07:05:35.942395000 +0000
++++ ./sf-gencode.c	2021-12-28 07:07:21.702724000 +0000
+@@ -474,9 +474,107 @@
+ 			(bpf_int32)proto));
+ }
+ 
++#ifdef HAVE_PFSYNC_KEY
+ static struct block *
+ gen_hostop(bpf_u_int32 addr, bpf_u_int32 mask, int dir)
+ {
++	struct block *b0, *b1, *b2, *bi, *bo;
++	const static int isrc_off = offsetof(pf_state_t, key[PF_SK_STACK].addr[0].v4);
++	const static int osrc_off = offsetof(pf_state_t, key[PF_SK_WIRE].addr[1].v4);
++	const static int idst_off = offsetof(pf_state_t, key[PF_SK_STACK].addr[1].v4);
++	const static int odst_off = offsetof(pf_state_t, key[PF_SK_WIRE].addr[0].v4);
++
++	const static int igwy1_off = offsetof(pf_state_t, key[PF_SK_WIRE].addr[0].v4);
++	const static int ogwy1_off = offsetof(pf_state_t, key[PF_SK_STACK].addr[1].v4);
++	const static int igwy2_off = offsetof(pf_state_t, key[PF_SK_WIRE].addr[1].v4);
++	const static int ogwy2_off = offsetof(pf_state_t, key[PF_SK_STACK].addr[0].v4);
++
++	addr = ntohl(addr);
++	mask = ntohl(mask);
++
++	bi = gen_cmp(offsetof(pf_state_t, direction), BPF_B, (bpf_int32)PF_IN);
++	bo = gen_cmp(offsetof(pf_state_t, direction), BPF_B, (bpf_int32)PF_OUT);
++
++	switch (dir) {
++
++	case Q_SRC:
++		b1 = gen_mcmp(osrc_off, BPF_W, addr, mask);
++		gen_and(bo, b1);
++		b0 = gen_mcmp(isrc_off, BPF_W, addr, mask);
++		gen_and(bi, b0);
++		gen_or(b0, b1);
++		break;
++
++	case Q_DST:
++		b1 = gen_mcmp(odst_off, BPF_W, addr, mask);
++		gen_and(bo, b1);
++		b0 = gen_mcmp(idst_off, BPF_W, addr, mask);
++		gen_and(bi, b0);
++		gen_or(b0, b1);
++		break;
++
++	case Q_GATEWAY:
++		/* (in && (addr == igwy1 || addr == igwy2)) ||
++		   (out && (addr == ogwy1 || addr == ogwy2))  phew! */
++		b1 = gen_mcmp(igwy1_off, BPF_W, addr, mask);
++		b0 = gen_mcmp(igwy2_off, BPF_W, addr, mask);
++		gen_or(b0, b1);
++		gen_and(bi, b1);
++		b2 = gen_mcmp(ogwy1_off, BPF_W, addr, mask);
++		b0 = gen_mcmp(ogwy2_off, BPF_W, addr, mask);
++		gen_or(b2, b0);
++		gen_and(bo, b0);
++		gen_or(b0, b1);
++		break;
++
++	case Q_AND:
++		b1 = gen_mcmp(isrc_off, BPF_W, addr, mask);
++		b0 = gen_mcmp(idst_off, BPF_W, addr, mask);
++		gen_and(b0, b1);
++		gen_and(bi, b1);
++		b2 = gen_mcmp(osrc_off, BPF_W, addr, mask);
++		b0 = gen_mcmp(odst_off, BPF_W, addr, mask);
++		gen_and(b2, b0);
++		gen_and(bo, b0);
++		gen_or(b0, b1);
++		break;
++
++	case Q_OR:
++		b1 = gen_mcmp(isrc_off, BPF_W, addr, mask);
++		b0 = gen_mcmp(idst_off, BPF_W, addr, mask);
++		gen_or(b0, b1);
++		gen_and(bi, b1);
++		b2 = gen_mcmp(osrc_off, BPF_W, addr, mask);
++		b0 = gen_mcmp(odst_off, BPF_W, addr, mask);
++		gen_or(b2, b0);
++		gen_and(bo, b0);
++		gen_or(b0, b1);
++		break;
++
++	case Q_DEFAULT:
++		b1 = gen_mcmp(isrc_off, BPF_W, addr, mask);
++		b0 = gen_mcmp(idst_off, BPF_W, addr, mask);
++		gen_or(b0, b1);
++		b0 = gen_mcmp(osrc_off, BPF_W, addr, mask);
++		gen_or(b0, b1);
++		b0 = gen_mcmp(odst_off, BPF_W, addr, mask);
++		gen_or(b0, b1);
++		break;
++
++	default:
++		sf_error("Internal error: Invalid direcion specifier: %d", dir);
++	}
++
++	b0 = gen_linktype(ETHERTYPE_IP);
++	gen_and(b0, b1);
++
++	return b1;
++}
++
++#else
++static struct block *
++gen_hostop(bpf_u_int32 addr, bpf_u_int32 mask, int dir)
++{
+ 	struct block *b0, *b1, *b2;
+ 	const static int lan_off = offsetof(pf_state_t, lan.addr.v4);
+ 	const static int gwy_off = offsetof(pf_state_t, gwy.addr.v4);
+@@ -542,6 +640,7 @@
+ 
+ 	return b1;
+ }
++#endif
+ 
+ static struct block *
+ gen_hostcmp6(u_int off, u_int32_t *a, u_int32_t *m)
+@@ -560,9 +659,108 @@
+ 	return b1;
+ }
+ 
++#ifdef HAVE_PFSYNC_KEY
+ static struct block *
+ gen_hostop6(struct in6_addr *addr, struct in6_addr *mask, int dir)
++
+ {
++	struct block *b0, *b1, *b2, *bi, *bo;
++	u_int32_t *a, *m;
++	const static int isrc_off = offsetof(pf_state_t, key[PF_SK_STACK].addr[0].v6);
++	const static int osrc_off = offsetof(pf_state_t, key[PF_SK_WIRE].addr[1].v6);
++	const static int idst_off = offsetof(pf_state_t, key[PF_SK_STACK].addr[1].v6);
++	const static int odst_off = offsetof(pf_state_t, key[PF_SK_WIRE].addr[0].v6);
++
++	const static int igwy1_off = offsetof(pf_state_t, key[PF_SK_WIRE].addr[0].v6);
++	const static int ogwy1_off = offsetof(pf_state_t, key[PF_SK_STACK].addr[1].v6);
++	const static int igwy2_off = offsetof(pf_state_t, key[PF_SK_WIRE].addr[1].v6);
++	const static int ogwy2_off = offsetof(pf_state_t, key[PF_SK_STACK].addr[0].v6);
++
++	a = (u_int32_t *)addr;
++	m = (u_int32_t *)mask;
++
++	bi = gen_cmp(offsetof(pf_state_t, direction), BPF_B, (bpf_int32)PF_IN);
++	bo = gen_cmp(offsetof(pf_state_t, direction), BPF_B, (bpf_int32)PF_OUT);
++
++	switch (dir) {
++
++	case Q_SRC:
++		b1 = gen_hostcmp6(osrc_off, a, m);
++		gen_and(bo, b1);
++		b0 = gen_hostcmp6(isrc_off, a, m);
++		gen_and(bi, b0);
++		gen_or(b0, b1);
++		break;
++
++	case Q_DST:
++		b1 = gen_hostcmp6(odst_off, a, m);
++		gen_and(bo, b1);
++		b0 = gen_hostcmp6(idst_off, a, m);
++		gen_and(bi, b0);
++		gen_or(b0, b1);
++		break;
++
++	case Q_GATEWAY:
++		/* (in && (addr == igwy1 || addr == igwy2)) ||
++		   (out && (addr == ogwy1 || addr == ogwy2))  phew! */
++		b1 = gen_hostcmp6(igwy1_off, a, m);
++		b0 = gen_hostcmp6(igwy2_off, a, m);
++		gen_or(b0, b1);
++		gen_and(bi, b1);
++		b2 = gen_hostcmp6(ogwy1_off, a, m);
++		b0 = gen_hostcmp6(ogwy2_off, a, m);
++		gen_or(b2, b0);
++		gen_and(bo, b0);
++		gen_or(b0, b1);
++		break;
++
++	case Q_AND:
++		b1 = gen_hostcmp6(isrc_off, a, m);
++		b0 = gen_hostcmp6(idst_off, a, m);
++		gen_and(b0, b1);
++		gen_and(bi, b1);
++		b2 = gen_hostcmp6(osrc_off, a, m);
++		b0 = gen_hostcmp6(odst_off, a, m);
++		gen_and(b2, b0);
++		gen_and(bo, b0);
++		gen_or(b0, b1);
++		break;
++
++	case Q_OR:
++		b1 = gen_hostcmp6(isrc_off, a, m);
++		b0 = gen_hostcmp6(idst_off, a, m);
++		gen_or(b0, b1);
++		gen_and(bi, b1);
++		b2 = gen_hostcmp6(osrc_off, a, m);
++		b0 = gen_hostcmp6(odst_off, a, m);
++		gen_or(b2, b0);
++		gen_and(bo, b0);
++		gen_or(b0, b1);
++		break;
++
++	case Q_DEFAULT:
++		b1 = gen_hostcmp6(isrc_off, a, m);
++		b0 = gen_hostcmp6(idst_off, a, m);
++		gen_or(b0, b1);
++		b0 = gen_hostcmp6(osrc_off, a, m);
++		gen_or(b0, b1);
++		b0 = gen_hostcmp6(odst_off, a, m);
++		gen_or(b0, b1);
++		break;
++
++	default:
++		sf_error("Internal error: Invalid direcion specifier: %d", dir);
++	}
++
++	b0 = gen_linktype(ETHERTYPE_IPV6);
++	gen_and(b0, b1);
++
++	return b1;
++}
++#else
++static struct block *
++gen_hostop6(struct in6_addr *addr, struct in6_addr *mask, int dir)
++{
+ 	struct block *b0, *b1, *b2;
+ 	u_int32_t *a, *m;
+ 
+@@ -630,6 +828,7 @@
+ 	gen_and(b0, b1);
+ 	return b1;
+ }
++#endif
+ 
+ static const char *
+ get_modifier_by_id(int id)
+@@ -748,9 +947,107 @@
+ 	return b1;
+ }
+ 
++#ifdef HAVE_PFSYNC_KEY
+ struct block *
+ gen_portop(int port, int proto, int dir)
+ {
++	struct block *b0, *b1, *b2, *bi, *bo;
++	const static int isrc_off = offsetof(pf_state_t, key[PF_SK_STACK].port[0]);
++	const static int osrc_off = offsetof(pf_state_t, key[PF_SK_WIRE].port[1]);
++	const static int idst_off = offsetof(pf_state_t, key[PF_SK_STACK].port[1]);
++	const static int odst_off = offsetof(pf_state_t, key[PF_SK_WIRE].port[0]);
++
++	const static int igwy1_off = offsetof(pf_state_t, key[PF_SK_WIRE].port[0]);
++	const static int ogwy1_off = offsetof(pf_state_t, key[PF_SK_STACK].port[1]);
++	const static int igwy2_off = offsetof(pf_state_t, key[PF_SK_WIRE].port[1]);
++	const static int ogwy2_off = offsetof(pf_state_t, key[PF_SK_STACK].port[0]);
++
++	port = ntohs(port);
++
++	bi = gen_cmp(offsetof(pf_state_t, direction), BPF_B, (bpf_int32)PF_IN);
++	bo = gen_cmp(offsetof(pf_state_t, direction), BPF_B, (bpf_int32)PF_OUT);
++
++	switch (dir) {
++
++	case Q_SRC:
++		b1 = gen_cmp(osrc_off, BPF_H, (bpf_int32)port);
++		gen_and(bo, b1);
++		b0 = gen_cmp(isrc_off, BPF_H, (bpf_int32)port);
++		gen_and(bi, b0);
++		gen_or(b0, b1);
++		break;
++
++	case Q_DST:
++		b1 = gen_cmp(odst_off, BPF_H, (bpf_int32)port);
++		gen_and(bo, b1);
++		b0 = gen_cmp(idst_off, BPF_H, (bpf_int32)port);
++		gen_and(bi, b0);
++		gen_or(b0, b1);
++		break;
++
++	case Q_GATEWAY:
++		/* (in && (addr == igwy1 || addr == igwy2)) ||
++		   (out && (addr == ogwy1 || addr == ogwy2))  phew! */
++		b1 = gen_cmp(igwy1_off, BPF_H, (bpf_int32)port);
++		b0 = gen_cmp(igwy2_off, BPF_H, (bpf_int32)port);
++		gen_or(b0, b1);
++		gen_and(bi, b1);
++		b2 = gen_cmp(ogwy1_off, BPF_H, (bpf_int32)port);
++		b0 = gen_cmp(ogwy2_off, BPF_H, (bpf_int32)port);
++		gen_or(b2, b0);
++		gen_and(bo, b0);
++		gen_or(b0, b1);
++		break;
++
++	case Q_AND:
++		b1 = gen_cmp(isrc_off, BPF_H, (bpf_int32)port);
++		b0 = gen_cmp(idst_off, BPF_H, (bpf_int32)port);
++		gen_and(b0, b1);
++		gen_and(bi, b1);
++		b2 = gen_cmp(osrc_off, BPF_H, (bpf_int32)port);
++		b0 = gen_cmp(odst_off, BPF_H, (bpf_int32)port);
++		gen_and(b2, b0);
++		gen_and(bo, b0);
++		gen_or(b0, b1);
++		break;
++
++	case Q_OR:
++		b1 = gen_cmp(isrc_off, BPF_H, (bpf_int32)port);
++		b0 = gen_cmp(idst_off, BPF_H, (bpf_int32)port);
++		gen_or(b0, b1);
++		gen_and(bi, b1);
++		b2 = gen_cmp(osrc_off, BPF_H, (bpf_int32)port);
++		b0 = gen_cmp(odst_off, BPF_H, (bpf_int32)port);
++		gen_or(b2, b0);
++		gen_and(bo, b0);
++		gen_or(b0, b1);
++		break;
++
++	case Q_DEFAULT:
++		b1 = gen_cmp(isrc_off, BPF_H, (bpf_int32)port);
++		b0 = gen_cmp(idst_off, BPF_H, (bpf_int32)port);
++		gen_or(b0, b1);
++		b0 = gen_cmp(osrc_off, BPF_H, (bpf_int32)port);
++		gen_or(b0, b1);
++		b0 = gen_cmp(odst_off, BPF_H, (bpf_int32)port);
++		gen_or(b0, b1);
++		break;
++
++	default:
++		sf_error("Internal error: Invalid direcion specifier: %d", dir);
++	}
++
++
++
++	b0 = gen_proto(proto);
++	gen_and(b0, b1);
++
++	return b1;
++}
++#else
++struct block *
++gen_portop(int port, int proto, int dir)
++{
+ 	struct block *b0, *b1, *b2;
+ 	const static int lan_off = offsetof(pf_state_t, lan.port);
+ 	const static int gwy_off = offsetof(pf_state_t, gwy.port);
+@@ -815,6 +1112,7 @@
+ 
+ 	return b1;
+ }
++#endif
+ 
+ static struct block *
+ gen_port(int port, int ip_proto, int dir)

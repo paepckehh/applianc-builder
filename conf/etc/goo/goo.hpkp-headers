@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="github.com/tam7t/hpkp/cmd/hpkp-headers" goo $*

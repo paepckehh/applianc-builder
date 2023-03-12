@@ -1,0 +1,4 @@
+#!/bin/sh
+mkdir -p /tmp/usb_modeswitch/usr/share/usb_modeswitch
+cp -rf /tmp/usb_modeswitch-master/usb_modeswitch.conf /tmp/usb_modeswitch/usr/share/usb_modeswitch/usb_modeswitch.conf
+cp -rf /tmp/usb_modeswitch-master/usb_modeswitch /tmp/usb_modeswitch/usr/sbin/usb_modeswitch

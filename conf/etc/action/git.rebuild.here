@@ -1,0 +1,7 @@
+#!/bin/sh
+/usr/bin/git prune --expire=now
+/usr/bin/git reflog expire --expire-unreachable=now --rewrite --all
+/usr/bin/git pack-refs --all
+/usr/bin/git repack -n -a -d -f --depth=64 --window=300 --threads=0
+/usr/bin/git prune-packed
+/usr/bin/git fsck --strict --unreachable --dangling --full --cache

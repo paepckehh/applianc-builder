@@ -1,0 +1,3 @@
+#!/bin/sh
+. $BSD_DIST/.shared/add.fbsd.fuse
+export BSD_DIST_PKG="$BSD_DIST_PKG sshfs"

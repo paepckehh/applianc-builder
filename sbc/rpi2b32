@@ -1,0 +1,25 @@
+#!/bin/sh
+export BSD_TARGET_SBC=rpi2b32
+export BSD_TARGET_SBC_ALIAS_LIST="rpi2 rpi2b"
+. $BSD_SOC/bcm2709
+. $BSD_VENDOR/rpi
+export BSD_KERNCONF_DEVICE_NIC="$BSD_KERNCONF_DEVICE_NIC smsc smscphy mii axe axge"
+export NIC_PRIMARY="ue0"
+export BSD_KERNCONF_DEVICE_GFX="$BSD_KERNCONF_DEVICE_GFX vchiq"
+export BSD_KERNCONF_DEVICE_SND="$BSD_KERNCONF_DEVICE_SND vchiq"
+export BSD_XTOOLCHAIN=llvm13
+case $FORCE_XBOOT in 
+	efi)	
+		export BSD_VENDOR_BOOT="rpi/rpi2" 
+		export XBOOT=efi 	
+		export WITH_EFI=true
+		unset WITHOUT_EFI WITHOUT_BOOT
+		;;
+	ubldr|*)
+		# legacy ubldr boot [fast,small,secure,static]
+		export BSD_VENDOR_BOOT="rpi/rpi2_ubldr" 
+		export XBOOT=ubldr  	
+		export WITHOUT_BOOT=true
+		unset WITH_BOOT WITH_EFI
+	 	;;
+esac

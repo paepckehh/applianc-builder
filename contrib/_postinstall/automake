@@ -1,0 +1,5 @@
+#!/bin/sh
+cd /tmp/automake/usr/local/bin
+ln -s aclocal aclocal-1.16
+ln -s automake automake-1.16
+cd /tmp

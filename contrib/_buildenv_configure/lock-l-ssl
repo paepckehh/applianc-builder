@@ -1,0 +1,34 @@
+#!/bin/sh
+if [ ! -e $BSD_CONTRIB/_patch/lock-l-ssl.$TOS.diff ]; then
+	echo "### ERROR ... no LockSSL implementation available for $TOS !"
+	echo "### CURRENTLY SUPPORTED:"
+	ls -l $BSD_CONTRIB/_patch/lockssl.*.diff
+	exit
+fi
+cd /tmp
+rm -rf lock-l-ssl-master
+sh /etc/action/store gitcheckout libressl-portable
+mv -f libressl-portable lock-l-ssl-master
+cd lockssl-l-master
+sh /etc/action/store gitcheckout libressl-openbsd
+mv -f libressl-openbsd openbsd
+echo "################### START: CUSTOM LOCKSSL OPENBSD LIBRESSL LOCKDOWN PATCHES ##########" | tee -a $LOGM
+patch --batch -i $BSD_CONTRIB/_patch/lockssl.$TOS.diff | tee -a $LOGM
+sed -i '' -e 's/LibreSSL 3/LockSSL 3/g' openbsd/src/lib/libcrypto/opensslv.h
+echo "################### END : CUSTOM LOCKSSL OPENBSD LIBRESSL LOCKDOWN PATCHES ##########" | tee -a $LOGM
+sh ./autogen.sh >> $LOGM
+sh ./configure \
+	--build=$LT_ARCH \
+	--host=$CCT \
+	--target=$CCT \
+	--prefix=/usr/ \
+	--sysconfdir=/etc \
+	--disable-debug \
+	--disable-locale \
+	--disable-debug \
+	--disable-man \
+	--disable-manpages \
+	--disable-doc \
+	--disable-tests \
+	--disable-static \
+	--enable-shared >> $LOGM

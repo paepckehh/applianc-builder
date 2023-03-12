@@ -1,0 +1,15 @@
+#!/bin/sh
+autoreconf -i >> /tmp/build-nettle.log
+autoreconf -i >> /tmp/build-nettle.log
+autoconf >> /tmp/build-nettle.log
+sh ./configure \
+	--host=$CCT \
+	--prefix=/usr \
+	--disable-debug \
+	--disable-locale \
+	--disable-static \
+	--disable-documentation \
+	--enable-x86-aesni \
+	--enable-mini-gmp \
+	>> /tmp/build-nettle.log
+# --enable-x86-sha-ni \

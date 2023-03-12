@@ -1,0 +1,2 @@
+#!/bin/sh
+sh /etc/action/.action-git-clone.sh $*

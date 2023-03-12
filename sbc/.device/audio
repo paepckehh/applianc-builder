@@ -1,0 +1,10 @@
+#!/bin/sh
+export BSD_SND=true
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE sound $BSD_KERNCONF_DEVICE_SND"
+export WITH_AUDIO=true
+unset WITHOUT_AUDIO
+X='
+# audio aux 
+dev.pcm.0.dest=1
+'
+export BSD_SYSCTL="$BSD_SYSCTL $X"

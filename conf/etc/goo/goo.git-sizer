@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="github.com/github/git-sizer" REPO_USER="gitclient" REPO_OPTS="--verbose" goo $*

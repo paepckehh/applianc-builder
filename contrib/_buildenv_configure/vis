@@ -1,0 +1,22 @@
+#!/bin/sh
+sh ./configure \
+	--prefix=/usr/local \
+	--disable-debug \
+	--disable-tests \
+	--disable-locale \
+	--disable-debug \
+	--disable-man \
+	--disable-manpages \
+	--disable-doc \
+	--disable-maintainer-mode \
+	--enable-shared \
+	--disable-tre \
+	--disable-selinux \
+	--disable-acl \
+	--disable-help \
+	--enable-curses \
+	cross_compiling=yes
+
+#--enable-lua \
+#--enable-lpeg-static \
+#--enable-curses \

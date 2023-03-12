@@ -1,0 +1,7 @@
+#!/bin/sh
+export MANPATH="/usr/share/man"
+export TERM="xterm-color"
+export COLORTERM=true
+export FORCE_COLOR=true
+export COLOR=true
+export FZF_DEFAULT_COMMAND="ls"

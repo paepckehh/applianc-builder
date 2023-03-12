@@ -1,0 +1,2 @@
+#!/bin/sh
+GITACTION="push --all --prune --force" sh /etc/action/.action-git-repo-updates.sh

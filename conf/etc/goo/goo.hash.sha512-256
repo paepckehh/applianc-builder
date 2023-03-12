@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="crypto/sha512" FUNCTION="Sum512_256" goo $*

@@ -1,0 +1,22 @@
+#!/bin/sh
+libtoolize -ci
+autoreconf -fi
+sh ./configure \
+	--build=$LT_ARCH \
+	--host=$CCT \
+	--target=$CCT \
+	--prefix=/usr \
+	--disable-debug \
+	--disable-locale \
+	--disable-debug \
+	--disable-man \
+	--disable-manpages \
+	--disable-doc \
+	--enable-shared \
+	--disable-dsa \
+	--with-drill \
+	--without-pyldns \
+	--without-examples \
+	--disable-ldns-config \
+	--disable-dane-verify \
+	--disable-dane-ts-usage

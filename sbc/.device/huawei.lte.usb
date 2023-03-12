@@ -1,0 +1,6 @@
+#!/bin/sh
+# "KERNEL PATCHSET NEEDED! ... for full lte/umts/4G/3G AP device support need/upstream $ENHANCE/freebsd/sys/dev !"
+. $BSD_SBC/.device/usb
+export BSD_KERNCONF_DEVICE_NIC="$BSD_KERNCONF_DEVICE_NIC usb uether mii cdce u3g"
+# DEBUG 
+# export BSD_DIST_PKG="$BSD_DIST_PKG lteinfo usb_modeswitch"

@@ -1,0 +1,12 @@
+#!/bin/sh
+. $BSD_SBC/.device/usb
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE da scbus umass"
+X='
+
+# usb storage
+kern.cam.da.enable_uma_ccbs=1
+kern.cam.da.poll_period=1
+kern.cam.sort_io_queues=0
+
+'
+export BSD_SYSCTL="$BSD_SYSCTL $X"

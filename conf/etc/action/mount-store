@@ -1,0 +1,11 @@
+#!/bin/sh
+TARGETS="p4 p3 s3 s2"
+for TARGET in $TARGETS; do
+	DRIVE="/dev/$1$TARGET"
+	if [ -e "$DRIVE" ]; then
+		case "$(/usr/bin/fstyp $DRIVE)" in
+		ufs) sh /etc/action/mount-bsd-store $1 $2 && exit ;;
+		ext2fs) sh /etc/action/mount-linux-store $1 $2 && exit ;;
+		esac
+	fi
+done

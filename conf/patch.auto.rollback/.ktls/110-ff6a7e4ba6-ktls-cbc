@@ -1,0 +1,26 @@
+commit ff6a7e4ba6bf8be9ead9e1bc5537709243390654
+Author: Mark Johnston <markj@FreeBSD.org>
+Date:   2021-03-05 03:45:40 +0000
+
+    ktls: Fix CBC encryption when input and output iov sizes are different
+    
+    Reported by:    gallatin
+    Tested by:      gallatin
+    Fixes:          49f6925ca
+    Differential Revision:  https://reviews.freebsd.org/D29073
+
+diff --git a/sys/opencrypto/ktls_ocf.c b/sys/opencrypto/ktls_ocf.c
+index 31d787c2b61..7414e26bb3e 100644
+--- a/sys/opencrypto/ktls_ocf.c
++++ b/sys/opencrypto/ktls_ocf.c
+@@ -298,8 +298,8 @@ ktls_ocf_tls_cbc_encrypt(struct ktls_session *tls,
+ 		memcpy(crp.crp_iv, hdr + 1, AES_BLOCK_LEN);
+ 	crypto_use_uio(&crp, &uio);
+ 	if (!inplace) {
+-		memcpy(out_iov, outiov, sizeof(*iniov) * outiovcnt);
+-		out_iov[outiovcnt] = iov[outiovcnt + 1];
++		memcpy(out_iov, outiov, sizeof(*outiov) * outiovcnt);
++		out_iov[outiovcnt] = iov[iniovcnt + 1];
+ 		out_uio.uio_iov = out_iov;
+ 		out_uio.uio_iovcnt = outiovcnt + 1;
+ 		out_uio.uio_offset = 0;

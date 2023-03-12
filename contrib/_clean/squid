@@ -1,0 +1,9 @@
+usr/etc
+usr/libexec/cachemgr.cgi
+usr/libexec/diskd
+usr/libexec/helper-mux
+usr/libexec/log*
+usr/libexec/security_fake*
+usr/share
+usr/var
+etc

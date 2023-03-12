@@ -1,0 +1,3 @@
+#!/bin/sh
+export SOURCE_DEV=/dev/random
+sh /etc/action/.drive $1 $2 $3

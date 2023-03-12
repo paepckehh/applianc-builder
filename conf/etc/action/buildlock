@@ -1,0 +1,6 @@
+#!/bin/sh
+if [ ! $BSD_CONF_VERSION ]; then . /etc/.bsdconf; fi
+(sh /etc/action/store > /dev/null 2>&1) &
+hq u
+wait
+sh $BSD_ACTION/build.src.rebuild.lib.sh lock

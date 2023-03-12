@@ -1,0 +1,49 @@
+#!/bin/sh
+# Search a disk for a (part of) removed file.
+
+syntax_exit() {
+	echo "fs.recover (search raw disk for string, save recovered block to /tmp)"
+	echo "SYNTAX : fs.recover <drive> <search-string> [opt:<out-file>] [opt:<blocksize>]"
+	echo "EXAMPLE: fs.recover /dev/da1p4 my_super_secreat_document_string"
+	exit 1
+}
+
+DRIVE=$1
+SEARCH=$2
+OUT=$3
+BLOCKS=$4
+CMD_GREP="/usr/bin/grep"
+if [ -z $DRIVE ]; then echo "[fs.recover] [error] please specify a target drive to scan/recover" && syntax_exit; fi
+if [ -z $SEARCH ]; then echo "[fs.recover] [error] please specify a search string scan/recover" && syntax_exit; fi
+if [ -z $RECOVER ]; then OUT='/tmp/fs.recover-dump'; fi
+if [ -z $BLOCKS ]; then BLOCKS='25m'; fi
+if [ -x /usr/bin/ugrep ]; then CMD_GREP=/usr/bin/ugrep; fi
+if [ ! -c $DRIVE ]; then
+	echo "### SOURCE DRIVE TO RECOVER [$DRIVE] does NOT exist! Please insert $DRIVE!"
+	while $LOOP; do
+		if [ ! -c $DRIVE ]; then
+			echo -n "."
+			sleep 0.2
+		else
+			echo "# HIT"
+			echo "... $DRIVE found!"
+			break
+		fi
+	done
+fi
+SKIP=0
+echo "[fs.recover] [START] [TARGET_DRIVE:$DRIVE] [SEARCH_TERM:$SEARCH]"
+echo "[fs.recover] [START] [OUT:$OUT] [BLOCKSIZE:$BLOCKS] [GREP:$CMD_GREP]"
+echo -n "[fs.recover] [scanning block]"
+while $LOOP; do
+	while dd if=$DRIVE of=$OUT skip=$SKIP bs=$BLOCKS count=1 > /dev/null 2>&1 && ! $CMD_GREP $SEARCH $OUT > /dev/null 2>&1; do
+		SKIP=$(expr $SKIP + 1)
+		echo -n " [$SKIP]"
+	done
+	FOUND=$OUT.$SKIP && mv $OUT $OUT.$SKIP || break
+	SKIP=$(expr $SKIP + 1)
+	echo "[HIT] [OUTPUT:$FOUND]"
+done
+echo
+echo "[fs.recover] [END]"
+exit 0

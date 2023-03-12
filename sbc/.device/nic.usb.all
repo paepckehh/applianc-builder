@@ -1,0 +1,6 @@
+#!/bin/sh
+. $BSD_DIST/.shared/add.fbsd.debug.usb
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE uether mii miibus mii_bitbang"
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE aue axe axge cdce cue kue rue udav ure mos urndis"
+# export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE muge smsc smcphy ure"
+# export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE acphy amphy atphy axphy bmtphy bnxt brgphy cgem ciphy e1000phy gentbi icsphy ip1000phy jmphy lxtphy nsgphy nsphy nsphyter pnaphy qsphy rdcphy rgephy rlphy rlswitch smcphy tdkphy truephy xmphy"

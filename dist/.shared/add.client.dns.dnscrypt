@@ -1,0 +1,11 @@
+#!/bin/sh
+export BSD_DIST_PKG="$BSD_DIST_PKG go-github_com_dnscrypt_dnscrypt-proxy"
+X='
+# xxdnscrypt
+xxdnscrypt_enable="YES"
+xxdnscrypt_program="/usr/bin/dnscrypt-proxy"
+xxdnscrypt_blind="google.com facebook.com twitter.com github.com ccc.de darpa.mil"
+xxdnscrypt_cache="github.com github.io github.githubassets.com github.io gitlab.com git.kernel.org geo.source.kernel.org sin.source.kernel.org go.googlesource.com git.freebsd.org gitmir.geo.freebsd.org bugs.freebsd.org lists.freebsd.org teddit.net ipinfo.io rate.sx wttr.in v2.wttr.in lobste.rs reviews.freebsd.org news.ycombinator.com blog.fefe.de www.ndr.de www.tagesschau.de www.tagesschau.de.edgekey.net www.ndr.de.edegekey.net darpa.mil"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+export BSD_DIST_RC="$BSD_DIST_RC xxdnscrypt"

@@ -1,0 +1,19 @@
+#!/bin/sh
+autoconf -if
+autoconf -if
+sh ./configure \
+	--build=$LT_ARCH \
+	--host=$CCT \
+	--target=$CCT \
+	--prefix=/usr \
+	--disable-auto-color \
+	--enable-hidden \
+	--without-pcre2 \
+	--without-boost-regex \
+	--without-lzma \
+	--without-lz4 \
+	--without-bzlib \
+	--without-zlib \
+	--without-zstd \
+	cross_compiling=yes
+# --disable-mmap \

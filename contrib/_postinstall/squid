@@ -1,0 +1,3 @@
+#!/bin/sh
+mkdir -p /tmp/squid/usr/bin
+mv /tmp/squid/usr/sbin/squid /tmp/squid/usr/bin/squid

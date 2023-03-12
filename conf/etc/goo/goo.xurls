@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="mvdan.cc/xurls/cmd/xurls" goo $*

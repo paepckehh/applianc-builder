@@ -1,0 +1,9 @@
+#!/bin/sh
+X='
+# xxnpad 
+xxnpad_enable="YES"
+xxnpad_program="/usr/bin/npad"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+export BSD_DIST_PKG="$BSD_DIST_PKG npad"
+export BSD_DIST_RC="$BSD_DIST_RC xxnpad"

@@ -1,0 +1,46 @@
+# [console]
+hdmi_group=1
+hdmi_drive=2
+hdmi_mode=16
+hdmi_blanking=1 
+display_hdmi_rotate=3
+disable_overscan=1
+max_framebuffers=1
+gpu_mem=36
+
+# [powerdown all unused componets]
+enable_uart=0
+dtparam=audio=off
+dtparam=aux-uart=off
+dtparam=aux=off
+dtparam=dsi0=off
+dtparam=dsi=off
+dtparam=firmware=off
+dtparam=gpio=off
+dtparam=hvs=off
+dtparam=i2c=off
+dtparam=i2c_arm=off
+dtparam=i2s=off
+dtparam=pixelvalve0=off
+dtparam=pixelvalve1=off
+dtparam=pixelvalve2=off
+dtparam=pixelvalve=off
+dtparam=pl011=off
+dtparam=pwm=off
+dtparam=spi=off
+dtparam=vchiq=off
+dtparam=vcsm=off
+dtparam=vec=off
+
+# [fast boot]
+initial_turbo=60
+
+# [optional]
+# force_turbo=1 
+
+# [shared]
+enable_uart=1 
+arm_freq=1000
+
+[pi0w]
+dtoverlay=disable-bt,disable-wifi

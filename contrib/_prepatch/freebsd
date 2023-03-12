@@ -1,0 +1,2615 @@
+### ( 2023-03-12 ) ( 1678605360 ) ### DO NOT EDIT ### auto-generated file / patchset by <appliance-builder/enhanced> ###
+--- ./bin/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./bin/Makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -5,13 +5,11 @@
+ 
+ SUBDIR= cat \
+ 	chflags \
+-	chio \
+ 	chmod \
+ 	cp \
+ 	date \
+ 	dd \
+ 	df \
+-	domainname \
+ 	echo \
+ 	ed \
+ 	expr \
+@@ -42,11 +40,11 @@
+ 	timeout \
+ 	uuidgen
+ 
+-SUBDIR.${MK_SENDMAIL}+=	rmail
+-SUBDIR.${MK_TCSH}+=	csh
+-SUBDIR.${MK_TESTS}+=	tests
+-
+-.include <bsd.arch.inc.mk>
++#SUBDIR.${MK_SENDMAIL}+= rmail
++#SUBDIR.${MK_TCSH}+=	 csh
++#SUBDIR.${MK_TESTS}+=	 tests
++#
++# .include <bsd.arch.inc.mk>
+ 
+ SUBDIR_PARALLEL=
+ 
+--- ./etc/mtree/BSD.include.dist.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./etc/mtree/BSD.include.dist	1970-01-01 00:00:00.000000000 +0000
+@@ -3,7 +3,7 @@
+ # Please see the file src/etc/mtree/README before making changes to this file.
+ #
+ 
+-/set type=dir uname=root gname=wheel mode=0755
++/set type=dir uname=root gname=wheel mode=0555
+ .
+     arpa
+     ..
+--- ./etc/mtree/BSD.root.dist.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./etc/mtree/BSD.root.dist	1970-01-01 00:00:00.000000000 +0000
+@@ -3,7 +3,7 @@
+ # Please see the file src/etc/mtree/README before making changes to this file.
+ #
+ 
+-/set type=dir uname=root gname=wheel mode=0755
++/set type=dir uname=root gname=wheel mode=0555
+ .
+     bin
+     ..
+@@ -66,7 +66,7 @@
+         ..
+         newsyslog.conf.d
+         ..
+-        ntp             mode=0700
++        ntp             mode=0500
+         ..
+         pam.d
+         ..
+@@ -125,7 +125,7 @@
+     ..
+     rescue
+     ..
+-    root            mode=0750
++    root            mode=0550
+     ..
+     sbin
+     ..
+--- ./etc/mtree/BSD.usr.dist.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./etc/mtree/BSD.usr.dist	1970-01-01 00:00:00.000000000 +0000
+@@ -3,7 +3,7 @@
+ # Please see the file src/etc/mtree/README before making changes to this file.
+ #
+ 
+-/set type=dir uname=root gname=wheel mode=0755
++/set type=dir uname=root gname=wheel mode=0555
+ .
+     bin
+     ..
+--- ./lib/libc/regex/engine.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./lib/libc/regex/engine.c	1970-01-01 00:00:00.000000000 +0000
+@@ -607,8 +607,8 @@
+     (sp < m->endp && *sp == '\n' &&			\
+     (m->g->cflags&REG_NEWLINE)) ||			\
+     (sp < m->endp && !ISWORD(*sp)) ) &&			\
+-    (sp > m->beginp && ISWORD(*(sp-1))))		\
+-
++    (sp > m->beginp && ISWORD(*(sp-1))))
++// UPSTREAM: do not concat lines into the void (failes to compile with source compact mode)
+ /*
+  - backref - figure out what matched what, figuring in back references
+  == static const char *backref(struct match *m, const char *start, \
+--- ./lib/libpam/modules/modules.inc.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./lib/libpam/modules/modules.inc	1970-01-01 00:00:00.000000000 +0000
+@@ -17,17 +17,17 @@
+ MODULES		+= pam_lastlog
+ MODULES		+= pam_login_access
+ MODULES		+= pam_nologin
+-MODULES		+= pam_passwdqc
++#MODULES	+= pam_passwdqc
+ MODULES		+= pam_permit
+ .if ${MK_RADIUS_SUPPORT} != "no"
+-MODULES		+= pam_radius
++#MODULES	+= pam_radius
+ .endif
+-MODULES		+= pam_rhosts
++#MODULES	+= pam_rhosts
+ MODULES		+= pam_rootok
+ MODULES		+= pam_securetty
+ MODULES		+= pam_self
+ .if ${MK_OPENSSH} != "no"
+ MODULES		+= pam_ssh
+ .endif
+-MODULES		+= pam_tacplus
++#MODULES	+= pam_tacplus
+ MODULES		+= pam_unix
+--- ./lib/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./lib/Makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -29,15 +29,11 @@
+ 
+ SUBDIR=	${SUBDIR_BOOTSTRAP} \
+ 	.WAIT \
+-	libsqlite3 \
+ 	geom \
+-	lib9p \
+ 	libalias \
+ 	libarchive \
+-	libauditd \
+ 	libbegemot \
+ 	libblocksruntime \
+-	libbsddialog \
+ 	libbsdstat \
+ 	libbsm \
+ 	libbz2 \
+@@ -48,23 +44,19 @@
+ 	libcompat \
+ 	libcrypt \
+ 	libdevctl \
+-	libdevdctl \
+ 	libdevinfo \
+ 	libdevstat \
+ 	libdl \
+-	libdwarf \
+ 	libedit \
+ 	libelftc \
+ 	libevent1 \
+ 	libexecinfo \
+ 	libexpat \
+-	libfetch \
+ 	libgcc_eh \
+ 	libgcc_s \
+ 	libgeom \
+ 	libifconfig \
+ 	libipsec \
+-	libiscsiutil \
+ 	libjail \
+ 	libkiconv \
+ 	libkvm \
+@@ -74,7 +66,6 @@
+ 	libmd \
+ 	libmixer \
+ 	libmt \
+-	lib80211 \
+ 	libnetbsd \
+ 	libnetmap \
+ 	libnv \
+@@ -91,11 +82,9 @@
+ 	librt \
+ 	librtld_db \
+ 	libsbuf \
+-	libsmb \
+ 	libstdbuf \
+ 	libstdthreads \
+ 	libsysdecode \
+-	libtacplus \
+ 	libthr \
+ 	libthread_db \
+ 	libucl \
+@@ -111,13 +100,16 @@
+ 	libzstd \
+ 	ncurses
+ 
++SUBDIR.${MK_BHYVE}= lib9p
++# libsqlite3 \
++# libiscsiutil \
+ # Inter-library dependencies.  When the makefile for a library contains LDADD
+ # libraries, those libraries should be listed as build order dependencies here.
+ 
+ SUBDIR_DEPEND_geom=	libufs
+ SUBDIR_DEPEND_googletest= libregex
+ SUBDIR_DEPEND_libarchive= libz libbz2 libexpat liblzma libmd libzstd
+-SUBDIR_DEPEND_libauditdm= libbsm
++#SUBDIR_DEPEND_libauditdm= libbsm
+ SUBDIR_DEPEND_libbsddialog= ncurses
+ SUBDIR_DEPEND_libbsnmp= ${_libnetgraph}
+ SUBDIR_DEPEND_libc++:= libcxxrt
+@@ -133,12 +125,12 @@
+ SUBDIR_DEPEND_librpcsec_gss= libgssapi
+ SUBDIR_DEPEND_libmagic= libz
+ SUBDIR_DEPEND_libmemstat= libkvm
+-SUBDIR_DEPEND_libpam= libcrypt ${_libradius} librpcsvc libtacplus libutil ${_libypclnt} ${_libcom_err}
++SUBDIR_DEPEND_libpam= libcrypt ${_libradius} librpcsvc libutil ${_libypclnt} ${_libcom_err} 
+ SUBDIR_DEPEND_libpjdlog= libutil
+ SUBDIR_DEPEND_libprocstat= libkvm libutil
+ SUBDIR_DEPEND_libradius= libmd
+-SUBDIR_DEPEND_libsmb= libkiconv
+-SUBDIR_DEPEND_libtacplus= libmd
++#SUBDIR_DEPEND_libsmb= libkiconv
++#SUBDIR_DEPEND_libtacplus= libmd
+ SUBDIR_DEPEND_libulog= libmd
+ SUBDIR_DEPEND_libunbound= ${_libldns}
+ SUBDIR_DEPEND_liblzma= libthr
+@@ -166,7 +158,8 @@
+ .endif
+ 
+ SUBDIR.${MK_CUSE}+= 	libcuse
+-SUBDIR.${MK_TOOLCHAIN}+=libpe
++SUBDIR.${MK_TOOLCHAIN}+=libpe libdwarf
++SUBDIR.${MK_INCLUDES}+= libpe libdwarf
+ SUBDIR.${MK_DIALOG}+=	libdpv libfigpar
+ SUBDIR.${MK_FILE}+=	libmagic
+ SUBDIR.${MK_GPIO}+=	libgpio
+@@ -188,9 +181,9 @@
+ SUBDIR.${MK_NETGRAPH}+=	libnetgraph
+ SUBDIR.${MK_NIS}+=	libypclnt
+ 
+-.if ${MACHINE_CPUARCH} == "i386" || ${MACHINE_CPUARCH} == "amd64"
+-_libvgl=	libvgl
+-.endif
++#.if ${MACHINE_CPUARCH} == "i386" || ${MACHINE_CPUARCH} == "amd64"
++#_libvgl=	libvgl
++#.endif
+ 
+ .if ${MACHINE_CPUARCH} == "aarch64"
+ SUBDIR.${MK_PMC}+=	libopencsd
+--- ./libexec/rc/rc.d/NETWORKING.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./libexec/rc/rc.d/NETWORKING	1970-01-01 00:00:00.000000000 +0000
+@@ -4,7 +4,7 @@
+ #
+ 
+ # PROVIDE: NETWORKING NETWORK
+-# REQUIRE: netif netwait netoptions routing ppp ipfw stf
++# REQUIRE: netif netwait netoptions routing ppp ipfw stf pf pflog
+ # REQUIRE: defaultroute route6d resolv bridge
+ # REQUIRE: static_arp static_ndp
+ 
+--- ./libexec/rc/rc.d/devd.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./libexec/rc/rc.d/devd	1970-01-01 00:00:00.000000000 +0000
+@@ -4,8 +4,7 @@
+ #
+ 
+ # PROVIDE: devd
+-# REQUIRE: netif ldconfig
+-# BEFORE: NETWORKING mountcritremote
++# REQUIRE: NETWORKING ldconfig var tmp
+ # KEYWORD: nojail shutdown
+ 
+ . /etc/rc.subr
+--- ./libexec/rc/rc.d/jail.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./libexec/rc/rc.d/jail	1970-01-01 00:00:00.000000000 +0000
+@@ -450,7 +450,7 @@
+ 	if [ $# = 0 ]; then
+ 		return
+ 	fi
+-	startmsg -n 'Starting jails:'
++	startmsg -n 'Starting worker:'
+ 	case $1 in
+ 	_ALL)
+ 		command=$jail_program
+@@ -538,7 +538,7 @@
+ 	if [ $# = 0 ]; then
+ 		return
+ 	fi
+-	echo -n 'Stopping jails:'
++	echo -n 'Stopping worker:'
+ 	case $1 in
+ 	_ALL)
+ 		command=$jail_program
+--- ./libexec/rc/rc.d/ldconfig.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./libexec/rc/rc.d/ldconfig	1970-01-01 00:00:00.000000000 +0000
+@@ -23,7 +23,7 @@
+ 	ldconfig=${ldconfig_command}
+ 	checkyesno ldconfig_insecure && _ins="-i"
+ 	if [ -x "${ldconfig_command}" ]; then
+-		_LDC="/lib /usr/lib"
++		_LDC="/usr/lib"
+ 		for i in ${ldconfig_local_dirs}; do
+ 			if [ -d "${i}" ]; then
+ 				_files=`find ${i} -type f`
+--- ./libexec/rc/rc.d/pf.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./libexec/rc/rc.d/pf	1970-01-01 00:00:00.000000000 +0000
+@@ -42,13 +42,12 @@
+ 
+ pf_start()
+ {
+-	startmsg -n 'Enabling pf'
++	startmsg 'Starting pf.'
+ 	$pf_program -F all > /dev/null 2>&1
+ 	$pf_program -f "$pf_rules" $pf_flags || pf_fallback
+ 	if ! $pf_program -s info | grep -q "Enabled" ; then
+ 		$pf_program -eq
+ 	fi
+-	startmsg '.'
+ }
+ 
+ pf_stop()
+--- ./libexec/rc/rc.d/sysctl.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./libexec/rc/rc.d/sysctl	1970-01-01 00:00:00.000000000 +0000
+@@ -4,6 +4,7 @@
+ #
+ 
+ # PROVIDE: sysctl
++# KEYWORD: nojail
+ 
+ . /etc/rc.subr
+ 
+@@ -13,14 +14,20 @@
+ stop_cmd=":"
+ start_cmd="sysctl_start"
+ reload_cmd="sysctl_start last"
++reload_verbose_cmd="sysctl_start verbose"
+ lastload_cmd="sysctl_start last"
+-extra_commands="reload lastload"
++extra_commands="reload reload_verbose lastload "
++out="/dev/null"
+ 
+ sysctl_start()
+ {
+ 	case $1 in
+ 	last)
+ 		command_args="-f"
++		;;
++	verbose)
++		command_args="-f"
++		out="/dev/stdout"
+ 	;;
+ 	*)
+ 		command_args="-i -f"
+@@ -29,7 +36,7 @@
+ 
+ 	for _f in /etc/sysctl.conf /etc/sysctl.conf.local; do
+ 		if [ -r ${_f} ]; then
+-			${command} ${command_args} ${_f} > /dev/null
++			${command} ${command_args} ${_f} > $out
+ 		fi
+ 	done
+ }
+--- ./libexec/rc/rc.d/var.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./libexec/rc/rc.d/var	1970-01-01 00:00:00.000000000 +0000
+@@ -44,11 +44,7 @@
+ {
+ 	/usr/sbin/mtree -deiU -f /etc/mtree/BSD.var.dist -p /var > /dev/null
+ 	case ${sendmail_enable} in
+-	[Nn][Oo][Nn][Ee])
+-		;;
+-	*)
+-		/usr/sbin/mtree -deiU -f /etc/mtree/BSD.sendmail.dist -p / > /dev/null
+-		;;
++	[Yy][Ee][Ss]) /usr/sbin/mtree -deiU -f /etc/mtree/BSD.sendmail.dist -p / > /dev/null ;;
+ 	esac
+ }
+ 
+--- ./sbin/mount/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sbin/mount/Makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -15,5 +15,6 @@
+ MLINKS+= mntopts.3 rmslashes.3
+ 
+ LIBADD=	util xo
++SCRIPTS= xmount.sh
+ 
+ .include <bsd.prog.mk>
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ ./sbin/mount/xmount.sh	1970-01-01 00:00:00.000000000 +0000
+@@ -0,0 +1,56 @@
++#!/bin/sh
++# ... quick hack for missing mount auto-fstype detection in FreeBSD !
++if [ ! $2 ]; then
++	echo "syntax example: xmount /dev/da0s1 /tmp/x"
++	exit
++fi
++FSTYPE="$(fstyp $1)"
++DRIVE=$1
++TARGET=$2
++inf_exit() {
++	echo "... missing kernel support for filesystem: $FSTYPE [KERNCONF: options $KERNEL]"
++	exit
++}
++test_mount() {
++	if [ -x $TARGET ]; then
++		mount -v -t $FSTYPE $OPT $DRIVE $TARGET
++		exit
++	fi
++}
++case $FSTYPE in
++ufs)
++	if [ "$(sysctl -t vfs.ufs.rename_restarts)" != "vfs.ufs.rename_restarts: integer" ]; then
++		KERNEL=FFS
++		inf_exit
++	fi
++	OPT="-o async,noatime,untrusted"
++	;;
++ext2fs)
++	if [ "$(sysctl -t vfs.ext2fs.doasyncfree)" != "vfs.ext2fs.doasyncfree: integer" ]; then
++		KERNEL=EXT2FS
++		inf_exit
++	fi
++	OPT="-o async,noatime,noexec,nosymfollow"
++	;;
++msdosfs)
++	if [ "$(sysctl -t vfs.msdosfs.use_buf_pager)" != "vfs.msdosfs.use_buf_pager: integer" ]; then
++		KERNEL=MSDOSFS
++		inf_exit
++	fi
++	OPT="-o async,noatime,noexec"
++	;;
++cd9660)
++	# XXX todo: testcase
++	# KERNEL=CD9660
++	# inf_exit
++	OPT="-o ro"
++	;;
++*)
++	echo "... unknown or unsupported filesystem: $FSTYPE"
++	exit
++	;;
++esac
++test_mount
++mkdir -p $TARGET
++test_mount
++echo "... unable to use/create $TARGET as target!"
+--- ./sbin/reboot/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sbin/reboot/Makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -18,6 +18,6 @@
+ LINKS=	${BINDIR}/reboot ${BINDIR}/halt ${BINDIR}/reboot ${BINDIR}/fastboot \
+ 	${BINDIR}/reboot ${BINDIR}/fasthalt
+ 
+-SCRIPTS=	nextboot.sh
++#SCRIPTS=	nextboot.sh
+ 
+ .include <bsd.prog.mk>
+--- ./sbin/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sbin/Makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -4,37 +4,22 @@
+ .include <src.opts.mk>
+ 
+ SUBDIR=adjkerntz \
+-	camcontrol \
+-	clri \
+ 	comcontrol \
+ 	conscontrol \
+-	ddb \
+ 	devd \
+ 	devfs \
+-	devmatch \
+-	dhclient \
+ 	dmesg \
+-	dump \
+ 	dumpfs \
+-	dumpon \
+-	etherswitchcfg \
+ 	ffsinfo \
+ 	fsck \
+ 	fsck_ffs \
+ 	fsck_msdosfs \
+-	fsdb \
+-	fsirand \
+-	gbde \
+ 	geom \
+ 	ggate \
+ 	growfs \
+-	gvinum \
+ 	ifconfig \
+ 	init \
+-	kldconfig \
+-	kldload \
+ 	kldstat \
+-	kldunload \
+ 	ldconfig \
+ 	md5 \
+ 	mdconfig \
+@@ -51,17 +36,9 @@
+ 	mount_unionfs \
+ 	newfs \
+ 	newfs_msdos \
+-	nfsiod \
+-	nos-tun \
+-	pfilctl \
+ 	rcorder \
+ 	reboot \
+-	recoverdisk \
+ 	resolvconf \
+-	restore \
+-	route \
+-	savecore \
+-	setkey \
+ 	shutdown \
+ 	swapon \
+ 	sysctl \
+@@ -69,32 +46,17 @@
+ 	umount
+ 
+ .if ${MK_INET} != "no" || ${MK_INET6} != "no"
+-SUBDIR+=	ping
++SUBDIR+= ping route 
++SUBDIR.${MK_DHCP}+= dhclient
+ .endif
+ 
+-SUBDIR.${MK_CCD}+=	ccdconfig
+-SUBDIR.${MK_HAST}+=	hastctl
+-SUBDIR.${MK_HAST}+=	hastd
+-SUBDIR.${MK_INET6}+=	rtsol
+-SUBDIR.${MK_IPFILTER}+=	ipf
+ SUBDIR.${MK_IPFW}+=	ipfw
+-SUBDIR.${MK_IPFW}+=	natd
+-SUBDIR.${MK_NVME}+=	nvmecontrol
+-SUBDIR.${MK_OPENSSL}+=	decryptcore
++SUBDIR.${MK_NVME}+=	nvmecontrol camcontrol
+ SUBDIR.${MK_PF}+=	pfctl
+-SUBDIR.${MK_PF}+=	pflogd
+-SUBDIR.${MK_QUOTAS}+=	quotacheck
+-SUBDIR.${MK_ROUTED}+=	routed
++SUBDIR.${MK_PF}+=	pflogd 
+ SUBDIR.${MK_VERIEXEC}+=	veriexec
+-SUBDIR.${MK_ZFS}+=	bectl
+-SUBDIR.${MK_ZFS}+=	zfsbootcfg
+ 
+-SUBDIR.${MK_TESTS}+=	tests
+-
+-.include <bsd.arch.inc.mk>
+-
++#.include <bsd.arch.inc.mk>
+ SUBDIR_PARALLEL=
+-
+ .include <bsd.prog.mk>
+-
+ .include <bsd.subdir.mk>
+--- ./secure/lib/libcrypto/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./secure/lib/libcrypto/Makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -126,7 +126,7 @@
+ # Full of strict aliasing violations that LLVM has been seen to break with
+ # optimisations, which can lead to ECDSA signatures not working. See
+ # https://github.com/openssl/openssl/issues/12247 for the upstream bug report.
+-CFLAGS.bn_nist.c+=	-fno-strict-aliasing
++# CFLAGS.bn_nist.c+=	-fno-strict-aliasing
+ 
+ # buffer
+ SRCS+=	buf_err.c buffer.c
+--- ./secure/lib/libcrypto/opensslconf.h.in.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./secure/lib/libcrypto/opensslconf.h.in	1970-01-01 00:00:00.000000000 +0000
+@@ -204,6 +204,16 @@
+ 
+ #define RC4_INT unsigned int
+ 
++/* ... */
++#define OPENSSL_NO_SSL
++#define OPENSSL_NO_SSL_METHOD
++#define OPENSSL_NO_TLS1
++#define OPENSSL_NO_TLS1_METHOD
++#define OPENSSL_NO_TLS1_1
++#define OPENSSL_NO_TLS1_1_METHOD
++#define OPENSSL_NO_PSK
++#define OPENSSL_NO_DEPRICATED
++
+ #ifdef  __cplusplus
+ }
+ #endif
+--- ./share/man/man4/vt.4.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./share/man/man4/vt.4	1970-01-01 00:00:00.000000000 +0000
+@@ -39,6 +39,7 @@
+ .Cd "options VT_FB_MAX_WIDTH=X"
+ .Cd "options VT_FB_MAX_HEIGHT=Y"
+ .Cd "options SC_NO_CUTPASTE"
++.Cd "options SC_HISTORY_SIZE=2500"
+ .Cd "device vt"
+ .Pp
+ In
+@@ -147,6 +148,8 @@
+ These options are checked in the order shown.
+ .It Dv SC_NO_CUTPASTE
+ Disable mouse support.
++.It Dv SC_HISTORY_SIZE=lines
++Set the maximum number of the scroll back history lines.
+ .It VT_FB_MAX_WIDTH=X
+ Set the maximum width to
+ .Fa X .
+--- ./share/mk/src.opts.mk.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./share/mk/src.opts.mk	1970-01-01 00:00:00.000000000 +0000
+@@ -59,6 +59,7 @@
+     ACPI \
+     APM \
+     AT \
++    ATM \
+     AUDIT \
+     AUTHPF \
+     AUTOFS \
+@@ -86,6 +87,7 @@
+     CRYPT \
+     CUSE \
+     CXGBETOOL \
++    DEVD \
+     DIALOG \
+     DICT \
+     DMAGENT \
+@@ -95,6 +97,8 @@
+     EFI \
+     ELFTOOLCHAIN_BOOTSTRAP \
+     EXAMPLES \
++    FDT \
++    FIB \
+     FILE \
+     FINGER \
+     FLOPPY \
+@@ -143,6 +147,7 @@
+     MAILWRAPPER \
+     MAKE \
+     MLX5TOOL \
++    NDIS \
+     NETCAT \
+     NETGRAPH \
+     NLS_CATALOGS \
+@@ -151,6 +156,8 @@
+     NVME \
+     OFED \
+     OPENSSL \
++    OPENSSH \
++    OPENSSH_SUPPORT \
+     PAM \
+     PF \
+     PKGBOOTSTRAP \
+@@ -180,6 +187,7 @@
+     TELNET \
+     TEXTPROC \
+     TFTP \
++    TCPDUMP \
+     UNBOUND \
+     USB \
+     UTMPX \
+@@ -189,8 +197,15 @@
+     WPA_SUPPLICANT_EAPOL \
+     ZFS \
+     LOADER_ZFS \
+-    ZONEINFO
++    ZONEINFO \
++    AUDIO \
++    NFS \
++    MAKE_SUPPORT \
++    DEVD
+ 
++
++
++
+ __DEFAULT_NO_OPTIONS = \
+     BEARSSL \
+     BHYVE_SNAPSHOT \
+@@ -210,7 +225,14 @@
+     RPCBIND_WARMSTART_SUPPORT \
+     SORT_THREADS \
+     ZONEINFO_LEAPSECONDS_SUPPORT \
++    LSX \
++    FLTO \
++    SMBIOS \
++    DHCP \
++    WIREGUARD 
+ 
++
++
+ # LEFT/RIGHT. Left options which default to "yes" unless their corresponding
+ # RIGHT option is disabled.
+ __DEFAULT_DEPENDENT_OPTIONS= \
+@@ -241,7 +263,7 @@
+ .-include <site.src.opts.mk>
+ 
+ #
+-# Default behaviour of some options depends on the architecture.  Unfortunately
++# Default behavior of some options depends on the architecture.  Unfortunately
+ # this means that we have to test TARGET_ARCH (the buildworld case) as well
+ # as MACHINE_ARCH (the non-buildworld case).  Normally TARGET_ARCH is not
+ # used at all in bsd.*.mk, but we have to make an exception here if we want
+@@ -280,12 +302,6 @@
+ 
+ .include <bsd.compiler.mk>
+ 
+-.if ${__T} == "i386" || ${__T} == "amd64"
+-__DEFAULT_NO_OPTIONS += FDT
+-.else
+-__DEFAULT_YES_OPTIONS += FDT
+-.endif
+-
+ .if ${__T:Marm*} == "" && ${__T:Mriscv64*} == ""
+ __DEFAULT_YES_OPTIONS+=LLDB
+ .else
+@@ -321,8 +337,8 @@
+ BROKEN_OPTIONS+=LOADER_GELI LOADER_LUA
+ .endif
+ 
+-# Kernel TLS is enabled by default on amd64, aarch64 and powerpc64*
+-.if ${__T} == "aarch64" || ${__T} == "amd64" || ${__T:Mpowerpc64*} != ""
++# Kernel TLS is enabled by default on amd64 and aarch64
++.if ${__T} == "aarch64" || ${__T} == "amd64"
+ __DEFAULT_YES_OPTIONS+=OPENSSL_KTLS
+ .else
+ __DEFAULT_NO_OPTIONS+=OPENSSL_KTLS
+@@ -351,16 +367,6 @@
+ __DEFAULT_NO_OPTIONS+=OPENMP
+ .endif
+ 
+-# Broken on 32-bit arm, kernel module compile errors
+-.if ${__T:Marm*} != ""
+-BROKEN_OPTIONS+= OFED
+-.endif
+-
+-# ZFS is broken on 32-bit powerpc (missing atomics), but works on 64-bit
+-.if ${__T} == "powerpc" || ${__T} == "powerpcspe"
+-BROKEN_OPTIONS+= ZFS LOADER_ZFS
+-.endif
+-
+ .include <bsd.mkopt.mk>
+ 
+ #
+@@ -405,6 +411,7 @@
+ .endif
+ 
+ .if ${MK_NETGRAPH} == "no"
++MK_ATM:=	no
+ MK_BLUETOOTH:=	no
+ .endif
+ 
+@@ -420,7 +427,6 @@
+ MK_KERBEROS_SUPPORT:=	no
+ MK_LDNS:=	no
+ MK_PKGBOOTSTRAP:=	no
+-MK_LOADER_ZFS:=	no
+ MK_ZFS:=	no
+ .endif
+ 
+@@ -457,7 +463,7 @@
+ 
+ .if ${MK_TOOLCHAIN} == "no"
+ MK_CLANG:=	no
+-MK_INCLUDES:=	no
++# MK_INCLUDES:=	no
+ MK_LLD:=	no
+ MK_LLDB:=	no
+ MK_LLVM_BINUTILS:=	no
+--- ./share/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./share/Makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -12,20 +12,16 @@
+ 	${_dtrace} \
+ 	${_examples} \
+ 	${_i18n} \
+-	keys \
+ 	${_man} \
+ 	${_me} \
+-	misc \
+ 	${_mk} \
+ 	${_monetdef} \
+ 	${_msgdef} \
+ 	${_numericdef} \
+ 	${_sendmail} \
+-	skel \
+ 	${_snmp} \
+ 	${_syscons} \
+ 	tabset \
+-	termcap \
+ 	${_timedef} \
+ 	${_vt} \
+ 	${_zoneinfo}
+@@ -64,6 +60,10 @@
+ _mk=		mk
+ .endif
+ 
++.if ${MK_MAKE_SUPPORT} != "no"
++_mk=		mk
++.endif
++
+ .if ${MK_MAN} != "no"
+ _man=		man
+ .endif
+@@ -76,9 +76,9 @@
+ _doc=		doc
+ .endif
+ 
+-.if ${MK_SYSCONS} != "no"
+-_syscons=	syscons
+-.endif
++#.if ${MK_SYSCONS} != "no"
++#_syscons=	syscons
++#.endif
+ 
+ SUBDIR.${MK_TESTS}+= tests
+ 
+--- ./stand/efi/boot1/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./stand/efi/boot1/Makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -97,7 +97,7 @@
+ 		exit 1; \
+ 	fi
+ 	SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH} \
+-	${OBJCOPY} -j .peheader -j .text -j .sdata -j .data \
++	${OBJCOPY_BASE} -j .peheader -j .text -j .sdata -j .data \
+ 		-j .dynamic -j .dynsym -j .rel.dyn \
+ 		-j .rela.dyn -j .reloc -j .eh_frame \
+ 		--output-target=${EFI_TARGET} ${.ALLSRC} ${.TARGET}
+--- ./stand/efi/loader/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./stand/efi/loader/Makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -115,7 +115,7 @@
+ 		exit 1; \
+ 	fi
+ 	SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH} \
+-	${OBJCOPY} -j .peheader -j .text -j .sdata -j .data \
++	${OBJCOPY_BASE} -j .peheader -j .text -j .sdata -j .data \
+ 		-j .dynamic -j .dynsym -j .rel.dyn \
+ 		-j .rela.dyn -j .reloc -j .eh_frame -j set_Xcommand_set \
+ 		-j set_Xficl_compile_set \
+--- ./stand/userboot/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./stand/userboot/Makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -2,7 +2,7 @@
+ 
+ .include <bsd.init.mk>
+ 
+-SUBDIR.yes=		test
++SUBDIR.${MK_TESTS}+= tests
+ SUBDIR.${MK_FORTH}+= userboot_4th
+ SUBDIR.${MK_LOADER_LUA}+= userboot_lua
+ 
+--- ./sys/arm/arm/pmu.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/arm/arm/pmu.c	1970-01-01 00:00:00.000000000 +0000
+@@ -70,12 +70,11 @@
+ #ifdef HWPMC_HOOKS
+ 	struct trapframe *tf;
+ #endif
+-	uint32_t r;
+ #if defined(__arm__) && (__ARM_ARCH > 6)
+ 	u_int cpu;
+-
+ 	cpu = PCPU_GET(cpuid);
+-
++#ifdef HWPMC_HOOKS
++	uint32_t r;
+ 	r = cp15_pmovsr_get();
+ 	if (r & PMU_OVSR_C) {
+ 		atomic_add_32(&ccnt_hi[cpu], 1);
+@@ -83,18 +82,12 @@
+ 		r &= ~PMU_OVSR_C;
+ 		cp15_pmovsr_set(PMU_OVSR_C);
+ 	}
+-#else
+-	r = 1;
+-#endif
+-
+-#ifdef HWPMC_HOOKS
+-	/* Only call into the HWPMC framework if we know there is work. */
+ 	if (r != 0 && pmc_intr) {
+ 		tf = arg;
+ 		(*pmc_intr)(tf);
+ 	}
+ #endif
+-
++#endif
+ 	return (FILTER_HANDLED);
+ }
+ 
+--- ./sys/conf/files.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/conf/files	1970-01-01 00:00:00.000000000 +0000
+@@ -3268,6 +3268,7 @@
+ 					 cdceem | cue | ipheth | kue | mos | \
+ 					 rue | smsc | udav | ure | urndis | muge
+ dev/usb/net/uhso.c		optional uhso
++dev/usb/net/if_locknic.c	optional locknic
+ #
+ # USB WLAN drivers
+ #
+--- ./sys/conf/files.x86.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/conf/files.x86	1970-01-01 00:00:00.000000000 +0000
+@@ -303,11 +303,11 @@
+ x86/acpica/acpi_apm.c		optional	acpi
+ x86/acpica/srat.c		optional	acpi
+ x86/bios/vpd.c			optional	vpd
+-x86/cpufreq/est.c		optional	cpufreq
+-x86/cpufreq/hwpstate_amd.c	optional	cpufreq
++#x86/cpufreq/est.c		optional	cpufreq
++#x86/cpufreq/hwpstate_amd.c	optional	cpufreq
+ x86/cpufreq/hwpstate_intel.c	optional	cpufreq
+-x86/cpufreq/p4tcc.c		optional	cpufreq
+-x86/cpufreq/powernow.c		optional	cpufreq
++#x86/cpufreq/p4tcc.c		optional	cpufreq
++#x86/cpufreq/powernow.c		optional	cpufreq
+ x86/iommu/intel_ctx.c		optional	acpi iommu pci
+ x86/iommu/intel_drv.c		optional	acpi iommu pci
+ x86/iommu/intel_fault.c		optional	acpi iommu pci
+--- ./sys/crypto/skein/skein_block.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/crypto/skein/skein_block.c	1970-01-01 00:00:00.000000000 +0000
+@@ -115,12 +115,12 @@
+ 
+         blkPtr += SKEIN_256_BLOCK_BYTES;
+ 
+-        /* run the rounds */
++        /* run the rounds */ 
+ 
+ #define Round256(p0,p1,p2,p3,ROT,rNum)                              \
+     X##p0 += X##p1; X##p1 = RotL_64(X##p1,ROT##_0); X##p1 ^= X##p0; \
+-    X##p2 += X##p3; X##p3 = RotL_64(X##p3,ROT##_1); X##p3 ^= X##p2; \
+-
++    X##p2 += X##p3; X##p3 = RotL_64(X##p3,ROT##_1); X##p3 ^= X##p2; 
++// UPSTREAM: do not concat lines into the void (failes to compile within source compact mode)
+ #if SKEIN_UNROLL_256 == 0                       
+ #define R256(p0,p1,p2,p3,ROT,rNum)           /* fully unrolled */   \
+     Round256(p0,p1,p2,p3,ROT,rNum)                                  \
+@@ -315,7 +315,7 @@
+     X##p0 += X##p1; X##p1 = RotL_64(X##p1,ROT##_0); X##p1 ^= X##p0; \
+     X##p2 += X##p3; X##p3 = RotL_64(X##p3,ROT##_1); X##p3 ^= X##p2; \
+     X##p4 += X##p5; X##p5 = RotL_64(X##p5,ROT##_2); X##p5 ^= X##p4; \
+-    X##p6 += X##p7; X##p7 = RotL_64(X##p7,ROT##_3); X##p7 ^= X##p6; \
++    X##p6 += X##p7; X##p7 = RotL_64(X##p7,ROT##_3); X##p7 ^= X##p6; 
+ 
+ #if SKEIN_UNROLL_512 == 0                       
+ #define R512(p0,p1,p2,p3,p4,p5,p6,p7,ROT,rNum)      /* unrolled */  \
+@@ -547,7 +547,7 @@
+     X##p8 += X##p9; X##p9 = RotL_64(X##p9,ROT##_4); X##p9 ^= X##p8;   \
+     X##pA += X##pB; X##pB = RotL_64(X##pB,ROT##_5); X##pB ^= X##pA;   \
+     X##pC += X##pD; X##pD = RotL_64(X##pD,ROT##_6); X##pD ^= X##pC;   \
+-    X##pE += X##pF; X##pF = RotL_64(X##pF,ROT##_7); X##pF ^= X##pE;   \
++    X##pE += X##pF; X##pF = RotL_64(X##pF,ROT##_7); X##pF ^= X##pE;   
+ 
+ #if SKEIN_UNROLL_1024 == 0                      
+ #define R1024(p0,p1,p2,p3,p4,p5,p6,p7,p8,p9,pA,pB,pC,pD,pE,pF,ROT,rn) \
+--- ./sys/dev/adb/adb_kbd.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/dev/adb/adb_kbd.c	1970-01-01 00:00:00.000000000 +0000
+@@ -688,14 +688,7 @@
+ static int
+ set_typematic(keyboard_t *kbd, int code)
+ {
+-	/* These numbers are in microseconds, so convert to ticks */
+-
+-	static int delays[] = { 250, 500, 750, 1000 };
+-	static int rates[] = {  34,  38,  42,  46,  50,  55,  59,  63,
+-				68,  76,  84,  92, 100, 110, 118, 126,
+-				136, 152, 168, 184, 200, 220, 236, 252,
+-				272, 304, 336, 368, 400, 440, 472, 504 };
+-		
++	/* Delays and rates from kbdio.h are in microseconds, so convert to ticks */
+ 	if (code & ~0x7f)
+ 		return EINVAL;
+ 	kbd->kb_delay1 = delays[(code >> 5) & 3];
+--- ./sys/dev/atkbdc/atkbd.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/dev/atkbdc/atkbd.c	1970-01-01 00:00:00.000000000 +0000
+@@ -1571,12 +1571,6 @@
+ 	return ((id2 << 8) | id1);
+ }
+ 
+-static int delays[] = { 250, 500, 750, 1000 };
+-static int rates[] = {  34,  38,  42,  46,  50,  55,  59,  63,
+-			68,  76,  84,  92, 100, 110, 118, 126,
+-		       136, 152, 168, 184, 200, 220, 236, 252,
+-		       272, 304, 336, 368, 400, 440, 472, 504 };
+-
+ static int
+ typematic_delay(int i)
+ {
+--- ./sys/dev/gpio/gpiokeys.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/dev/gpio/gpiokeys.c	1970-01-01 00:00:00.000000000 +0000
+@@ -975,12 +975,6 @@
+ static int
+ gpiokeys_set_typematic(keyboard_t *kbd, int code)
+ {
+-	static const int delays[] = {250, 500, 750, 1000};
+-	static const int rates[] = {34, 38, 42, 46, 50, 55, 59, 63,
+-		68, 76, 84, 92, 100, 110, 118, 126,
+-		136, 152, 168, 184, 200, 220, 236, 252,
+-	272, 304, 336, 368, 400, 440, 472, 504};
+-
+ 	if (code & ~0x7f) {
+ 		return (EINVAL);
+ 	}
+--- ./sys/dev/hid/hkbd.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/dev/hid/hkbd.c	1970-01-01 00:00:00.000000000 +0000
+@@ -1832,12 +1832,6 @@
+ #ifdef EVDEV_SUPPORT
+ 	struct hkbd_softc *sc = kbd->kb_data;
+ #endif
+-	static const int delays[] = {250, 500, 750, 1000};
+-	static const int rates[] = {34, 38, 42, 46, 50, 55, 59, 63,
+-		68, 76, 84, 92, 100, 110, 118, 126,
+-		136, 152, 168, 184, 200, 220, 236, 252,
+-	272, 304, 336, 368, 400, 440, 472, 504};
+-
+ 	if (code & ~0x7f) {
+ 		return (EINVAL);
+ 	}
+--- ./sys/dev/igc/if_igc.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/dev/igc/if_igc.c	1970-01-01 00:00:00.000000000 +0000
+@@ -263,10 +263,11 @@
+     "Maximum number of received packets to process "
+     "at a time, -1 means unlimited");
+ 
+-/* Energy efficient ethernet - default to OFF */
+-static int igc_eee_setting = 1;
++/* Energy efficient ethernet - default to ON */
++/* [XXX UPSTREAM: fix description, discuss default & runtime still crashes the driver on I219-V (kabylake/coffeelake)]*/
++static int igc_eee_setting = 0;
+ SYSCTL_INT(_hw_igc, OID_AUTO, eee_setting, CTLFLAG_RDTUN, &igc_eee_setting, 0,
+-    "Enable Energy Efficient Ethernet");
++    "Disable Energy Efficient Ethernet (defaults to ON [OFF=1|ON=0)");
+ 
+ /*
+ ** Tuneable Interrupt rate
+--- ./sys/dev/kbdmux/kbdmux.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/dev/kbdmux/kbdmux.c	1970-01-01 00:00:00.000000000 +0000
+@@ -963,17 +963,6 @@
+ static int
+ kbdmux_ioctl(keyboard_t *kbd, u_long cmd, caddr_t arg)
+ {
+-	static int	 delays[] = {
+-		250, 500, 750, 1000
+-	};
+-
+-	static int	 rates[]  =  {
+-		34,  38,  42,  46,  50,   55,  59,  63,
+-		68,  76,  84,  92,  100, 110, 118, 126,
+-		136, 152, 168, 184, 200, 220, 236, 252,
+-		272, 304, 336, 368, 400, 440, 472, 504
+-	};
+-
+ 	kbdmux_state_t	*state = (kbdmux_state_t *) kbd->kb_data;
+ 	kbdmux_kbd_t	*k;
+ 	keyboard_info_t	*ki;
+--- ./sys/dev/speaker/spkr.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/dev/speaker/spkr.c	1970-01-01 00:00:00.000000000 +0000
+@@ -88,7 +88,7 @@
+ 	 * This is so other processes can execute while the tone is being
+ 	 * emitted.
+ 	 */
+-	timo = centisecs * hz / 100;
++	timo = centisecs * hz / 1000;
+ 	if (timo > 0)
+ 		tsleep(&endtone, SPKRPRI | PCATCH, "spkrtn", timo);
+ 	timer_spkr_release();
+@@ -110,7 +110,7 @@
+ #ifdef DEBUG
+ 	(void) printf("rest: %d\n", centisecs);
+ #endif /* DEBUG */
+-	timo = centisecs * hz / 100;
++	timo = centisecs * hz / 1000;
+ 	if (timo > 0)
+ 		tsleep(&endrest, SPKRPRI | PCATCH, "spkrrs", timo);
+ }
+--- ./sys/dev/usb/input/ukbd.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/dev/usb/input/ukbd.c	1970-01-01 00:00:00.000000000 +0000
+@@ -2002,12 +2002,6 @@
+ #ifdef EVDEV_SUPPORT
+ 	struct ukbd_softc *sc = kbd->kb_data;
+ #endif
+-	static const int delays[] = {250, 500, 750, 1000};
+-	static const int rates[] = {34, 38, 42, 46, 50, 55, 59, 63,
+-		68, 76, 84, 92, 100, 110, 118, 126,
+-		136, 152, 168, 184, 200, 220, 236, 252,
+-	272, 304, 336, 368, 400, 440, 472, 504};
+-
+ 	if (code & ~0x7f) {
+ 		return (EINVAL);
+ 	}
+--- ./sys/dev/vkbd/vkbd.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/dev/vkbd/vkbd.c	1970-01-01 00:00:00.000000000 +0000
+@@ -1305,12 +1305,6 @@
+  * Local functions
+  */
+ 
+-static int delays[] = { 250, 500, 750, 1000 };
+-static int rates[] = {	34,  38,  42,  46,  50,  55,  59,  63,
+-			68,  76,  84,  92, 100, 110, 118, 126,
+-			136, 152, 168, 184, 200, 220, 236, 252,
+-			272, 304, 336, 368, 400, 440, 472, 504 };
+-
+ static int
+ typematic_delay(int i)
+ {
+--- ./sys/geom/eli/g_eli.h.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/geom/eli/g_eli.h	1970-01-01 00:00:00.000000000 +0000
+@@ -428,6 +428,8 @@
+ 		return (CRYPTO_AES_CBC);
+ 	else if (strcasecmp("aes-xts", name) == 0)
+ 		return (CRYPTO_AES_XTS);
++	else if (strcasecmp("chacha20-poly1305", name) == 0)
++		return (CRYPTO_CHACHA20_POLY1305);
+ 	else if (strcasecmp("camellia", name) == 0)
+ 		return (CRYPTO_CAMELLIA_CBC);
+ 	else if (strcasecmp("camellia-cbc", name) == 0)
+@@ -463,6 +465,8 @@
+ 		return ("AES-CBC");
+ 	case CRYPTO_AES_XTS:
+ 		return ("AES-XTS");
++	case CRYPTO_CHACHA20_POLY1305:
++		return ("CHACHA20-POLY1305");
+ 	case CRYPTO_CAMELLIA_CBC:
+ 		return ("CAMELLIA-CBC");
+ 	case CRYPTO_SHA1_HMAC:
+@@ -523,10 +527,11 @@
+ {
+ 
+ 	switch (md->md_ealgo) {
+-	case CRYPTO_NULL_CBC:
++	// case CRYPTO_NULL_CBC:
+ 	case CRYPTO_AES_CBC:
+ 	case CRYPTO_CAMELLIA_CBC:
+ 	case CRYPTO_AES_XTS:
++	case CRYPTO_CHACHA20_POLY1305:
+ 		break;
+ 	default:
+ 		return (false);
+@@ -552,21 +557,35 @@
+ {
+ 
+ 	switch (algo) {
+-	case CRYPTO_NULL_CBC:
+-		if (keylen == 0)
+-			keylen = 64 * 8;
+-		else {
+-			if (keylen > 64 * 8)
+-				keylen = 0;
+-		}
+-		return (keylen);
++	// case CRYPTO_NULL_CBC:
++	//	if (keylen == 0)
++	//		keylen = 64 * 8;
++	//	else {
++	//		if (keylen > 64 * 8)
++	//			keylen = 0;
++	//	}
++	//	return (keylen);
+ 	case CRYPTO_AES_CBC:
++		switch (keylen) {
++		case 0:
++			return (256);
++		case 128:
++			return (keylen);
++		case 192:
++			return (keylen);
++		case 256:
++			return (keylen);
++		default:
++			return (0);
++		}
+ 	case CRYPTO_CAMELLIA_CBC:
+ 		switch (keylen) {
+ 		case 0:
+ 			return (128);
+ 		case 128:
++			return (keylen);
+ 		case 192:
++			return (keylen);
+ 		case 256:
+ 			return (keylen);
+ 		default:
+@@ -575,13 +594,25 @@
+ 	case CRYPTO_AES_XTS:
+ 		switch (keylen) {
+ 		case 0:
+-			return (128);
++			return (256);
+ 		case 128:
++			return (keylen);
+ 		case 256:
+ 			return (keylen);
+ 		default:
+ 			return (0);
+ 		}
++	case CRYPTO_CHACHA20_POLY1305:
++		switch (keylen) {
++		case 0:
++			return (256);
++		case 128:
++			return (keylen);
++		case 256:
++			return (keylen);
++		default:
++			return (0);
++		}
+ 	default:
+ 		return (0);
+ 	}
+@@ -598,6 +629,8 @@
+ 		return (AES_BLOCK_LEN);
+ 	case CRYPTO_CAMELLIA_CBC:
+ 		return (CAMELLIA_BLOCK_LEN);
++	case CRYPTO_CHACHA20_POLY1305:
++		return (CHACHA20_POLY1305_IV_LEN);
+ 	}
+ 	return (0);
+ }
+--- ./sys/geom/eli/g_eli_crypto.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/geom/eli/g_eli_crypto.c	1970-01-01 00:00:00.000000000 +0000
+@@ -115,12 +115,7 @@
+ 	u_char iv[G_ELI_IVKEYLEN];
+ 	int outsize;
+ 
+-	assert(algo != CRYPTO_AES_XTS);
+-
+ 	switch (algo) {
+-	case CRYPTO_NULL_CBC:
+-		type = EVP_enc_null();
+-		break;
+ 	case CRYPTO_AES_CBC:
+ 		switch (keysize) {
+ 		case 128:
+@@ -153,6 +148,27 @@
+ 		}
+ 		break;
+ #endif
++	case CRYPTO_AES_XTS:
++		switch (keysize) {
++		case 128:
++			type = EVP_aes_128_xts();
++			break;
++		case 256:
++			type = EVP_aes_256_xts();
++			break;
++		default:
++			return (EINVAL);
++		}
++		break;
++	case CRYPTO_CHACHA20_POLY1305:
++		switch (keysize) {
++		case 256:
++			type = EVP_chacha20_poly1305();
++			break;
++		default:
++			return (EINVAL);
++		}
++		break;
+ 	default:
+ 		return (EINVAL);
+ 	}
+@@ -189,9 +205,9 @@
+     const u_char *key, size_t keysize)
+ {
+ 
+-	/* We prefer AES-CBC for metadata protection. */
++	/* We prefer AES-CBC for metadata protection. 
+ 	if (algo == CRYPTO_AES_XTS)
+-		algo = CRYPTO_AES_CBC;
++		algo = CRYPTO_AES_CBC;*/
+ 
+ 	return (g_eli_crypto_cipher(algo, 1, data, datasize, key, keysize));
+ }
+@@ -201,9 +217,9 @@
+     const u_char *key, size_t keysize)
+ {
+ 
+-	/* We prefer AES-CBC for metadata protection. */
++	/* We prefer AES-CBC for metadata protection. 
+ 	if (algo == CRYPTO_AES_XTS)
+-		algo = CRYPTO_AES_CBC;
++		algo = CRYPTO_AES_CBC;*/
+ 
+ 	return (g_eli_crypto_cipher(algo, 0, data, datasize, key, keysize));
+ }
+--- ./sys/geom/eli/g_eli_integrity.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/geom/eli/g_eli_integrity.c	1970-01-01 00:00:00.000000000 +0000
+@@ -528,7 +528,8 @@
+ 			if (bp->bio_cmd == BIO_WRITE)
+ 				memset(data + sc->sc_alen + data_secsize, 0,
+ 				    encr_secsize - sc->sc_alen - data_secsize);
+-		} else if (data_secsize + sc->sc_alen != encr_secsize) {
++		// XXX 	
++		// } else if (data_secsize + sc->sc_alen != encr_secsize) {
+ 			/*
+ 			 * If the HMAC size is not a multiple of 128 bits, the
+ 			 * per-sector data size is rounded down to ensure that
+@@ -536,9 +537,9 @@
+ 			 * padding.  In this case, each sector contains unused
+ 			 * bytes.
+ 			 */
+-			if (bp->bio_cmd == BIO_WRITE)
+-				memset(data + sc->sc_alen + data_secsize, 0,
+-				    encr_secsize - sc->sc_alen - data_secsize);
++		//	if (bp->bio_cmd == BIO_WRITE)
++		//		memset(data + sc->sc_alen + data_secsize, 0,
++		//		    encr_secsize - sc->sc_alen - data_secsize);
+ 		}
+ 
+ 		if (bp->bio_cmd == BIO_WRITE) {
+--- ./sys/kern/kern_linker.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/kern/kern_linker.c	1970-01-01 00:00:00.000000000 +0000
+@@ -434,6 +434,9 @@
+ 	linker_file_t lf;
+ 	int foundfile, error, modules;
+ 
++	/* Hard-wire termination of kernel modload syscall via panic exit! */  
++	panic("### SECURITY BREACH DETECTED ### RUNTIME KERNEL LINKER SYSCALL FOUND!"); 
++
+ 	/* Refuse to load modules if securelevel raised */
+ 	if (prison0.pr_securelevel > 0)
+ 		return (EPERM);
+--- ./sys/modules/cpufreq/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/modules/cpufreq/Makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -11,7 +11,7 @@
+ .PATH:	${SRCTOP}/sys/x86/cpufreq
+ 
+ SRCS+=	acpi_if.h opt_acpi.h
+-SRCS+=	est.c hwpstate_amd.c p4tcc.c powernow.c hwpstate_intel.c
++SRCS+=	hwpstate_intel.c
+ .endif
+ 
+ .if ${MACHINE} == "i386"
+--- ./sys/sys/kbio.h.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/sys/kbio.h	1970-01-01 00:00:00.000000000 +0000
+@@ -70,6 +70,13 @@
+ };
+ typedef struct keyboard_info keyboard_info_t;
+ 
++/* keyboard repeat rate mapping table */
++static const int delays[]  = { 250, 500, 750, 1000 };
++static const int rates[] = { 34,  38,  42,  46,  50,
++	55,  59,  63, 68,  76,  84,  92, 100, 110, 118, 126,
++	136, 152, 168, 184, 200, 220, 236, 252, 272, 304, 336,
++	368, 400, 440, 472, 504 };
++
+ /* add/remove keyboard to/from mux */
+ #define KBADDKBD	_IOW('K', 68, keyboard_info_t)	/* add keyboard */
+ #define KBRELKBD	_IOW('K', 69, keyboard_info_t)	/* release keyboard */
+--- ./sys/sys/tree.h.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/sys/tree.h	1970-01-01 00:00:00.000000000 +0000
+@@ -1013,7 +1013,7 @@
+ 		return (RB_INSERT(name, head, elm));			\
+ 	}								\
+ 	return (NULL);							\
+-}									\
++}									
+ 
+ #define RB_NEGINF	-1
+ #define RB_INF	1
+--- ./sys/tools/fdt/make_dtb.sh.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/tools/fdt/make_dtb.sh	1970-01-01 00:00:00.000000000 +0000
+@@ -18,7 +18,7 @@
+ 
+ : "${DTC:=dtc}"
+ : "${ECHO:=echo}"
+-: "${CPP:=cpp}"
++#: "${CPP:=cpp}"
+ 
+ for d in ${dts}; do
+     dtb="${dtb_path}/$(basename "$d" .dts).dtb"
+--- ./sys/tools/fdt/make_dtbo.sh.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/tools/fdt/make_dtbo.sh	1970-01-01 00:00:00.000000000 +0000
+@@ -18,7 +18,7 @@
+ 
+ : "${DTC:=dtc}"
+ : "${ECHO:=echo}"
+-: "${CPP:=cpp}"
++#: "${CPP:=cpp}"
+ 
+ for d in ${dtso}; do
+     dtb="${dtbo_path}/$(basename "$d" .dtso).dtbo"
+--- ./sys/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/Makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -8,7 +8,7 @@
+ 		rpc security sys ufs vm xdr xen ${CSCOPE_ARCHDIR}
+ .if !defined(CSCOPE_ARCHDIR)
+ .if defined(ALL_ARCH)
+-CSCOPE_ARCHDIR = amd64 arm arm64 i386 powerpc riscv x86
++CSCOPE_ARCHDIR = amd64 arm arm64 i386 x86
+ .else
+ CSCOPE_ARCHDIR = ${MACHINE}
+ .if ${MACHINE_CPUARCH} == "i386" || ${MACHINE_CPUARCH} == "amd64"
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ ./tools/build/mk/OptionalObsoleteFiles.inc	1970-01-01 00:00:00.000000000 +0000
+@@ -0,0 +1 @@
++#!/bin/sh
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ ./tools/build/options/WITHOUT_AUDIO	1970-01-01 00:00:00.000000000 +0000
+@@ -0,0 +1,2 @@
++.\" $FreeBSD$
++Build Audio tools: mixer, cdcontrol.
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ ./tools/build/options/WITHOUT_DEVD	1970-01-01 00:00:00.000000000 +0000
+@@ -0,0 +1,2 @@
++.\" $FreeBSD$
++Build DEVD tools: devd, devmatch.
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ ./tools/build/options/WITHOUT_NFS	1970-01-01 00:00:00.000000000 +0000
+@@ -0,0 +1,2 @@
++.\" $FreeBSD$
++Do not build userland NFS tools.
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ ./tools/build/options/WITHOUT_WIREGUARD	1970-01-01 00:00:00.000000000 +0000
+@@ -0,0 +1,2 @@
++.\" $FreeBSD$
++Build Wireguard tools: wg
+--- ./tools/build/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./tools/build/Makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -290,7 +290,7 @@
+ 
+ # basic commands: It is fine to use the host version for all of these even on
+ # Linux/MacOS since we only use flags that are supported by all of them.
+-_host_tools_to_symlink=	basename bzip2 bunzip2 chmod chown cmp comm cp date dd \
++_host_tools_to_symlink=	basename chmod chown cmp comm cp date dd \
+ 	dirname echo env false find fmt gzip gunzip head hostname id ln ls \
+ 	mkdir mv nice patch rm sh sleep stat tee time touch tr true uname uniq \
+ 	unxz wc which xz
+@@ -305,7 +305,8 @@
+ # When building on FreeBSD we always copy the host tools instead of linking
+ # into WORLDTMP to avoid issues with incompatible libraries (see r364030).
+ # Note: we could create links if we don't intend to update the current machine.
+-_COPY_HOST_TOOL=cp -pf
++# _COPY_HOST_TOOL=cp -pf
++_COPY_HOST_TOOL=ln -sfn
+ .else
+ # However, this is not necessary on Linux/macOS. Additionally, copying the host
+ # tools to another directory with cp -p results in freezes on macOS Big Sur for
+@@ -327,26 +328,29 @@
+ host-symlinks:
+ 	@echo "Linking host tools into ${DESTDIR}/bin"
+ .for _tool in ${_host_tools_to_symlink}
+-	@export PATH=$${PATH}:/usr/local/bin; \
+-	source_path=`which ${_tool} || echo /dev/null/no/such`; \
+-	if [ ! -e "$${source_path}" ] ; then \
+-		echo "Cannot find host tool '${_tool}' in PATH ($$PATH)." >&2; false; \
+-	fi; \
+-	rm -f "${DESTDIR}/bin/${_tool}"; \
+-	${_COPY_HOST_TOOL} "$${source_path}" "${DESTDIR}/bin/${_tool}"
++	@if [ ! -e ${DESTDIR}/bin/${_tool} ]; then \
++		export PATH=$${PATH}:/usr/local/bin; \
++		source_path=`which ${_tool} || echo /dev/null/no/such`; \
++		if [ ! -e "$${source_path}" ] ; then \
++			echo "Cannot find host tool '${_tool}' in PATH ($$PATH)." >&2; false; \
++		fi; \
++		${_COPY_HOST_TOOL} "$${source_path}" "${DESTDIR}/bin/${_tool}" ;\
++	fi;
+ .endfor
+ .for _tool in ${_host_abs_tools_to_symlink}
+-	@source_path="${_tool:S/:/ /:[1]}"; \
+-	target_path="${DESTDIR}/bin/${_tool:S/:/ /:[2]}"; \
+-	if [ ! -e "$${source_path}" ] ; then \
+-		echo "Host tool '$${source_path}' is missing"; false; \
+-	fi; \
+-	rm -f "$${target_path}"; \
+-	${_COPY_HOST_TOOL} "$${source_path}" "$${target_path}"
++	@if [ ! -e ${DESTDIR}/bin/${_tool:S/:/ /:[2]} ]; then \
++		source_path="${_tool:S/:/ /:[1]}"; \
++		target_path="${DESTDIR}/bin/${_tool:S/:/ /:[2]}"; \
++		if [ ! -e "$${source_path}" ] ; then \
++			echo "Host tool '$${source_path}' is missing"; false; \
++		fi; \
++		${_COPY_HOST_TOOL} "$${source_path}" "$${target_path}";\
++	fi;
+ .endfor
+ .if exists(/usr/libexec/flua)
+-	rm -f ${DESTDIR}/usr/libexec/flua
+-	${_COPY_HOST_TOOL} /usr/libexec/flua ${DESTDIR}/usr/libexec/flua
++	@if [ ! -e ${DESTDIR}/usr/libexec/flua ]; then \
++		${_COPY_HOST_TOOL} /usr/libexec/flua ${DESTDIR}/usr/libexec/flua; \
++	fi;
+ .endif
+ 
+ # Create all the directories that are needed during the legacy, bootstrap-tools
+--- ./usr.bin/drill/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.bin/drill/Makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -14,4 +14,7 @@
+ 
+ LIBADD=	ldns crypto
+ 
++# maybe discuss @UPSTREAM
++LINKS=	${BINDIR}/drill ${BINDIR}/dig
++
+ .include <bsd.prog.mk>
+--- ./usr.bin/mkuzip/mkuz_zstd.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.bin/mkuzip/mkuz_zstd.c	1970-01-01 00:00:00.000000000 +0000
+@@ -63,6 +63,13 @@
+ 	if (cctx == NULL)
+ 		errx(1, "could not allocate Zstd context");
+ 
++	if (*comp_level > 19) {
++		rc = ZSTD_CCtx_setParameter(cctx, ZSTD_c_enableLongDistanceMatching, 1);
++		if (ZSTD_isError(rc))
++			errx(1, "Could not enable zstd (level 22 only extra) long matching feature: %s",
++		    	ZSTD_getErrorName(rc));
++	};
++
+ 	rc = ZSTD_CCtx_setParameter(cctx, ZSTD_c_compressionLevel,
+ 	    *comp_level);
+ 	if (ZSTD_isError(rc))
+--- ./usr.bin/mkuzip/mkuzip.8.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.bin/mkuzip/mkuzip.8	1970-01-01 00:00:00.000000000 +0000
+@@ -121,12 +121,13 @@
+ .Pp
+ For
+ .Ar zstd ,
+-the range of valid compression levels is currently
+-.Va 1-19 .
++the range of valid compression levels is currently 
++.Va 1-22 .
+ The
+ .Nm
+-default for zstd is
++default for zstd is 
+ .Va 9 .
++Attention: default level for zstd is 3, but we use intentional 9 here! Level >19 unlocks a custom memory intensive (compression/decompression) --long distance search window feature.
+ .It Fl d
+ Enable de-duplication.
+ When the option is enabled
+--- ./usr.bin/xinstall/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.bin/xinstall/Makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -8,7 +8,7 @@
+ PROG=		xinstall
+ PROGNAME=	install
+ SRCS=		xinstall.c getid.c
+-MAN=		install.1
++#MAN=		install.1
+ 
+ .PATH:		${SRCTOP}/contrib/mtree
+ CFLAGS+=	-I${SRCTOP}/contrib/mtree
+@@ -17,7 +17,7 @@
+ LIBADD=		md
+ CFLAGS+=	-DWITH_MD5 -DWITH_RIPEMD160
+ 
+-HAS_TESTS=
+-SUBDIR.${MK_TESTS}+= tests
++#HAS_TESTS=
++#SUBDIR.${MK_TESTS}+= tests
+ 
+ .include <bsd.prog.mk>
+--- ./usr.bin/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.bin/Makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -7,20 +7,12 @@
+ 	apply \
+ 	asa \
+ 	awk \
+-	backlight \
+-	banner \
+ 	basename \
+-	beep \
+ 	bintrans \
+ 	brandelf \
+ 	bsdcat \
+-	bsddialog \
+ 	bsdiff \
+-	bzip2 \
+-	bzip2recover \
+ 	cap_mkdb \
+-	chat \
+-	chpass \
+ 	cksum \
+ 	cmp \
+ 	col \
+@@ -34,22 +26,18 @@
+ 	cut \
+ 	diff \
+ 	dirname \
+-	dtc \
+ 	du \
+ 	elfctl \
+ 	elfdump \
+-	enigma \
+ 	env \
+ 	etdump \
+ 	expand \
+ 	false \
+-	fetch \
+ 	find \
+ 	fmt \
+ 	fold \
+ 	fstat \
+ 	fsync \
+-	gcore \
+ 	gencat \
+ 	getaddrinfo \
+ 	getconf \
+@@ -65,14 +53,9 @@
+ 	ipcs \
+ 	join \
+ 	jot \
+-	keylogin \
+-	keylogout \
+ 	killall \
+-	ktrace \
+-	ktrdump \
+ 	lam \
+ 	ldd \
+-	leave \
+ 	less \
+ 	lessecho \
+ 	lesskey \
+@@ -88,22 +71,15 @@
+ 	look \
+ 	lorder \
+ 	lsvfs \
+-	lzmainfo \
+-	m4 \
+-	mandoc \
+-	mesg \
+ 	ministat \
+ 	mkdep \
+ 	mkfifo \
+ 	mkimg \
+ 	mktemp \
+ 	mkuzip \
+-	mt \
+-	ncal \
+ 	ncurses \
+ 	netstat \
+ 	newgrp \
+-	nfsstat \
+ 	nice \
+ 	nl \
+ 	nohup \
+@@ -113,31 +89,22 @@
+ 	patch \
+ 	pathchk \
+ 	perror \
+-	posixshmcontrol \
+ 	pr \
+ 	printenv \
+ 	printf \
+ 	proccontrol \
+ 	procstat \
+ 	protect \
+-	rctl \
++	rs \
+ 	renice \
+ 	resizewin \
+ 	rev \
+ 	revoke \
+-	rpcinfo \
+-	rs \
+-	rup \
+-	ruptime \
+-	rusers \
+-	rwall \
+-	rwho \
+ 	script \
+ 	sdiff \
+ 	sed \
+ 	seq \
+ 	shar \
+-	showmount \
+ 	sockstat \
+ 	soelim \
+ 	sort \
+@@ -149,7 +116,6 @@
+ 	systat \
+ 	tail \
+ 	tar \
+-	tcopy \
+ 	tee \
+ 	time \
+ 	tip \
+@@ -171,15 +137,10 @@
+ 	w \
+ 	wall \
+ 	wc \
+-	wg \
+ 	what \
+ 	whereis \
+ 	which \
+-	whois \
+-	write \
+ 	xargs \
+-	xinstall \
+-	xo \
+ 	xz \
+ 	xzdec \
+ 	yes \
+@@ -187,11 +148,8 @@
+ 
+ # NB: keep these sorted by MK_* knobs
+ 
+-SUBDIR.${MK_ACCT}+=	lastcomm
+-SUBDIR.${MK_AT}+=	at
+ SUBDIR.${MK_BLUETOOTH}+=	bluetooth
+-SUBDIR.${MK_BSD_CPIO}+=	cpio
+-SUBDIR.${MK_CALENDAR}+=	calendar
++SUBDIR.${MK_CALENDAR}+=	calendar ncal 
+ .if ${MK_CLANG} != "no" || ${MK_LLVM_BINUTILS} != "no" || \
+     ${MK_LLD} != "no" || ${MK_LLDB} != "no"
+ SUBDIR+=	clang
+@@ -199,17 +157,6 @@
+ SUBDIR.${MK_DIALOG}+=	dpv
+ SUBDIR.${MK_EE}+=	ee
+ SUBDIR.${MK_FILE}+=	file
+-SUBDIR.${MK_FINGER}+=	finger
+-SUBDIR.${MK_FTP}+=	ftp
+-SUBDIR.${MK_GAMES}+=	caesar
+-SUBDIR.${MK_GAMES}+=	factor
+-SUBDIR.${MK_GAMES}+=	fortune
+-SUBDIR.${MK_GAMES}+=	grdc
+-SUBDIR.${MK_GAMES}+=	morse
+-SUBDIR.${MK_GAMES}+=	number
+-SUBDIR.${MK_GAMES}+=	pom
+-SUBDIR.${MK_GAMES}+=	primes
+-SUBDIR.${MK_GAMES}+=	random
+ .if ${MK_GH_BC} == "yes"
+ SUBDIR+=		gh-bc
+ .else
+@@ -228,63 +175,45 @@
+ SUBDIR.${MK_LDNS_UTILS}+=	host
+ SUBDIR.${MK_LIB32}+=	ldd32
+ SUBDIR.${MK_LOCATE}+=	locate
+-# XXX msgs?
+-SUBDIR.${MK_MAIL}+=	biff
+-SUBDIR.${MK_MAIL}+=	from
+-SUBDIR.${MK_MAIL}+=	mail
+-SUBDIR.${MK_MAIL}+=	msgs
+-SUBDIR.${MK_MAKE}+=	bmake
+-SUBDIR.${MK_MAN_UTILS}+=	man
++SUBDIR.${MK_MAKE}+=	bmake xinstall 
++SUBDIR.${MK_MAN_UTILS}+= man mandoc
+ SUBDIR.${MK_NETCAT}+=	nc
+-SUBDIR.${MK_NIS}+=	ypcat
+-SUBDIR.${MK_NIS}+=	ypmatch
+-SUBDIR.${MK_NIS}+=	ypwhich
+-SUBDIR.${MK_OPENSSH}+=	ssh-copy-id
+-SUBDIR.${MK_OPENSSL}+=	chkey
+-SUBDIR.${MK_OPENSSL}+=	newkey
+ SUBDIR.${MK_QUOTAS}+=	quota
+-SUBDIR.${MK_SENDMAIL}+=	vacation
+-SUBDIR.${MK_TALK}+=	talk
+-SUBDIR.${MK_TELNET}+=	telnet
++SUBDIR.${MK_FTP}+=	ftp
+ SUBDIR.${MK_TESTS_SUPPORT}+=	kyua
+ SUBDIR.${MK_TESTS}+=	tests
+-SUBDIR.${MK_TEXTPROC}+=	ul
+-SUBDIR.${MK_TFTP}+=	tftp
+-.if ${MK_LLVM_BINUTILS} == "no"
+-# Only build the elftoolchain tools if we aren't using the LLVM ones.
++# toolchain workaround ... needs a proper llvm/none split
++SUBDIR.${MK_INCLUDES}+= dtc ctags m4 file2c indent lex mkstr rpcgen unifdef xstr yacc readelf objcopy
++# required
++# SUBDIR.${MK_TOOLCHAIN}+=	dtc
++# SUBDIR.${MK_TOOLCHAIN}+=	ctags
++# SUBDIR.${MK_TOOLCHAIN}+=	m4
++# SUBDIR.${MK_TOOLCHAIN}+=	file2c
++# SUBDIR.${MK_TOOLCHAIN}+=	indent
++# SUBDIR.${MK_TOOLCHAIN}+=	lex
++# SUBDIR.${MK_TOOLCHAIN}+=	mkstr
++# SUBDIR.${MK_TOOLCHAIN}+=	rpcgen
++# SUBDIR.${MK_TOOLCHAIN}+=	unifdef
++# SUBDIR.${MK_TOOLCHAIN}+=	xstr
++# SUBDIR.${MK_TOOLCHAIN}+=	yacc
++# replaced via llvm
+ SUBDIR.${MK_TOOLCHAIN}+=	addr2line
+ SUBDIR.${MK_TOOLCHAIN}+=	ar
+ SUBDIR.${MK_TOOLCHAIN}+=	nm
+ SUBDIR.${MK_TOOLCHAIN}+=	objcopy
+ SUBDIR.${MK_TOOLCHAIN}+=	readelf
+ SUBDIR.${MK_TOOLCHAIN}+=	size
+-.endif
+-SUBDIR.${MK_TOOLCHAIN}+=	c89
+-SUBDIR.${MK_TOOLCHAIN}+=	c99
+-SUBDIR.${MK_TOOLCHAIN}+=	ctags
+-.if ${MK_LLVM_CXXFILT} == "no"
+-SUBDIR.${MK_TOOLCHAIN}+=	cxxfilt
+-.endif
+-SUBDIR.${MK_TOOLCHAIN}+=	file2c
+-SUBDIR.${MK_TOOLCHAIN}+=	gprof
+-SUBDIR.${MK_TOOLCHAIN}+=	indent
+-SUBDIR.${MK_TOOLCHAIN}+=	lex
+-SUBDIR.${MK_TOOLCHAIN}+=	mkstr
+-SUBDIR.${MK_TOOLCHAIN}+=	rpcgen
+-SUBDIR.${MK_TOOLCHAIN}+=	unifdef
+-SUBDIR.${MK_TOOLCHAIN}+=	xstr
+-SUBDIR.${MK_TOOLCHAIN}+=	yacc
++#
++SUBDIR.${MK_VT}+=		vtfontcvt
+ SUBDIR.${MK_VI}+=	vi
+-SUBDIR.${MK_VT}+=	vtfontcvt
+-SUBDIR.${MK_USB}+=	usbhidaction
+-SUBDIR.${MK_USB}+=	usbhidctl
+-SUBDIR.${MK_UTMPX}+=	last
+-SUBDIR.${MK_UTMPX}+=	users
+-SUBDIR.${MK_UTMPX}+=	who
++SUBDIR.${MK_USB}+=	usbhidaction usbhidctl
+ SUBDIR.${MK_OFED}+=	ofed
++#SUBDIR.${MK_RACC}+=	rctl 
++#SUBDIR.${MK_LIBXO}+=	xo
++#SUBDIR.${MK_NIS}+=	ypcat ypmatch ypwhich
++SUBDIR.${MK_WIREGUARD}+= wg
+ 
+-.include <bsd.arch.inc.mk>
+-
++# .include <bsd.arch.inc.mk>
+ SUBDIR_PARALLEL=
+-
+ .include <bsd.subdir.mk>
++
+--- ./usr.sbin/bhyve/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.sbin/bhyve/Makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -103,11 +103,11 @@
+ CFLAGS+=-DNETGRAPH
+ LIBADD+=    netgraph
+ .endif
+-.if ${MK_OPENSSL} == "no"
++#.if ${MK_OPENSSL} == "no"
+ CFLAGS+=-DNO_OPENSSL
+-.else
+-LIBADD+=	crypto
+-.endif
++#.else
++#LIBADD+=	crypto
++#.endif
+ 
+ CFLAGS+= -I${BHYVE_SYSDIR}/sys/dev/e1000
+ CFLAGS+= -I${BHYVE_SYSDIR}/sys/dev/mii
+--- ./usr.sbin/kbdcontrol/kbdcontrol.1.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.sbin/kbdcontrol/kbdcontrol.1	1970-01-01 00:00:00.000000000 +0000
+@@ -104,10 +104,10 @@
+ .Xc
+ Set keyboard
+ .Ar delay
+-(250, 500, 750, 1000)
++(200, 250, 500, 750, 1000)
+ and
+ .Ar repeat
+-(34, 38, 42, 46, 50, 55, 59, 63, 68, 76, 84, 92, 100, 110, 118, 126,
++(15, 34, 38, 42, 46, 50, 55, 59, 63, 68, 76, 84, 92, 100, 110, 118, 126,
+ 136, 152, 168, 184, 200, 220, 236, 252, 272, 304, 336, 368, 400, 440,
+ 472, 504)
+ rates, or if a
+@@ -116,7 +116,9 @@
+ .Cm slow
+ (1000.504),
+ .Cm fast
+-(250.34)
++(250.34),
++.Cm ultra
++(200.15)
+ or
+ .Cm normal
+ (500.126).
+--- ./usr.sbin/kbdcontrol/kbdcontrol.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.sbin/kbdcontrol/kbdcontrol.c	1970-01-01 00:00:00.000000000 +0000
+@@ -107,13 +107,8 @@
+ /* 93-96 */	""      , ""      , ""      , ""      ,
+ 	};
+ 
+-static const int delays[]  = {250, 500, 750, 1000};
+-static const int repeats[] = { 34,  38,  42,  46,  50,  55,  59,  63,
+-		      68,  76,  84,  92, 100, 110, 118, 126,
+-		     136, 152, 168, 184, 200, 220, 236, 252,
+-		     272, 304, 336, 368, 400, 440, 472, 504};
+ static const int ndelays = (sizeof(delays) / sizeof(int));
+-static const int nrepeats = (sizeof(repeats) / sizeof(int));
++static const int nrepeats = (sizeof(rates) / sizeof(int));
+ static int	hex = 0;
+ static int	paths_configured = 0;
+ static int	token;
+@@ -1058,14 +1053,11 @@
+ 	int r, d;
+ 
+ 	if (!strcmp(opt, "slow")) {
+-		delay = 1000, repeat = 500;
+-		d = 3, r = 31;
++		delay = 1000, repeat = 504 , d = 3, r = 31;
+ 	} else if (!strcmp(opt, "normal")) {
+-		delay = 500, repeat = 125;
+-		d = 1, r = 15;
++		delay = 500, repeat = 126, d = 1, r = 15;
+ 	} else if (!strcmp(opt, "fast")) {
+-		delay = repeat = 0;
+-		d = r = 0;
++		delay = repeat = d = r = 0;
+ 	} else {
+ 		int		n;
+ 		char		*v1;
+@@ -1085,7 +1077,7 @@
+ 				break;
+ 		d = n;
+ 		for (n = 0; n < nrepeats - 1; n++)
+-			if (repeat <= repeats[n])
++			if (repeat <= rates[n])
+ 				break;
+ 		r = n;
+ 	}
+@@ -1093,6 +1085,7 @@
+ 	arg[0] = delay;
+ 	arg[1] = repeat;
+ 	if (ioctl(0, KDSETREPEAT, arg)) {
++		warn("fallback, setting keyboard rate via legacy interface (KDSETRAD), depricated soon");
+ 		if (ioctl(0, KDSETRAD, (d << 5) | r))
+ 			warn("setting keyboard rate");
+ 	}
+--- ./usr.sbin/makefs/ffs/mkfs.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.sbin/makefs/ffs/mkfs.c	1970-01-01 00:00:00.000000000 +0000
+@@ -451,10 +451,8 @@
+ 	sblock.fs_cstotal.cs_nifree = 0;
+ 	sblock.fs_cstotal.cs_nffree = 0;
+ 	sblock.fs_fmod = 0;
+-	sblock.fs_ronly = 0;
+ 	sblock.fs_state = 0;
+ 	sblock.fs_clean = FS_ISCLEAN;
+-	sblock.fs_ronly = 0;
+ 	sblock.fs_id[0] = tstamp;
+ 	sblock.fs_id[1] = random();
+ 	sblock.fs_fsmnt[0] = '\0';
+@@ -482,6 +480,10 @@
+ 		sblock.fs_old_cstotal.cs_nifree = sblock.fs_cstotal.cs_nifree;
+ 		sblock.fs_old_cstotal.cs_nffree = sblock.fs_cstotal.cs_nffree;
+ 	}
++	/* Read-Only Flag */
++	sblock.fs_ronly = 0;
++	if (fsopts->ronly)
++		sblock.fs_ronly = 1;
+ 	/*
+ 	 * Dump out summary information about file system.
+ 	 */
+--- ./usr.sbin/makefs/makefs.8.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.sbin/makefs/makefs.8	1970-01-01 00:00:00.000000000 +0000
+@@ -219,6 +219,8 @@
+ This option only applies to the
+ .Sy ffs
+ file system type.
++.It Fl r Ar read-only mode
++Sets the ffs read-only mode flag.
+ .It Fl S Ar sector-size
+ Set the file system sector size to
+ .Ar sector-size .
+--- ./usr.sbin/makefs/makefs.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.sbin/makefs/makefs.c	1970-01-01 00:00:00.000000000 +0000
+@@ -130,7 +130,7 @@
+ 		err(1, "Unable to get system time");
+ 
+ 
+-	while ((ch = getopt(argc, argv, "B:b:Dd:f:F:M:m:N:O:o:pR:s:S:t:T:xZ")) != -1) {
++	while ((ch = getopt(argc, argv, "B:b:Dd:f:F:M:m:N:O:o:pR:rs:S:t:T:xZ")) != -1) {
+ 		switch (ch) {
+ 
+ 		case 'B':
+@@ -237,6 +237,10 @@
+ 			    strsuftoll("roundup-size", optarg, 0, LLONG_MAX);
+ 			break;
+ 
++		case 'r':
++			fsoptions.ronly = 1;
++			break;
++
+ 		case 's':
+ 			fsoptions.minsize = fsoptions.maxsize =
+ 			    strsuftoll("size", optarg, 1LL, LLONG_MAX);
+@@ -488,7 +492,7 @@
+ 
+ 	prog = getprogname();
+ 	fprintf(stderr,
+-"Usage: %s [-xZ] [-B endian] [-b free-blocks] [-d debug-mask]\n"
++"Usage: %s [-rxZ] [-B endian] [-b free-blocks] [-d debug-mask]\n"
+ "\t[-F mtree-specfile] [-f free-files] [-M minimum-size] [-m maximum-size]\n"
+ "\t[-N userdb-dir] [-O offset] [-o fs-options] [-R roundup-size]\n"
+ "\t[-S sector-size] [-s image-size] [-T <timestamp/file>] [-t fs-type]\n"
+--- ./usr.sbin/makefs/makefs.h.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.sbin/makefs/makefs.h	1970-01-01 00:00:00.000000000 +0000
+@@ -162,6 +162,7 @@
+ 	int	needswap;	/* non-zero if byte swapping needed */
+ 	int	sectorsize;	/* sector size */
+ 	int	sparse;		/* sparse image, don't fill it with zeros */
++	int     ronly;          /* read-only (ro) flag */
+ 
+ 	void	*fs_specific;	/* File system specific additions. */
+ 	option_t *fs_options;	/* File system specific options */
+--- ./usr.sbin/Makefile.aarch64.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.sbin/Makefile.aarch64	1970-01-01 00:00:00.000000000 +0000
+@@ -3,4 +3,4 @@
+ .if ${MK_ACPI} != "no"
+ SUBDIR+=	acpi
+ .endif
+-SUBDIR+=	ofwdump
++# SUBDIR+=	ofwdump
+--- ./usr.sbin/Makefile.amd64.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.sbin/Makefile.amd64	1970-01-01 00:00:00.000000000 +0000
+@@ -17,8 +17,11 @@
+ .if ${MK_TOOLCHAIN} != "no"
+ SUBDIR+=	btxld
+ .endif
+-SUBDIR+=	cpucontrol
+-SUBDIR+=	lptcontrol
++#SUBDIR+=	cpucontrol
++.if ${MK_HYPERV} != "no"
++SUBDIR+=	hyperv
++.endif
++#SUBDIR+=	lptcontrol
+ SUBDIR+=	mptable
+-SUBDIR+=	spkrtest
+-SUBDIR+=	zzz
++#SUBDIR+=	spkrtest
++#SUBDIR+=	zzz
+--- ./usr.sbin/Makefile.arm.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.sbin/Makefile.arm	1970-01-01 00:00:00.000000000 +0000
+@@ -1,3 +1 @@
+ # $FreeBSD$
+-
+-SUBDIR+=	ofwdump
+--- ./usr.sbin/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.sbin/Makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -1,228 +1,184 @@
+-#	From: @(#)Makefile	5.20 (Berkeley) 6/12/93
++# From: @(#)Makefile	5.20 (Berkeley) 6/12/93
+ # $FreeBSD$
+ 
+ .include <src.opts.mk>
+ 
+-SUBDIR=	adduser \
+-	arp \
++SUBDIR=	arp \
+ 	binmiscctl \
+-	boottrace \
+-	camdd \
+-	cdcontrol \
+-	chkgrp \
+ 	chown \
+ 	chroot \
+-	ckdist \
+-	clear_locks \
+-	crashinfo \
+-	cron \
+ 	daemon \
+-	dconschat \
+ 	devctl \
+ 	devinfo \
+ 	diskinfo \
+-	dumpcis \
+-	etcupdate \
+ 	extattr \
+ 	extattrctl \
+ 	fifolog \
+ 	fstyp \
+-	fwcontrol \
+ 	getfmac \
+ 	getpmac \
+ 	gstat \
+-	i2c \
+ 	ifmcstat \
+ 	iostat \
+ 	iovctl \
+-	kldxref \
+-	mailwrapper \
+ 	makefs \
+ 	memcontrol \
+-	mergemaster \
+-	mfiutil \
+-	mixer \
+-	mlxcontrol \
+-	mountd \
+-	mount_smbfs \
+-	mpsutil \
+-	mptutil \
+ 	mtest \
+ 	newsyslog \
+-	nfscbd \
+-	nfsd \
+-	nfsdumpstate \
+-	nfsrevoke \
+-	nfsuserd \
+ 	nmtree \
+-	nologin \
+-	pciconf \
+-	periodic \
+-	pnfsdscopymr \
+-	pnfsdsfile \
+-	pnfsdskill \
+-	powerd \
+-	prometheus_sysctl_exporter \
+ 	pstat \
+-	pw \
+ 	pwd_mkdb \
+-	pwm \
+ 	quot \
+-	rarpd \
+-	rmt \
+-	rpcbind \
+-	rpc.lockd \
+-	rpc.statd \
+-	rpc.umntall \
+ 	rtprio \
+-	rwhod \
+ 	service \
+ 	services_mkdb \
+-	sesutil \
+-	setfib \
+-	setfmac \
+-	setpmac \
+-	smbmsg \
+-	snapinfo \
+-	spi \
+-	spray \
+ 	syslogd \
+ 	sysrc \
+-	tcpdrop \
+-	tcpdump \
+-	tcpsso \
+ 	traceroute \
+ 	trim \
+-	tzsetup \
+-	ugidfw \
+-	valectl \
+-	vigr \
+-	vipw \
+-	wake \
+-	watch \
+-	watchdogd \
+-	zdump \
+-	zic \
+-	zonectl
++	zdump
+ 
++
++
+ # NB: keep these sorted by MK_* knobs
+ 
+-SUBDIR.${MK_ACCT}+=	accton
+-SUBDIR.${MK_ACCT}+=	sa
+-SUBDIR.${MK_AUDIT}+=	audit
+-SUBDIR.${MK_AUDIT}+=	auditd
+-.if ${MK_OPENSSL} != "no"
+-SUBDIR.${MK_AUDIT}+=	auditdistd
+-.endif
+-SUBDIR.${MK_AUDIT}+=	auditreduce
+-SUBDIR.${MK_AUDIT}+=	praudit
+-SUBDIR.${MK_AUTHPF}+=	authpf
+-SUBDIR.${MK_AUTOFS}+=	autofs
+-SUBDIR.${MK_BLACKLIST}+=	blacklistctl
+-SUBDIR.${MK_BLACKLIST}+=	blacklistd
++
++
++SUBDIR.${MK_INET6}+=		ip6addrctl mld6query ndp rip6query route6d rrenumd rtadvctl rtadvd rtsold traceroute6
++SUBDIR.${MK_AUDIO}+=		mixer cdcontrol
++SUBDIR.${MK_TCPDUMP}+=  	tcpdump tcpdrop tcpsso
++SUBDIR.${MK_JAIL}+=		jail jexec jls
++SUBDIR.${MK_LEGACY_CONSOLE}+=	kbdcontrol vidcontrol
+ SUBDIR.${MK_BLUETOOTH}+=	bluetooth
+-SUBDIR.${MK_BOOTPARAMD}+=	bootparamd
+-SUBDIR.${MK_BSDINSTALL}+=	bsdinstall
+-SUBDIR.${MK_BSNMP}+=	bsnmpd
+-.if ${MK_CAROOT} != "no"
+-SUBDIR.${MK_OPENSSL}+=	certctl
+-.endif
+-SUBDIR.${MK_CXGBETOOL}+=	cxgbetool
+-SUBDIR.${MK_DIALOG}+=	bsdconfig
+-SUBDIR.${MK_EFI}+=	efivar efidp efibootmgr efitable
+-.if ${MK_OPENSSL} != "no"
+-SUBDIR.${MK_EFI}+=	uefisign
+-.endif
+-SUBDIR.${MK_FLOPPY}+=	fdcontrol
+-SUBDIR.${MK_FLOPPY}+=	fdformat
+-SUBDIR.${MK_FLOPPY}+=	fdread
+-SUBDIR.${MK_FLOPPY}+=	fdwrite
+-SUBDIR.${MK_FREEBSD_UPDATE}+=	freebsd-update
+-SUBDIR.${MK_GSSAPI}+=	gssd
+-SUBDIR.${MK_GPIO}+=	gpioctl
+-SUBDIR.${MK_HYPERV}+=	hyperv
+-SUBDIR.${MK_INET6}+=	ip6addrctl
+-SUBDIR.${MK_INET6}+=	mld6query
+-SUBDIR.${MK_INET6}+=	ndp
+-SUBDIR.${MK_INET6}+=	rip6query
+-SUBDIR.${MK_INET6}+=	route6d
+-SUBDIR.${MK_INET6}+=	rrenumd
+-SUBDIR.${MK_INET6}+=	rtadvctl
+-SUBDIR.${MK_INET6}+=	rtadvd
+-SUBDIR.${MK_INET6}+=	rtsold
+-SUBDIR.${MK_INET6}+=	traceroute6
+-SUBDIR.${MK_INETD}+=	inetd
+-SUBDIR.${MK_IPFW}+=	ipfwpcap
+-SUBDIR.${MK_ISCSI}+=	ctladm ctld iscsid
+-SUBDIR.${MK_JAIL}+=	jail
+-SUBDIR.${MK_JAIL}+=	jexec
+-SUBDIR.${MK_JAIL}+=	jls
+-# XXX MK_SYSCONS
+-SUBDIR.${MK_LEGACY_CONSOLE}+=	kbdcontrol
+-SUBDIR.${MK_LEGACY_CONSOLE}+=	kbdmap
+-SUBDIR.${MK_LEGACY_CONSOLE}+=	moused
+-SUBDIR.${MK_LEGACY_CONSOLE}+=	vidcontrol
+-SUBDIR.${MK_PPP}+=	pppctl
+-SUBDIR.${MK_NS_CACHING}+=	nscd
+-SUBDIR.${MK_LPR}+=	lpr
+-SUBDIR.${MK_MAN_UTILS}+=	manctl
+-SUBDIR.${MK_MLX5TOOL}+=	mlx5tool
+-SUBDIR.${MK_NETGRAPH}+=	flowctl
+-SUBDIR.${MK_NETGRAPH}+=	ngctl
+-SUBDIR.${MK_NETGRAPH}+=	nghook
+-SUBDIR.${MK_NIS}+=	rpc.yppasswdd
+-SUBDIR.${MK_NIS}+=	rpc.ypupdated
+-SUBDIR.${MK_NIS}+=	rpc.ypxfrd
+-SUBDIR.${MK_NIS}+=	ypbind
+-SUBDIR.${MK_NIS}+=	ypldap
+-SUBDIR.${MK_NIS}+=	yp_mkdb
+-SUBDIR.${MK_NIS}+=	yppoll
+-SUBDIR.${MK_NIS}+=	yppush
+-SUBDIR.${MK_NIS}+=	ypserv
+-SUBDIR.${MK_NIS}+=	ypset
+-SUBDIR.${MK_NTP}+=	ntp
+-SUBDIR.${MK_OPENSSL}+=	keyserv
+-SUBDIR.${MK_OPENSSL_KTLS}+=	rpc.tlsclntd
+-SUBDIR.${MK_OPENSSL_KTLS}+=	rpc.tlsservd
++SUBDIR.${MK_UNBOUND}+=		unbound
++SUBDIR.${MK_USB}+=		usbconfig usbdump
++SUBDIR.${MK_NVME}+=	        pciconf
++SUBDIR.${MK_UTMPX}+=		ac lastlogin utx
++SUBDIR.${MK_FIB}+=		setfib 
++SUBDIR.${MK_IPFW}+=		ipfwpcap
++# XXX toolchain llvm/non-llvm split needed and option for nano/crunch and btxld is needed for cross-compile arch-agnostic
++SUBDIR.${MK_INCLUDES}+=		config crunch btxld
+ SUBDIR.${MK_PF}+=	ftp-proxy
+-SUBDIR.${MK_PKGBOOTSTRAP}+=	pkg
+-SUBDIR.${MK_PMC}+=	pmc pmcannotate pmccontrol pmcstat pmcstudy
+-SUBDIR.${MK_PORTSNAP}+=	portsnap
+-SUBDIR.${MK_PPP}+=	ppp
+-SUBDIR.${MK_QUOTAS}+=	edquota
+-SUBDIR.${MK_QUOTAS}+=	quotaon
+-SUBDIR.${MK_QUOTAS}+=	repquota
+-SUBDIR.${MK_SENDMAIL}+=	editmap
+-SUBDIR.${MK_SENDMAIL}+=	mailstats
+-SUBDIR.${MK_SENDMAIL}+=	makemap
+-SUBDIR.${MK_SENDMAIL}+=	praliases
+-SUBDIR.${MK_SENDMAIL}+=	sendmail
+-SUBDIR.${MK_TCP_WRAPPERS}+=	tcpdchk
+-SUBDIR.${MK_TCP_WRAPPERS}+=	tcpdmatch
+-SUBDIR.${MK_TOOLCHAIN}+=	config
+-SUBDIR.${MK_TOOLCHAIN}+=	crunch
+-SUBDIR.${MK_UNBOUND}+=	unbound
+-SUBDIR.${MK_USB}+=	uathload
+-SUBDIR.${MK_USB}+=	uhsoctl
+-SUBDIR.${MK_USB}+=	usbconfig
+-SUBDIR.${MK_USB}+=	usbdump
+-SUBDIR.${MK_UTMPX}+=	ac
+-SUBDIR.${MK_UTMPX}+=	lastlogin
+-SUBDIR.${MK_UTMPX}+=	utx
+-SUBDIR.${MK_WIRELESS}+=	wlandebug
+-SUBDIR.${MK_WIRELESS}+=	wpa
++# 
+ 
+-SUBDIR.${MK_TESTS}+=	tests
+ 
+-.include <bsd.arch.inc.mk>
+ 
++.include <bsd.arch.inc.mk>
+ SUBDIR_PARALLEL=
++.include <bsd.subdir.mk>
+ 
+-# Add architecture-specific manpages
+-# to be included anyway
+-MAN=   apmd/apmd.8 \
+-       nvram/nvram.8
+ 
+-.include <bsd.prog.mk>
+ 
+-.include <bsd.subdir.mk>
++
++#SUBDIR.${MK_ACCT}+=	accton
++#SUBDIR.${MK_ACCT}+=	sa
++#SUBDIR.${MK_AUDIT}+=	audit
++#SUBDIR.${MK_AUDIT}+=	auditd
++#SUBDIR.${MK_AUDIT}+=	auditreduce
++#SUBDIR.${MK_AUDIT}+=	praudit
++#SUBDIR.${MK_AUTHPF}+=	authpf
++#SUBDIR.${MK_AUTOFS}+=	autofs
++#SUBDIR.${MK_BLACKLIST}+=	blacklistctl
++#SUBDIR.${MK_BLACKLIST}+=	blacklistd
++#SUBDIR.${MK_BOOTPARAMD}+=	bootparamd rarpd
++#SUBDIR.${MK_BSDINSTALL}+=	bsdinstall
++#SUBDIR.${MK_BSNMP}+=	bsnmpd
++#SUBDIR.${MK_CXGBETOOL}+=	cxgbetool
++#SUBDIR.${MK_DIALOG}+=	bsdconfig
++#SUBDIR.${MK_EFI_USR_ENV}+=	efivar
++#SUBDIR.${MK_EFI_USR_ENV}+=	efidp efibootmgr
++#SUBDIR.${MK_EFI_USR_ENV}+=	efibootmgr
++#SUBDIR.${MK_FREEBSD_UPDATE}+=	freebsd-update
++#SUBDIR.${MK_GSSAPI}+=	gssd
++#SUBDIR.${MK_GPIO}+=	gpioctl
++#SUBDIR.${MK_GPIO}+=	i2c
++#SUBDIR.${MK_GPIO}+=	spi
++#SUBDIR.${MK_GPIO}+=	pwm
++#SUBDIR.${MK_INETD}+=	inetd 
++#SUBDIR.${MK_ISCSI}+=	ctladm
++#SUBDIR.${MK_ISCSI}+=	ctld
++#SUBDIR.${MK_ISCSI}+=	iscsid
++#SUBDIR.${MK_SCSI}+=	sesutil
++#SUBDIR.${MK_SCSI}+=	zonectl
++#SUBDIR.${MK_LEGACY_CONSOLE}+=	kbdmap
++#SUBDIR.${MK_LEGACY_CONSOLE_MOUSE}+=	moused
++#SUBDIR.${MK_PPP}+=	pppctl
++#SUBDIR.${MK_NS_CACHING}+=	nscd
++#SUBDIR.${MK_LPR}+=	lpr
++#SUBDIR.${MK_MAN_UTILS}+=	manctl
++#SUBDIR.${MK_NETGRAPH}+=	flowctl
++#SUBDIR.${MK_NETGRAPH}+=	ngctl
++#SUBDIR.${MK_NETGRAPH}+=	nghook
++#SUBDIR.${MK_NIS}+=	rpc.yppasswdd
++#SUBDIR.${MK_NIS}+=	rpc.ypupdated
++#SUBDIR.${MK_NIS}+=	rpc.ypxfrd
++#SUBDIR.${MK_NIS}+=	ypbind
++#SUBDIR.${MK_NIS}+=	ypldap
++#SUBDIR.${MK_NIS}+=	yp_mkdb
++#SUBDIR.${MK_NIS}+=	yppoll
++#SUBDIR.${MK_NIS}+=	yppush
++#SUBDIR.${MK_NIS}+=	ypserv
++#SUBDIR.${MK_NIS}+=	ypset
++#SUBDIR.${MK_NTP}+=	ntp
++#SUBDIR.${MK_PF}+=	ftp-proxy
++#SUBDIR.${MK_PCI}+=	pciconf
++#SUBDIR.${MK_PROMETHEUS}+=	prometheus_sysctl_exporter
++#SUBDIR.${MK_PKGBOOTSTRAP}+=	pkg
++#SUBDIR.${MK_PMC}+=	pmc 
++#SUBDIR.${MK_PMC}+=	pmcannotate
++#SUBDIR.${MK_PMC}+=	pmccontrol
++#SUBDIR.${MK_PMC}+=	pmcstat
++#SUBDIR.${MK_PMC}+=	pmcstudy
++#SUBDIR.${MK_PORTSNAP}+=	portsnap
++#SUBDIR.${MK_PPP}+=	ppp
++#SUBDIR.${MK_QUOTAS}+=	edquota
++#SUBDIR.${MK_QUOTAS}+=	quotaon
++#SUBDIR.${MK_QUOTAS}+=	repquota
++#SUBDIR.${MK_SENDMAIL}+=	editmap
++#SUBDIR.${MK_SENDMAIL}+=	mailstats
++#SUBDIR.${MK_SENDMAIL}+=	makemap
++#SUBDIR.${MK_SENDMAIL}+=	praliases
++#SUBDIR.${MK_SENDMAIL}+=	sendmail
++#SUBDIR.${MK_SMBIOS}+=	smbmsg
++#SUBDIR.${MK_TCP_WRAPPERS}+=	tcpdchk
++#SUBDIR.${MK_TCP_WRAPPERS}+=	tcpdmatch
++#SUBDIR.${MK_USB_UMTS}+=	uhsoctl
++#SUBDIR.${MK_USB_DEBUG}+=	usbdump
++#SUBDIR.${MK_WIRELESS}+=	wlandebug
++#SUBDIR.${MK_WIRELESS}+=	wpa
++#SUBDIR.${MK_TESTS}+=	tests
++#SUBDIR.${MK_OPENSSL_KTLS}+=	rpc.tlsclntd
++#SUBDIR.${MK_OPENSSL_KTLS}+=	rpc.tlsservd
++#SUBDIR.${MK_NFS}+= nfscbd
++#SUBDIR.${MK_NFS}+= nfsd
++#SUBDIR.${MK_NFS}+= nfsdumpstate
++#SUBDIR.${MK_NFS}+= nfsrevoke 
++#SUBDIR.${MK_NFS}+= nfsuserd 
++#SUBDIR.${MK_NFS}+= pnfsdscopymr 
++#SUBDIR.${MK_NFS}+= pnfsdsfile
++#SUBDIR.${MK_NFS}+= pnfsdskill
++#SUBDIR.${MK_NFS}+= clear_locks
++#SUBDIR.${MK_NFS}+= mountd 
++#SUBDIR.${MK_KERNEL_MODULES_TOOLS}+= kldxref
++#SUBDIR.${MK_NETMAP}+= valectl
++#SUBDIR.${MK_ZONEINFO}+= tzsetup
++#SUBDIR.${MK_ZONEINFO}+= zic
++#SUBDIR.${MK_DEBUG_TOOLS}+= crashinfo
++#SUBDIR.${MK_AT}+= cron
++#SUBDIR.${MK_USR_MGMT}+= adduser
++#SUBDIR.${MK_USR_MGMT}+= pw
++#SUBDIR.${MK_USR_MGMT}+= chkgrp 
++#SUBDIR.${MK_USR_MGMT}+= vigr
++#SUBDIR.${MK_USR_MGMT}+= vipw
++#SUBDIR.${MK_RPC}+=			rpcinfo 
++#SUBDIR.${MK_RPC}+=			rpcbind 
++#SUBDIR.${MK_RPC}+=			rpc.lockd
++#SUBDIR.${MK_RPC}+=			rpc.statd
++#SUBDIR.${MK_RPC}+=			rpc.umntall
++#SUBDIR.${MK_SNAP}+=			snapinfo
++#SUBDIR.${MK_MAC}+=			ugidfw 
++#.if ${MK_OPENSSL} != "no"
++#SUBDIR.${MK_EFI_USR_ENV}+=	uefisign
++#SUBDIR.${MK_AUDIT}+=		auditdistd
++#SUBDIR.${MK_CAROOT}+=		certctl
++#.endif
+--- ./Makefile.inc1.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./Makefile.inc1	1970-01-01 00:00:00.000000000 +0000
+@@ -707,7 +707,7 @@
+ # bootstrap-tools stage
+ BMAKEENV=	INSTALL="sh ${.CURDIR}/tools/install.sh" \
+ 		TOOLS_PREFIX=${TOOLS_PREFIX_UNDEF:U${WORLDTMP}} \
+-		PATH=${BPATH:Q}:${PATH:Q} \
++		PATH=${BPATH}:${PATH} \
+ 		WORLDTMP=${WORLDTMP} \
+ 		MAKEFLAGS="-m ${.CURDIR}/tools/build/mk ${.MAKEFLAGS}"
+ # need to keep this in sync with targets/pseudo/bootstrap-tools/Makefile
+@@ -775,7 +775,7 @@
+ 
+ # kernel-tools stage
+ KTMAKEENV=	INSTALL="sh ${.CURDIR}/tools/install.sh" \
+-		PATH=${BPATH:Q}:${PATH:Q} \
++		PATH=${BPATH}:${PATH} \
+ 		WORLDTMP=${WORLDTMP} \
+ 		MAKEFLAGS="-m ${.CURDIR}/tools/build/mk ${.MAKEFLAGS}"
+ 
+@@ -802,13 +802,13 @@
+ # world stage
+ WMAKEENV=	${CROSSENV} \
+ 		INSTALL="${INSTALL_CMD} -U" \
+-		PATH=${TMPPATH:Q} \
++		PATH=${TMPPATH} \
+ 		SYSROOT=${WORLDTMP}
+ 
+ # make hierarchy
+-HMAKE=		PATH=${TMPPATH:Q} ${MAKE} LOCAL_MTREE=${LOCAL_MTREE:Q}
++HMAKE=		PATH=${TMPPATH} ${MAKE} LOCAL_MTREE=${LOCAL_MTREE:Q}
+ .if defined(NO_ROOT)
+-HMAKE+=		PATH=${TMPPATH:Q} METALOG=${METALOG} -DNO_ROOT
++HMAKE+=		PATH=${TMPPATH} METALOG=${METALOG} -DNO_ROOT
+ .endif
+ 
+ CROSSENV+=	CC="${XCC} ${XCFLAGS}" CXX="${XCXX} ${XCXXFLAGS} ${XCFLAGS}" \
+@@ -919,12 +919,12 @@
+ IMAKE=		${TIME_ENV} ${IMAKEENV} ${MAKE} -f Makefile.inc1 \
+ 		${IMAKE_INSTALL} ${IMAKE_MTREE}
+ .if empty(.MAKEFLAGS:M-n)
+-IMAKEENV+=	PATH=${STRICTTMPPATH:Q}:${INSTALLTMP:Q} \
+-		LD_LIBRARY_PATH=${INSTALLTMP:Q} \
++IMAKEENV+=	PATH=${STRICTTMPPATH}:${INSTALLTMP} \
++		LD_LIBRARY_PATH=${INSTALLTMP} \
+ 		PATH_LOCALE=${INSTALLTMP}/locale
+ IMAKE+=		__MAKE_SHELL=${INSTALLTMP}/sh
+ .else
+-IMAKEENV+=	PATH=${TMPPATH:Q}:${INSTALLTMP:Q}
++IMAKEENV+=	PATH=${TMPPATH}:${INSTALLTMP}
+ .endif
+ 
+ # When generating install media, do not allow user and group information from
+@@ -1033,8 +1033,8 @@
+ # so we remove that assingnment from $WMAKE and prepend the new $PATH
+ 	${_+_}@if [ -e "${WORLDTMP}" ]; then \
+ 		echo ">>> Deleting stale files in build tree..."; \
+-		cd ${.CURDIR}; env PATH=${TMPPATH:Q}:${PATH:Q} ${WMAKE:NPATH=*} \
+-		    _NO_INCLUDE_COMPILERMK=t -DBATCH_DELETE_OLD_FILES delete-old \
++		cd ${.CURDIR}; env PATH=${TMPPATH}:${PATH} ${WMAKE:NPATH=*} \
++		    -DBATCH_DELETE_OLD_FILES delete-old \
+ 		    delete-old-libs >/dev/null; \
+ 	fi
+ 	rm -rf ${WORLDTMP}/legacy/usr/include
+@@ -1147,7 +1147,7 @@
+ .if !empty(SUBDIR_OVERRIDE) && make(buildworld)
+ 	${_+_}cd ${.CURDIR}; ${WMAKE} MK_INCLUDES=yes SHARED=symlinks includes
+ .endif
+-	${_+_}cd ${.CURDIR};  ${WMAKE} test-includes
++#	${_+_}cd ${.CURDIR};  ${WMAKE} test-includes
+ _libraries:
+ 	@echo
+ 	@echo "--------------------------------------------------------------"
+@@ -1332,6 +1332,10 @@
+ #
+ # Required install tools to be saved in a scratch dir for safety.
+ #
++.if ${MK_ZONEINFO} != "no"
++_zoneinfo=	zic tzsetup
++.endif
++
+ .if !defined(CROSSBUILD_HOST)
+ _sysctl=sysctl
+ .endif
+@@ -1339,19 +1343,14 @@
+ ITOOLS=	[ awk cap_mkdb cat chflags chmod chown cmp cp \
+ 	date echo egrep find grep id install ${_install-info} \
+ 	ln make mkdir mtree mv pwd_mkdb \
+-	rm sed services_mkdb sh sort strip ${_sysctl} test time true uname wc
++	rm sed services_mkdb sh sort strip ${_sysctl} test time true uname wc \
++	${_zoneinfo} ${LOCAL_ITOOLS}
+ 
+-.if ${MK_ZONEINFO} != "no"
+-ITOOLS+=tzsetup
+-.endif
+-
+ # Needed for share/man
+ .if ${MK_MAN_UTILS} != "no"
+ ITOOLS+=makewhatis
+ .endif
+ 
+-ITOOLS+=${LOCAL_ITOOLS}
+-
+ #
+ # distributeworld
+ #
+@@ -1381,7 +1380,7 @@
+ distributeworld installworld stageworld: _installcheck_world .PHONY
+ 	mkdir -p ${INSTALLTMP}
+ 	progs=$$(for prog in ${ITOOLS}; do \
+-		if progpath=`env PATH=${TMPPATH:Q} which $$prog`; then \
++		if progpath=`env PATH=${TMPPATH} which $$prog`; then \
+ 			echo $$progpath; \
+ 		else \
+ 			echo "Required tool $$prog not found in PATH ("${TMPPATH:Q}")." >&2; \
+@@ -1456,7 +1455,7 @@
+ .endif
+ .endfor
+ 	-mkdir ${DESTDIR}/${DISTDIR}/base
+-	${_+_}cd ${.CURDIR}/etc; ${CROSSENV} PATH=${TMPPATH:Q} ${MAKE} \
++	${_+_}cd ${.CURDIR}/etc; ${CROSSENV} PATH=${TMPPATH} ${MAKE} \
+ 	    METALOG=${METALOG} ${IMAKE_INSTALL} ${IMAKE_MTREE} \
+ 	    DISTBASE=/base DESTDIR=${DESTDIR}/${DISTDIR}/base \
+ 	    LOCAL_MTREE=${LOCAL_MTREE:Q} distrib-dirs
+@@ -1466,7 +1465,7 @@
+ 	    ${IMAKEENV} rm -rf ${INSTALLTMP}
+ .if !make(packageworld) && ${MK_CAROOT} != "no"
+ 	@if which openssl>/dev/null; then \
+-		PATH=${TMPPATH:Q}:${PATH:Q} \
++		PATH=${TMPPATH}:${PATH} \
+ 		    sh ${SRCTOP}/usr.sbin/certctl/certctl.sh ${CERTCTLFLAGS} rehash; \
+ 	else \
+ 		echo "No openssl on the host, not rehashing certificates target -- /etc/ssl may not be populated."; \
+@@ -1551,7 +1550,7 @@
+ .for _dir in ${_sysent_dirs}
+ sysent-${_dir}: .PHONY
+ 	@echo "${MAKE} -C ${.CURDIR}/${_dir} sysent"
+-	${_+_}@env PATH=${_sysent_PATH:Q} ${MAKE} -C ${.CURDIR}/${_dir} sysent
++	${_+_}@env PATH=${_sysent_PATH} ${MAKE} -C ${.CURDIR}/${_dir} sysent
+ 
+ sysent: sysent-${_dir}
+ .endfor
+@@ -1599,10 +1598,10 @@
+ .endif
+ 
+ distrib-dirs distribution: .MAKE .PHONY
+-	${_+_}cd ${.CURDIR}/etc; ${CROSSENV} PATH=${TMPPATH:Q} ${MAKE} \
++	${_+_}cd ${.CURDIR}/etc; ${CROSSENV} PATH=${TMPPATH} ${MAKE} \
+ 	    ${IMAKE_INSTALL} ${IMAKE_MTREE} METALOG=${METALOG} ${.TARGET}
+ .if make(distribution)
+-	${_+_}cd ${.CURDIR}; ${CROSSENV} PATH=${TMPPATH:Q} \
++	${_+_}cd ${.CURDIR}; ${CROSSENV} PATH=${TMPPATH} \
+ 		${MAKE} -f Makefile.inc1 ${IMAKE_INSTALL} \
+ 		METALOG=${METALOG} MK_TESTS=no \
+ 		MK_TESTS_SUPPORT=${MK_TESTS_SUPPORT} installconfig
+@@ -1710,7 +1709,7 @@
+ 	@echo ">>> stage 1: configuring the kernel"
+ 	@echo "--------------------------------------------------------------"
+ 	cd ${KRNLCONFDIR}; \
+-		PATH=${TMPPATH:Q} \
++		PATH=${TMPPATH} \
+ 		    config ${CONFIGARGS} -d ${KRNLOBJDIR}/${_kernel} \
+ 			-I '${KERNCONFDIR}' -I '${KRNLCONFDIR}' \
+ 			'${KERNCONFDIR}/${_kernel}'
+@@ -1777,7 +1776,7 @@
+ 	@echo ">>> Installing kernel ${INSTALLKERNEL} on $$(LC_ALL=C date)"
+ 	@echo "--------------------------------------------------------------"
+ 	${_+_}cd ${KRNLOBJDIR}/${INSTALLKERNEL}; \
+-	    ${CROSSENV} PATH=${TMPPATH:Q} \
++	    ${CROSSENV} PATH=${TMPPATH} \
+ 	    ${MAKE} ${IMAKE_INSTALL} KERNEL=${INSTKERNNAME} ${.TARGET:S/kernel//}
+ 	@echo "--------------------------------------------------------------"
+ 	@echo ">>> Installing kernel ${INSTALLKERNEL} completed on $$(LC_ALL=C date)"
+@@ -1789,7 +1788,7 @@
+ 	@echo ">>> Installing kernel ${_kernel} $$(LC_ALL=C date)"
+ 	@echo "--------------------------------------------------------------"
+ 	${_+_}cd ${KRNLOBJDIR}/${_kernel}; \
+-	    ${CROSSENV} PATH=${TMPPATH:Q} \
++	    ${CROSSENV} PATH=${TMPPATH} \
+ 	    ${MAKE} ${IMAKE_INSTALL} KERNEL=${INSTKERNNAME}.${_kernel} ${.TARGET:S/kernel//}
+ 	@echo "--------------------------------------------------------------"
+ 	@echo ">>> Installing kernel ${_kernel} completed on $$(LC_ALL=C date)"
+@@ -1809,7 +1808,7 @@
+ .endif
+ 	${_+_}cd ${KRNLOBJDIR}/${INSTALLKERNEL}; \
+ 	    ${IMAKEENV} ${IMAKE_INSTALL:S/METALOG/kernel.premeta/} \
+-	    ${IMAKE_MTREE} PATH=${TMPPATH:Q} ${MAKE} KERNEL=${INSTKERNNAME} \
++	    ${IMAKE_MTREE} PATH=${TMPPATH} ${MAKE} KERNEL=${INSTKERNNAME} \
+ 	    DESTDIR=${INSTALL_DDIR}/kernel \
+ 	    ${.TARGET:S/distributekernel/install/}
+ .if defined(NO_ROOT)
+@@ -1824,7 +1823,7 @@
+ .endif
+ 	${_+_}cd ${KRNLOBJDIR}/${_kernel}; \
+ 	    ${IMAKEENV} ${IMAKE_INSTALL:S/METALOG/kernel.${_kernel}.premeta/} \
+-	    ${IMAKE_MTREE} PATH=${TMPPATH:Q} ${MAKE} \
++	    ${IMAKE_MTREE} PATH=${TMPPATH} ${MAKE} \
+ 	    KERNEL=${INSTKERNNAME}.${_kernel} \
+ 	    DESTDIR=${INSTALL_DDIR}/kernel.${_kernel} \
+ 	    ${.TARGET:S/distributekernel/install/}
+@@ -2247,11 +2246,6 @@
+ # C source for loader built in font (8x16.c).
+ _vtfontcvt=	usr.bin/vtfontcvt
+ 
+-# zic is used to compile timezone data
+-.if ${MK_ZONEINFO} != "no"
+-_zic=		usr.sbin/zic
+-.endif
+-
+ # If we are not building the bootstrap because BOOTSTRAPPING is sufficient
+ # we symlink the host version to $WORLDTMP instead. By doing this we can also
+ # detect when a bootstrap tool is being used without the required MK_FOO.
+@@ -2460,6 +2454,10 @@
+ _basic_bootstrap_tools+=usr.sbin/tzsetup
+ .endif
+ 
++.if ${MK_ZONEINFO} != "no"
++_basic_bootstrap_tools+=usr.sbin/zic usr.sbin/tzsetup
++.endif
++
+ .if defined(BOOTSTRAP_ALL_TOOLS)
+ _other_bootstrap_tools+=${_basic_bootstrap_tools}
+ .for _subdir _links in ${_basic_bootstrap_tools_multilink}
+@@ -2544,7 +2542,6 @@
+     ${_localedef} \
+     ${_mkcsmapper} \
+     ${_mkesdb} \
+-    ${_zic} \
+     ${LOCAL_BSTOOL_DIRS}
+ ${_bt}-${_tool}: ${_bt}-links .PHONY .MAKE
+ 	${_+_}@${ECHODIR} "===> ${_tool} (obj,all,install)"; \
+@@ -3413,7 +3410,7 @@
+ # Build 'standalone' Device Tree Blob
+ #
+ builddtb: .PHONY
+-	@PATH=${TMPPATH:Q} MACHINE=${TARGET} \
++	@PATH=${TMPPATH} MACHINE=${TARGET} \
+ 	sh ${.CURDIR}/sys/tools/fdt/make_dtb.sh ${.CURDIR}/sys \
+ 	    "${FDT_DTS_FILE}" ${DTBOUTPUTPATH}
+ 
+@@ -3510,8 +3507,8 @@
+ 	MACHINE=${TARGET} MACHINE_ARCH=${TARGET_ARCH}
+ 
+ CDTMP=	${OBJTOP}/${XDDIR}/tmp
+-CDMAKE=${CDENV} PATH=${CDTMP:Q}/usr/bin:${PATH:Q} ${MAKE} ${CDMAKEARGS} ${NOFUN}
+-CD2MAKE=${CD2ENV} PATH=${CDTMP:Q}/usr/bin:${XDDESTDIR:Q}/usr/bin:${PATH:Q} \
++CDMAKE=${CDENV} PATH=${CDTMP}/usr/bin:${PATH} ${MAKE} ${CDMAKEARGS} ${NOFUN}
++CD2MAKE=${CD2ENV} PATH=${CDTMP}/usr/bin:${XDDESTDIR}/usr/bin:${PATH} \
+ 	${MAKE} ${CD2MAKEARGS} ${NOFUN}
+ .if ${MK_META_MODE} != "no"
+ # Don't rebuild build-tools targets during normal build.
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ ./ObsoleteFiles.inc	1970-01-01 00:00:00.000000000 +0000
+@@ -0,0 +1 @@
++#!/bin/sh

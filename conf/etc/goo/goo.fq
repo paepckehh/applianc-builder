@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="github.com/wader/fq" goo $*

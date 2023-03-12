@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="github.com/skip2/go-qrcode/qrcode" goo $*

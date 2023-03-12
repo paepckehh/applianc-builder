@@ -1,0 +1,11 @@
+#!/bin/sh
+. $BSD_DIST/.base/mini
+. $BSD_DIST/.shared/add.fbsd.capa
+. $BSD_DIST/.shared/add.fbsd.ip4
+. $BSD_DIST/.shared/add.fbsd.tcp
+. $BSD_DIST/.shared/add.fbsd.pf
+export BSD_DIST_PKG="$BSD_DIST_PKG doas sponge pv tree fzy"
+export BSD_DIST_PKG="$BSD_DIST_PKG vim rsync xxHash htop"
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS EXT2FS MSDOSFS UNIONFS NULLFS UFS_DIRHASH GEOM_PART_MBR GEOM_LINUX_LVM"
+export BSD_MDROOT=zstd
+export BSD_TARGET_DIST="virt"

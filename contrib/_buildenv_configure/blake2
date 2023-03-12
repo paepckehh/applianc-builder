@@ -1,0 +1,5 @@
+#!/bin/sh
+cd b2sum
+make
+make install
+cd ..

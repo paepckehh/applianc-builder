@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO_OPTS_EMPTY="-h" REPO="github.com/schollz/croc" goo $*

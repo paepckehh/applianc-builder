@@ -1,0 +1,20 @@
+### ( 2023-03-12 ) ( 1678605360 ) ### DO NOT EDIT ### auto-generated file / patchset by <appliance-builder/enhanced> ###
+--- ./CommandLine.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./CommandLine.c	1970-01-01 00:00:00.000000000 +0000
+@@ -379,11 +379,11 @@
+ 
+    CRT_done();
+ 
+-   if (settings->changed) {
+-      int r = Settings_write(settings, false);
+-      if (r < 0)
+-         fprintf(stderr, "Can not save configuration to %s: %s\n", settings->filename, strerror(-r));
+-   }
++   // if (settings->changed) {
++   //   int r = Settings_write(settings, false);
++   //   if (r < 0)
++   //      fprintf(stderr, "Can not save configuration to %s: %s\n", settings->filename, strerror(-r));
++   // }
+ 
+    Header_delete(header);
+    ProcessList_delete(pl);

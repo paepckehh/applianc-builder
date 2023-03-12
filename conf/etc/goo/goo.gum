@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="github.com/charmbracelet/gum" goo $*

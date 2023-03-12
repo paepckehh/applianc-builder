@@ -1,0 +1,7 @@
+#!/bin/sh
+if [ ! $BSD_CONF_VERSION ]; then . /etc/.bsdconf; fi
+hq u
+sh $BSD_DEV/action-code-cleanup.sh
+hq s $BSD_CONF/etc/action/store
+mv $BSD_CONF/etc/action/*.hqx $BSD_CONF/etc/action.hqx/
+chmod 755 $BSD_CONF/etc/action/* $BSD_CONF/etc/action.hqx/* $BSD_CONF/etc/goo/*

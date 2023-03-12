@@ -1,0 +1,64 @@
+#!/bin/sh
+###################################################
+#   LOCAL / AIRGAP PASSWORDLESS ROOT MODE ONLY    #
+###################################################
+PermitRootLogin yes 
+PasswordAuthentication yes
+PermitEmptyPasswords yes
+KbdInteractiveAuthentication yes
+PubkeyAuthentication yes
+###################################################
+Port 22
+AddressFamily inet
+ListenAddress 127.0.0.22
+###################################################
+# needs $ENHANCED/patch to remove defaults
+HostKey /etc/ssh/airgap-server-ed25519/ssh_host_ed25519_key
+HostKeyAlgorithms ssh-ed25519
+AuthorizedKeysFile /etc/ssh/airgap-server-ed25519/client_keys
+PubkeyAcceptedAlgorithms ssh-ed25519
+# PubkeyAuthOptions none
+PubkeyAcceptedAlgorithms sh-ssh-ed25519@openssh.com
+PubkeyAuthOptions verify-required
+HostbasedAuthentication yes
+HostbasedAcceptedAlgorithms ssh-ed25519
+###################################################
+Ciphers chacha20-poly1305@openssh.com
+# MAC is cchacha20-poly1305 inherent , lock to something sane 
+MACs hmac-sha2-512-etm@openssh.com
+# XXX @UPSTREAM FIX OpenSSH still sends default server sig list
+KexAlgorithms curve25519-sha256
+###################################################
+# IgnoreUserKnownHosts yes
+IgnoreRhosts yes
+AuthorizedPrincipalsFile none
+# KbdInteractiveAuthentication no
+UsePAM no
+###################################################
+UseDNS no
+PermitUserEnvironment no
+PermitUserRC no
+RekeyLimit default none
+SyslogFacility AUTH
+LogLevel DEBUG1
+LoginGraceTime 30
+StrictModes yes
+MaxAuthTries 6
+MaxSessions 10
+AllowAgentForwarding no
+AllowTcpForwarding no
+GatewayPorts no
+X11Forwarding no
+X11UseLocalhost no
+PermitTTY yes
+PermitTunnel no
+PrintMotd no
+TCPKeepAlive no
+Compression no
+ClientAliveInterval 0
+ClientAliveCountMax 0
+PidFile /var/run/sshd.pid
+MaxStartups 10:30:100
+ChrootDirectory none
+Banner none
+###################################################

@@ -1,0 +1,125 @@
+#!/bin/sh
+if [ -z "$GOO" ]; then GOO=/usr/local/goo; fi
+if [ -z "$GOOCACHE" ]; then GOOCACHE=~/.goocache; fi
+case $1 in
+cleangoo) (mkdir -p $GOOCACHE && echo "[GOO] [removing from cache:]" && ls -lI $GOOCACHE && rm -rf $GOOCACHE/*) && exit ;;
+esac
+build() {
+	MOD="vendor"
+	if [ -e $GBASE/go.sum ] || [ -e $GBASE/../../go.sum ]; then MOD="readonly"; fi
+	if [ "$CGO_ENABLED" != "1" ]; then export CGO_ENABLED="0"; fi
+	if [ -z "$TAGS" ]; then TAGS="-tags=purego,nethttpomithttp2"; fi
+	if [ -n "$REPO_ALLOW_ASM" ] || [ "$CGO_ENABLED" == "1" ]; then TAGS="-tags=nethttpomithttp2"; fi
+	if [ -n "$REPO_ALLOW_HTTP2" ] && [ "$CGO_ENABLED" != "1" ]; then TAGS="-tags=purego"; fi
+	if [ -n "$REPO_ALLOW_ASM" ] && [ -n "$REPO_ALLOW_HTTP2" ] || [ -n "$REPO_NOTAGS" ]; then TAGS=""; fi
+	GOFLAGS="-buildvcs=false -ldflags=-s -ldflags=-w -mod=$MOD -trimpath $TAGS"
+	if [ -n "$GOODEBUG" ]; then BUILD_DETAILS=" -> [$GOFLAGS] -> [$EXEC]" && GOFLAGS="-v -a"; fi
+	if [ -n "$FUNCTION" ]; then FUNC_DETAILS="[$FUNCTION]"; fi
+	if [ ! -x "$GOTMPDIR" ]; then mkdir -p $GOTMPDIR; fi
+	echo "[GOO] [$REPO] $FUNC_DETAILS $BUILD_DETAILS"
+	if [ ! -z "$REPO_SECURE" ]; then
+		SEED=$(dd if=/dev/random count=1 bs=20 status=none | sha512sum | openssl enc -a -A | cut -c 3-20)
+		(cd $GBASE && goo.garble --seed=$SEED --tiny build -o $EXEC $SRCFILE)
+	else
+		if [ -z "$GOHOSTOS" ]; then GOHOSTOS=$(uname -s | tr "[:upper:]" "[:lower:]"); fi
+		if [ -z "$GOHOSTARCH" ]; then GOHOSTARCH="$(uname -m)"; fi
+		(cd $GBASE && $GOO/.$GOHOSTOS.$GOHOSTARCH/bin/go build $GOFLAGS -o $EXEC $SRCFILE)
+	fi
+	if [ ! -x "$EXEC" ]; then
+		echo "[GOO] [BUILD FAILED] [$REPO] [$GBASE] [$GOFLAGS] [$EXEC]"
+		if [ -x $GOOCACHE/paepcke_de_goo_cmd_goodepclone ]; then (cd $GBASE && $GOOCACHE/paepcke_de_goo_cmd_goodepclone); fi
+		exit 1
+	fi
+	if [ -x "$STRIPBIN" ]; then $STRIPBIN -s $EXEC > /dev/null 2>&1; fi
+}
+if [ -z "$REPO" ]; then echo "[GOO] [please specify a least REPO as env variable]" && exit; fi
+if [ ! -x "$GOO/$REPO" ]; then
+	if [ ! -x "$GOO/.goo" ]; then BSDlive goo; fi
+	if [ ! -x "$GOO/$REPO" ]; then
+		if [ -x "$GOO/github.com/$REPO" ]; then
+			REPO="github.com/$REPO"
+		else
+			echo "[GOO] [REPO not available] [$GOO/$REPO]" && exit
+		fi
+	fi
+fi
+BLOCK=$(echo "$(cat $GOO/$REPO/.goo.caps 2> /dev/null | egrep $CAPS_BLOCK 2> /dev/null)")
+if [ -n "$BLOCK" ]; then echo "[GOO] [$REPO] [CABABILITY] [BLOCKED] $(echo $BLOCK | tr '\n' ' ')" && exit; fi
+if [ -n "$GOO_SCORE" ]; then
+	SCORE=$(cat "$GOO/$REPO/.goo.codescore.*")
+	if [ "$SCORE" -lt "$GOO_SCORE" ]; then echo "[GOO] [CODE SCORE TO LOW] [$REPO:$SCORE] [NEED:$GOO_SCORE]" && exit; fi
+fi
+if [ ! -z "$FUNCTION" ] && [ ! -z "$REPO" ]; then
+	XOPT="$REPO.$FUNCTION"
+	EXEC=$GOOCACHE/$(echo $XOPT | sed -e 's/ /_/g' | sed -e 's/\//_/g' | sed -e 's/\./_/g')
+	if [ ! -x $EXEC ]; then
+		CGEN="$GOOCACHE/paepcke_de_goo_cmd_googen"
+		if [ ! -x "$CGEN" ]; then FUNCTION="" GOPREPONLY=true sh /etc/goo/goo.googen; fi
+		if [ -x "$CGEN" ]; then
+			GBASE=$($CGEN) && build
+		else
+			echo "[GOO] [FUNC] [CODEGEN FAILED] [$REPO] [$FUNCTION] [$GBASE]" && exit 1
+		fi
+	fi
+fi
+EXECUTEABLE=$(echo $REPO | sed -e 's/\//_/g' | sed -e 's/\./_/g')
+if [ -z "$EXEC" ]; then EXEC=$GOOCACHE/$EXECUTEABLE; fi
+if [ -n "$GOINSTALL" ]; then
+	GOPREPONLY=true && EXEC=$GOINSTALL && rm -f $EXEC
+else
+	GOOS=$GOHOSTOS && GOARCH=$GOHOSTARCH
+fi
+if [ -n "$REPO_CLEAN_BUILD" ] || [ -n "$REPO_SECURE" ]; then rm -rf $EXEC; fi
+if [ ! -x $EXEC ]; then
+	L1=$(echo $REPO | cut -d '/' -f 2) && if [ -z "$L1" ]; then L1="INVALID-REPO"; fi
+	L2=$(echo $REPO | cut -d '/' -f 3) && if [ -z "$L2" ]; then L2="INVALID-REPO"; fi
+	L3=$(echo $REPO | cut -d '/' -f 4) && if [ -z "$L3" ]; then L3="INVALID-REPO"; fi
+	if [ -d "$GOO/$REPO/cmd/$L3" ]; then
+		GBASE="$GOO/$REPO/cmd/$L3"
+	elif [ -d "$GOO/$REPO/cmd/$L2" ]; then
+		GBASE="$GOO/$REPO/cmd/$L2"
+	elif [ -d "$GOO/$REPO/cmd/$L1" ]; then
+		GBASE="$GOO/$REPO/cmd/$L1"
+	elif [ -d "$GOO/$REPO" ]; then
+		GBASE=$GOO/$REPO
+	elif [ -f "$GOO/$REPO" ]; then
+		SRCFILE=$GOO/$REPO
+		GBASE=${SRCFILE%/*}
+	fi
+	if [ -z "$GBASE" ]; then echo "[GOO] [no valid repo found] [$REPO]" && exit 1; fi
+	if [ ! -e $GOOCACHE/.init.done ]; then
+		case "$(uname)" in
+		Linux) MOUNT_CMD="sudo mount -t tmpfs tmpfs" ;;
+		*) MOUNT_CMD="mount -t tmpfs tmpfs" ;;
+		esac
+		mkdir -p $GOOCACHE && $MOUNT_CMD $GOOCACHE && touch $GOOCACHE/.init.done
+	fi
+	if [ $GOINSTALL ]; then
+		if [ "$(echo $GOINSTALL | cut -c 1)" != "/" ]; then GOINSTALL="$PWD/$GOINSTALL"; fi
+		EXEC=$GOINSTALL
+	else
+		EXEC=$GOOCACHE/$EXECUTEABLE
+	fi
+	build
+fi
+if [ -z "$GOPREPONLY" ]; then
+	cd $PWD && (
+		if [ -z "$OPT" ]; then
+			OPT=$* && if [ -z "$OPT" ] && [ ! -z "$REPO_OPTS_EMPTY" ]; then OPT=$REPO_OPTS_EMPTY; fi
+		fi
+		XCMD="$EXEC $REPO_OPTS $OPT"
+		if [ -n "$REPO_FIB" ]; then XCMD="/usr/bin/setfib $REPO_FIB $XCMD"; fi
+		if [ -n "$REPO_USER" ]; then
+			case "$(uname)" in
+			Linux) SU_CMD="/usr/bin/sudo -u $REPO_USER" ;;
+			FreeBSD) SU_CMD="/usr/bin/su $REPO_USER -c" ;;
+			esac
+			if [ $DEBUG ]; then echo "$SU_CMD $XCMD"; fi
+			$SU_CMD "$XCMD"
+		else
+			if [ $DEBUG ]; then echo $XCMD; fi
+			$XCMD
+		fi
+		if [ -n "$REPO_CLEAN" ]; then rm -f $EXEC; fi
+	)
+fi

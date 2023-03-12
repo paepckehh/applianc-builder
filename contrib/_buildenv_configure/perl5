@@ -1,0 +1,2 @@
+echo "optimize='-Oz'" >> /tmp/perl5-master/hints/freebsd.sh
+./Configure -Dusedevel -des

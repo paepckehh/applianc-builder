@@ -1,0 +1,9 @@
+#!/bin/sh
+case $TARGET in
+amd64)
+	. $BSD_DIST/.shared/add.fbsd.vm
+	export BSD_DIST_PKG="$BSD_DIST_PKG"
+	export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS XENHVM"
+	export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE xenpci xentimer"
+	;;
+esac

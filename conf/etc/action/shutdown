@@ -1,0 +1,7 @@
+#!/bin/sh
+sync && sync && sync
+if [ -x /usr/store/eXchange ]; then sh /etc/action/store drop; fi
+case $(uname -m) in
+amd64) /sbin/shutdown -p now && exit ;;
+*) /sbin/shutdown -h now && exit ;;
+esac

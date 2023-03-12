@@ -1,0 +1,10 @@
+#!/bin/sh
+export BSD_TARGET_SBC=rpi3b64
+export BSD_TARGET_SBC_ALIAS_LIST="rpi3 rpi02 rpi02b64 pi3a rpi3b rpi3cm rpi2b64 rpi2v2 rpi2v1.2 rpi-zero-2 rpi-zero-2W"
+. $BSD_SOC/bcm2710
+. $BSD_VENDOR/rpi
+export BSD_VENDOR_BOOT="rpi/rpi3"
+export BSD_KERNCONF_DEVICE_NIC="$BSD_KERNCONF_DEVICE_NIC smsc smscphy mii muge genet"
+export NIC_PRIMARY="ue0"
+export BSD_KERNCONF_DEVICE_USB_CONTROLLER="$BSD_KERNCONF_DEVICE_USB_CONTROLLER xhci" 
+export EFI_LOADER_SRC=$BSD_BOOT/VENDOR/rpi-loader-efi/bootaa64.efi

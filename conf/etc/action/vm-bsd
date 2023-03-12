@@ -1,0 +1,13 @@
+#!/bin/sh
+case $ARCH in
+amd64)
+	if [ -x /usr/bin/bhyve ] && [ -e /boot/kernel/kernel ]; then
+		/usr/bin/bhyveload -h / vm-bsd
+	else
+		echo "... bhyve plattform infrasture not installed on this image"
+	fi
+	;;
+*)
+	echo "... plattform $ARCH currently not yet supported!"
+	;;
+esac

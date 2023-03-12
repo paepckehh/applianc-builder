@@ -1,0 +1,43 @@
+#!/bin/sh
+if [ ! $1 ]; then echo "... please specify a target drive!" && exit; fi
+if [ ! -c /dev/$1 ]; then echo "... target drive  *** /dev/$1 *** does NOT exist! Please insert /dev/$1 !"; fi
+while $LOOP; do
+	if [ ! -c /dev/$1 ]; then
+		echo -n "."
+		sleep 0.2
+	else
+		sh /etc/action/beep
+		echo "# HIT"
+		echo "... /dev/$1 found!"
+		break
+	fi
+done
+case $SOURCE_DEV in
+"/dev/zero" | "/dev/random")
+	echo "... overwrite partition blocks"
+	/sbin/gpart destroy -F $1 > /dev/null 2>&1
+	;;
+esac
+LOOP=1
+if [ $2 ]; then LOOP=$2; fi
+pv_cmd=/usr/bin/pv
+BS=512k
+case $1 in
+nda* | nvd*) BS=8M pv_cmd="invalid" ;; # pipe is too slow for nvme
+esac
+while [ $LOOP -gt 0 ]; do
+	echo "REMAINING PASSES: $LOOP"
+	echo "... write all target flash drive pages via $SOURCE_DEV"
+	if [ -x $pv_cmd ]; then
+		echo "dd if=$SOURCE_DEV bs=$BS | pv --average-rate --bytes --name '... progress' | dd of=/dev/$1 bs=$BS oflag=direct"
+		dd if=$SOURCE_DEV bs=$BS | pv --average-rate --bytes --name "Progress" | dd of=/dev/$1 bs=$BS oflag=direct
+	else
+		echo "dd if=$SOURCE_DEV of=/dev/$1 oflag=direct bs=$BS status=progress"
+		dd if=$SOURCE_DEV of=/dev/$1 oflag=direct bs=$BS status=progress
+	fi
+	echo $XCMD && $XCMD
+	LOOP=$((LOOP - 1))
+done
+sh /etc/action/beep
+exit
+#################################

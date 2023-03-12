@@ -1,0 +1,36 @@
+#!/bin/sh
+#
+# PROVIDE: xxnpad
+# REQUIRE: syslogd var tmp xxworker xxunbound
+
+. /etc/rc.subr
+name="xxnpad"
+desc="npad - pastbin"
+start_cmd="npad_start"
+stop_cmd="npad_stop"
+rcvar="xxnpad_enable"
+worker="paste"
+load_rc_config $name
+
+npad_start() {
+	(
+		logger "Starting [xx] npad [worker:paste]."
+		if [ -e /var/lock.init.npad ]; then logger "[npad] already running, exit" && exit 1; fi
+		touch /var/lock.init.npad
+		while [ ! -e /var/lock.init.unbound.local ]; do sleep 5; done
+		/usr/sbin/service jail onestart paste | logger
+		while [ ! -e /var/lock.worker.paste ]; do sleep 0.2; done
+		/usr/sbin/jexec paste /usr/bin/npad &
+		ln -fs /.worker/paste/var/paste /var/paste
+		logger "[xx] npad [worker:paste] started."
+	) &
+}
+
+npad_stop() (
+	startmsg "Stopping [xx] npad [worker:paste]."
+	pkill npad
+	/usr/sbin/service jail onestop paste
+	rm -rf /var/lock.init.npad
+)
+
+run_rc_command "$1"

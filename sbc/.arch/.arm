@@ -1,0 +1,9 @@
+#!/bin/sh
+. $BSD_ARCH/.all
+. $BSD_ARCH/.32bit
+. $BSD_ARCH/.fdt
+export TARCH_L1=arm
+export GOARCH=arm
+export GOBUILDMODE=default
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE psci pl310 generic_timer mpcore_timer clk cpufreq"
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS FDT VFP INTRNG LINUX_BOOT_ABI PLATFORM FREEBSD_BOOT_LOADER"

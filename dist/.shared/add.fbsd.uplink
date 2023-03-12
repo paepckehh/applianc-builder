@@ -1,0 +1,23 @@
+#!/bin/sh
+. $BSD_DEVICE/huawei.lte.usb
+X='
+# xxuplink
+xxuplink_enable="NO"
+xxuplink_apn="internet"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+export BSD_DIST_RC="$BSD_DIST_RC xxuplink"
+case $WITH_INET6 in
+true)
+	X='
+# xxuplink ipv6
+ipv6_default_interface="uplink0"
+ipv6_network_interfaces="uplink0"
+ipv6_cpe_wanif="uplink0"		
+ipv6_gateway_enable="YES"
+rtadvd_enable="NO"	
+rtsold_enable="NO"	
+'
+	export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+	;;
+esac

@@ -1,0 +1,17 @@
+#!/bin/sh
+# . $BSD_SBC/.device/nic.usb.lock
+. $BSD_DIST/.shared/add.fbsd.devd
+. $BSD_DIST/.shared/add.pkg.ssh.openssh-locked25519-smartcard-fido2
+export BSD_DIST_PKG="$BSD_DIST_PKG airgap-server"
+export BSD_SSH="$BSD_SSH airgap-server-ed25519 .init.server*"
+X='
+# ssh server specifc setup
+ifconfig_lo0_descr="[LOCALHOST] [LOCALNET]"
+ifconfig_lo0_alias1="inet 127.0.0.22/32"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+X='
+# ssh udp proxy
+kern.ipc.maxsockbuf=3014656
+'
+export BSD_SYSCTL="$BSD_SYSCTL$X"

@@ -1,0 +1,10 @@
+#usr/sbin/tcpdump
+etc/ssl/*
+usb/bin/ssh-add
+usr/bin/openssl
+usr/bin/slogin
+usr/bin/ssh-keygen
+usr/bin/ssh-keyscan
+usr/sbin/makefs
+usr/sbin/sshd
+usr/share/misc

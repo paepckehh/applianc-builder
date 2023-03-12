@@ -1,0 +1,15 @@
+#!/bin/sh
+# manual sub module section updates
+cd src/tools
+for CURRENT in installer nomicon cargo rustfmt stdarch reference book rls miri; do
+	rm -rf rust-$CURRENT
+	rm -rf $CURRENT
+	gitcheckout rust-$CURRENT
+	mv rust-$CURRENT $CURRENT
+done
+mv installer rust-installer
+cd ../..
+rm -rf library/stdarch
+mv src/tools/stdarch library
+BSDlive rust-legacy
+cargo build --offline

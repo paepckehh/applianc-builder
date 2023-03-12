@@ -1,0 +1,3 @@
+#!/bin/sh
+cd /tmp/cgit/usr
+mv lib www local

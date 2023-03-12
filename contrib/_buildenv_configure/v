@@ -1,0 +1,5 @@
+#!/bin/sh
+mkdir -p vc
+cd vc
+git -C $BSD_GIT/vc archive --format=tar HEAD | tar -xf -
+cd ..

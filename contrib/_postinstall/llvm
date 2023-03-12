@@ -1,0 +1,47 @@
+#!/bin/sh
+llvm_img() {
+	sh /etc/action/store drop.llvm
+	TDIR=$TOS.$TARCH_L1.$TARCH_L2.$TARCH_L3
+	LINK=$TDIR.llvm$LLVM_BASE
+	STORE=$BSD_PKG/.store/$LINK
+	rm -rf $STORE/llvm.img.*
+	IMG=$STORE/llvm.img.$DTS.uzst
+	XCMD="sh $BSD_ACTION/.create.img.sh $IMG /tmp/llvm/usr/local ffs1 zstd llvm" && echo $XCMD && $XCMD
+	ln -fs $IMG $BSD_PKG/$TDIR/llvm.img
+}
+llvm_clean() {
+	(
+
+		# XXX FIX FBSD HEADER [see alternative CMakeList.txt Patch]
+		# cd /tmp/llvm/usr/local/llvm/lib/clang/13.0.0/include
+		# rm limits.h stdalign.h stdarg.h stdatomic.h stdbool.h stddef.h stdint.h varargs.h
+
+		# XXX FIX FBSD EXTERNAL LLD [see alternative /etc/.bsdconf wrapper]
+		# cd /tmp/llvm/usr/local/llvm/bin
+		# ln -fs ld.lld ld
+
+		# XXX FIX crappy [gcc compatible] cc cc++ cpp shortcuts for not-well-ages c packages
+		touch /tmp/llvm/usr/local/.build.$DTS
+		cd /tmp/llvm/usr/local/bin
+		ln -f clang cc
+		ln -f clang++ c++
+		ln -f clang++ cc++
+		ln -f clang-cpp cpp
+		cd /tmp/llvm/usr/local
+		rm -rf share sbin libexec libdata
+		cd /tmp/llvm/usr/local/bin
+		rm -rf *test* *dwarf* *cfi* *jit* *tapi* *ifs* *dump* *stress* *lipo* *wind*
+		rm -rf opt* bugpoint* dsysmutil* sancov* verify* split* sanstat* hmaptool* git-clang-format* diagtool*
+		rm -rf clang-rename clang-refactor clang-ast* clang-repl* clang-scan* clang-offload* clang-diff*
+		rm -rf llvm-rc* llvm-ml* llvm-cov* llvm-exe* llvm-pdb* llvm-xray* llvm-cat* llvm-v llvm-otool
+		cp -rf /tmp/llvm-master/.commit /tmp/llvm/usr/local/
+		cd /tmp/llvm
+		find . -type f -exec $STRIPBIN -s {} \; > /dev/null 2>&1
+		if [ -n "$FSDD_CMD" ]; then $FSDD_CMD .; fi
+	)
+}
+DTS=$(date "+%Y%m%d")
+echo "... llvm postinstall img build!"
+llvm_clean
+llvm_img
+beep 2

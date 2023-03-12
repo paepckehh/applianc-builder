@@ -1,0 +1,4 @@
+#!/bin/sh
+sh ./configure \ 
+--prefix=/usr/local \
+	>> /tmp/build-gperf.log

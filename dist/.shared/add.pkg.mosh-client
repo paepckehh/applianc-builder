@@ -1,0 +1,6 @@
+#!/bin/sh
+export BSD_DIST_PKG="$BSD_DIST_PKG mosh-client protobuf"
+export BSD_NIC=true
+export BSD_ADD_ETC_PASSWD="$BSD_ADD_ETC_PASSWD
+mm::0:0::0:0:mosh jump user:/root:/etc/ssh/airgap-client-mosh/.init.sh"
+export BSD_SSH="$BSD_SSH airgap-client-mosh"

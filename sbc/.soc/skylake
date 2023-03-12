@@ -1,0 +1,7 @@
+#!/bin/sh
+. $BSD_ARCH/amd64.amd64.x86-64-v3
+. $BSD_ARCH/.intel
+export BSD_TARGET_SOC=skylake
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE rdrand_rng aesni"
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS IOMMU"
+. $BSD_ARCH/.boot.amd64

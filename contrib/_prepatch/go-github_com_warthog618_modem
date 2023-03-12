@@ -1,0 +1,16 @@
+### ( 2023-01-13 ) ( 1673588041 ) ### DO NOT EDIT ### auto-generated file / patchset by <appliance-builder/enhanced> ###
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ ./serial/serial_freebsd.go	1970-01-01 00:00:00.000000000 +0000
+@@ -0,0 +1,12 @@
++// SPDX-License-Identifier: MIT
++//
++// Copyright © 2020 Kent Gibson <warthog618@gmail.com>.
++
++//go:build freebsd
++
++package serial
++
++var defaultConfig = Config{
++	port: "/dev/lte",
++	baud: 115200,
++}

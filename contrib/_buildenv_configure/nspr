@@ -1,0 +1,7 @@
+#!/bin/sh
+sh ./configure \
+	--host=$CCT \
+	--build=$LT_ARCH \
+	--with-pthreads \
+	--prefix=/usr/local \
+	>> /tmp/build-nspr.log

@@ -1,0 +1,3 @@
+#!/bin/sh
+. $BSD_ARCH/.amd64
+export TARCH_L2=amd64

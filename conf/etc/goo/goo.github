@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="github.com/google/go-github/github" goo $*

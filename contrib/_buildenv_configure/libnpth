@@ -1,0 +1,18 @@
+#!/bin/sh
+rm /var/lock.pkg.gpg
+BSDlive gpg
+sh ./autogen.sh
+sh ./configure \
+	--build=$LT_ARCH \
+	--host=$CCT \
+	--target=$CCT \
+	--prefix=$PREFIX \
+	--disable-debug \
+	--disable-locale \
+	--disable-doc \
+	--disable-man \
+	--disable-nls \
+	--disable-manual
+exit
+###################################
+# >>/tmp/build-$PTARGET.log

@@ -1,0 +1,55 @@
+#!/bin/sh
+if [ ! $1 ]; then exit 1; fi
+TARGET=$1
+CREATE=$2
+cleanpath() {
+	sync && sync && sync
+	if [ -x $TARGET ]; then
+		umount -f $TARGET > /dev/null 2>&1
+		rm -rf $TARGET > /dev/null 2>&1
+		sync && sync && sync
+		if [ -x $TARGET ] && [ -w $TARGET ]; then
+			chflags -R 0 $TARGET > /dev/null 2>&1
+			sync && sync && sync
+			umount -f $TARGET > /dev/null 2>&1
+			rm -rf $TARGET > /dev/null 2>&1
+			if [ -x $TARGET ] && [ -w $TARGET ]; then
+				DTS=$(date "+%Y%m%d-%H%M%S")
+				mv -f $TARGET $TARGET.$DTS.killme > /dev/null 2>&1
+				rm -rf $TARGET.$DTS.killme > /dev/null 2>&!
+				rm -rf $TARGET > /dev/null 2>&1
+				if [ -x $TARGET ] && [ -w $TARGET ]; then
+					echo "################################################################"
+					echo "################################################################"
+					echo "###### ERROR: unable to *** REMOVE *** $TARGET PATH ############"
+					echo "################################################################"
+					echo "################################################################"
+				fi
+			fi
+		fi
+	fi
+	echo "... cleanup $TARGET done!"
+}
+createpath() {
+	mkdir -p $TARGET > /dev/null 2>&1
+	if [ ! -x $TARGET ]; then
+		echo "################################################################"
+		echo "################################################################"
+		echo "###### ERROR: unable to *** CREATE *** $TARGET PATH ############"
+		echo "################################################################"
+		echo "################################################################"
+	fi
+	echo "... create $TARGET directory structure done!"
+}
+createtmpfs() {
+	mount -t tmpfs tmpfs $TARGET
+	echo "... directory structure and TMPFS creation for $TARGET done!"
+}
+cleanpath
+case $CREATE in
+CREATE) createpath ;;
+TMPFS) createpath && createtmpfs ;;
+esac
+sync && sync && sync
+exit
+##############################################################################################

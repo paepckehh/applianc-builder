@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="paepcke.de/rtime/cmd/rtimesrv" goo $*

@@ -1,0 +1,38 @@
+#!/bin/sh
+rm /var/lock.pkg.gpg
+BSDlive gpg
+sh ./autogen.sh
+sh ./configure \
+	--build=$LT_ARCH \
+	--host=$CCT \
+	--target=$CCT \
+	--prefix=$PREFIX \
+	--disable-debug \
+	--disable-locale \
+	--disable-doc \
+	--disable-man \
+	--disable-manual \
+	--disable-nls \
+	--disable-gpgsm \
+	--disable-scdaemon \
+	--disable-dirmngr \
+	--disable-keyboxd \
+	--disable-gpgtar \
+	--disable-wks-tools \
+	--disable-gpg-is-gpg2 \
+	--disable-exec \
+	--disable-dirmngr-auto-start \
+	--disable-largfile \
+	--disable-ntbtls \
+	--disable-gnutls \
+	--disable-rpath \
+	--disable-tests \
+	--enable-g13 \
+	--enable-large-secmem
+exit
+###################################
+# >>/tmp/build-$PTARGET.log
+#  --without-libiconv-prefix
+#	--disable-libdns \
+#	--disable-sqlite \
+#	--disable-photo-viewers \

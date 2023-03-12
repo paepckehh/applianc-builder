@@ -1,0 +1,111 @@
+#!/bin/sh
+#
+# PROVIDE: xxdnscrypt
+# REQUIRE: NETWORKING var tmp jail xxworker
+
+. /etc/rc.subr
+name="xxdnscrypt"
+desc="dnscrypt - secure dns resolver"
+start_cmd="dnscrypt_start"
+stop_cmd="dnscrypt_stop"
+rcvar="xxdnscrypt_enable"
+worker="gate"
+load_rc_config $name
+c1="-config /etc/app/dnscrypt/config.5354"
+c2="-config /etc/app/dnscrypt/config.5353"
+chroot="/.worker/$worker/var/dnscrypt"
+fib="/usr/sbin/setfib 6"
+
+dnscrypt_worker() {
+	/usr/sbin/jexec $worker $fib $xxdnscrypt_program $c2 &
+	if [ "$xxdnscrypt_blind" != "" ] && [ "$xxdnscrypt_cache" != "" ]; then
+		key=/var/unbound/root.key
+		cp /etc/worker/etc.dns/app/unbound/root.key $key
+		chmod 444 $key
+		if [ "$xxdnscrypt_cache" != "" ]; then
+			for target in $xxdnscrypt_cache; do
+				su dnsclient -c "/usr/bin/drill -DS -k $key -I 127.0.0.2 -p 53 $target @127.0.0.53" >> /var/cache.dnscrypt.log 2>&1
+			done
+		fi
+	fi
+}
+
+dnscrypt_worker_blindload() {
+	/usr/sbin/jexec $worker $fib $xxdnscrypt_program $c1 &
+	if [ "$xxdnscrypt_blind" != "" ]; then
+		sleep 3
+		for target in $xxdnscrypt_blind; do
+			su dsnclient -c "/usr/bin/drill -I 127.0.0.2 -p 5354 $target @127.0.0.153" >> /var/cache.dnscrypt.blind.log 2>&1
+		done
+	fi
+}
+
+dnscrypt_check_systime() {
+	while [ $(date +%s) -lt 1659070000 ]; do
+		sleep 0.5
+	done
+}
+
+dnscrypt_start_main() {
+	logger "Starting [xx] dnscrypt [worker:$worker]."
+	if [ -e /var/lock.init.dnscrypt ]; then logger"[dnscrypt] already running, exit" && exit 1; fi
+	touch /var/lock.init.dnscrypt
+	case $worker in
+	dnscrypt)
+		while [ ! -e /var/uplink.0.done ]; do sleep 0.2; done
+		/usr/sbin/service jail onestart $worker | logger
+		while [ ! -e /var/lock.worker.$worker ]; do sleep 0.2; done
+		mkdir -p $chroot
+		chown -R dnscrypt:dnscrypt $chroot
+		UP="$(cat /var/uplink.0.done)"
+		XCMD="/usr/sbin/jail -m -n dnscrypt ip4.addr=lo0|127.0.0.153/24,$UP" && $XCMD
+		;;
+	gate)
+		cat /usr/bin/dnscrypt-proxy >> /dev/null
+		/usr/bin/dnscrypt-proxy -version >> /dev/null
+		find /etc/worker/etc.dnscrypt/app/dnscrypt -type f | xargs cat >> /dev/null
+		while [ ! -e /var/uplink.0.done ]; do sleep 0.2; done
+		/usr/sbin/service jail onestart $worker | logger
+		while [ ! -e /var/lock.worker.$worker ]; do sleep 0.2; done
+		touch /var/lock.init.gate
+		mkdir -p $chroot
+		chown -R dnscrypt:dnscrypt $chroot
+		;;
+	*)
+		chroot="/var/dnscrypt"
+		rm -rf $chroot > /dev/null 2>&1
+		mkdir -p $chroot
+		chown -R dnscrypt:dnscrypt $chroot
+		while [ ! -e /var/uplink.0.done ]; do sleep 0.2; done
+		;;
+	esac
+	while [ ! -e /var/lock.init.gpstime ]; do sleep 0.2; done
+	export DNSCRYPT_FIREWALL="true" SSL_CERT_FILE="/etc/ssl/rootCA.pem" HTTPS_PROXY="127.0.0.8:8080"
+	dnscrypt_check_systime
+	# dnscrypt_worker_blindload
+	dnscrypt_worker
+	touch /var/lock.init.dnscache
+}
+
+dnscrypt_stop_main() {
+	logger "Stopping [xx] dnscrypt [worker:$worker]."
+	pkill dnscrypt
+	case $worker in
+	dnscrypt)
+		/usr/sbin/service jail onestop dnscrypt
+		;;
+	gate)
+		/usr/sbin/service xxsquid onestop
+		/usr/sbin/service jail onestop gate
+		rm -rf /var/lock.init.gate
+		;;
+	esac
+	rm -rf /var/lock.init.dnscrypt
+}
+dnscrypt_start() {
+	(dnscrypt_start_main | logger) &
+}
+dnscrypt_stop() {
+	(dnscrypt_stop_main | logger) &
+}
+run_rc_command "$1"

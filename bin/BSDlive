@@ -1,0 +1,82 @@
+#!/bin/sh
+. /etc/action/.check.store
+case $(uname) in
+FreeBSD*) TOS=fbsd ;;
+Harden*) TOS=fbsd ;;
+OpenBSD*) TOS=obsd ;;
+Linux*) TOS=linux ;;
+MacOS*) TOS=darwin ;;
+esac
+
+if [ ! $1 ]; then
+	echo "... please specify an input list, EXAMPLE: BSDlive xcode"
+	echo "... available livepackage sets for your current HARDWARE PLATTFORM: $ARCH_L1 $ARCH_L2 $ARCH_L3"
+	echo "LIVE PKG SETS:"
+	ls -AhFG $BSD_LIVEPKG
+	echo "LIVE PKGS:"
+	ls -AhFg $BSD_PKG/$TOS.$ARCH_L1.$ARCH_L2.$ARCH_L3
+	echo ""
+	exit 1
+fi
+case $1 in
+.)
+	if [ ! -z "$FZF_CMD" ]; then
+		cd $BSD_PKG/$TOS.$ARCH_L1.$ARCH_L2.$ARCH_L3
+		BSDlive $(ls | $FZF_CMD) all cleanstore
+	fi
+	exit
+	;;
+clean*) rm -rf /var/lock.pkg.* > /dev/null 2>&1 && echo "... cleanpup done!" ;;
+llvm.img | llvm)
+	sh $BSD_LIVEPKG/llvm.conf
+	exit
+	;;
+goo)
+	if [ -f /var/lock.pkg.goo ] && [ ! -x $GOO/.goo ]; then rm -f /var/lock.pkg.goo; fi
+	sh $BSD_LIVEPKG/goo.conf
+	exit
+	;;
+go.img | go | golang)
+	if [ -f /var/lock.pkg.go ] && [ ! -x /usr/local/go/bin/go ]; then rm -f /var/lock.pkg.go; fi
+	if [ -f /var/lock.pkg.go.img ] && [ ! -x /usr/local/go/bin/go ]; then rm -f /var/lock.pkg.go.img; fi
+	if [ -f /var/lock.pkg.golang ] && [ ! -x /usr/local/go/bin/go ]; then rm -f /var/lock.pkg.golang; fi
+	sh $BSD_LIVEPKG/golang.conf
+	exit
+	;;
+esac
+if [ $1 = "clean" ]; then rm -rf /var/lock.pkg.* > /dev/null 2>&1 && echo "... cleanup done!" && exit; fi
+if [ -e /var/lock.pkg.$1 ]; then exit; fi
+if [ -e $BSD_LIVEPKG/$1.conf ]; then sh $BSD_LIVEPKG/$1.conf && touch /var/lock.pkg.$1 && exit; fi
+if [ -e $BSD_LIVEPKG/$1 ]; then
+	while read line; do
+		tar -C / -xf $BSD_PKG/$TOS.$ARCH_L1.$ARCH_L2.$ARCH_L3/$line > /dev/null 2>&1
+		echo "installing pkg $line"
+	done < $BSD_LIVEPKG/$1
+	if [ -e /+MANIFEST ]; then rm -rf /+MANIFEST; fi
+	if [ -e /+COMPACT_MANIFEST ]; then rm -rf /+COMPACT_MANIFEST; fi
+	touch "/var/lock.pkg.$1" > /dev/null 2>&1
+	sh /etc/rc.d/ldconfig restart
+	exit
+fi
+### INDIVIDUAL PKG
+if [ -e $BSD_PKG/$TOS.$ARCH_L1.$ARCH_L2.$ARCH_L3/$1 ]; then
+	tar -C / -xf $BSD_PKG/$TOS.$ARCH_L1.$ARCH_L2.$ARCH_L3/$1 > /dev/null 2>&1
+	case $1 in
+	git | cmake)
+		if [ ! -x /usr/local/bin/$1 ]; then
+			echo "### CURRENT $1 faild, fallback to $1-stable!"
+			BSDlive $1-stable
+			touch /var/lock.pkg.$1-stable
+		else
+			touch /var/lock.pkg.$1
+		fi
+		;;
+
+	*) touch /var/lock.pkg.$1 ;;
+	esac
+	sh /etc/rc.d/ldconfig restart > /dev/null 2>&1
+else
+	echo "... no live-pkg/action found for $ARCH_L1 $ARCH_L2 $ARCH_L3 $1 [$BSD_LIVEPKG]" && exit 1
+fi
+exit
+#######################################

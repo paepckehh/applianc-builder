@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="github.com/quasilyte/perf-heatmap/cmd/perf-heatmap" goo $*

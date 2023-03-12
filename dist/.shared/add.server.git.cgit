@@ -1,0 +1,3 @@
+#!/bin/sh
+. $BSD_DIST/.shared/add.server.web.lighttpd
+export BSD_DIST_PKG="$BSD_DIST_PKG cgit libzip"

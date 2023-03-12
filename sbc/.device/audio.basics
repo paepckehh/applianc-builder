@@ -1,0 +1,3 @@
+#!/bin/sh
+. $BSD_SBC/.device/audio
+export BSD_DIST_PKG="$BSD_DIST_PKG mpg123"

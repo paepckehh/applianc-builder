@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO=".golang.src/cmd/cover" goo $*

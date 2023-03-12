@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="github.com/gokrazy/rsync/cmd/gokr-rsync" goo $*

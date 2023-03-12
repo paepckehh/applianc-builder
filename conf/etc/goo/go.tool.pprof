@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO=".golang.src.$GOOS.$GOARCH/cmd/pprof" goo $*

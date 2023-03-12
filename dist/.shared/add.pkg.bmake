@@ -1,0 +1,5 @@
+#!/bin/sh
+# export BSD_DIST_PKG="$BSD_DIST_PKG bmake"
+unset WITHOUT_MAKE WITHOUT_MAKE_SUPPORT
+export WITH_MAKE=true
+export WITH_MAKE_SUPPORT=true

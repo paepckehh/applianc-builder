@@ -1,0 +1,12 @@
+#!/bin/sh
+case $TARGET in
+amd64)
+	. $BSD_DIST/.shared/add.fbsd.vm
+	unset WITHOUT_BHYVE
+	export WITH_BHYVE=true
+	export BSD_DIST_PKG="$BSD_DIST_PKG"
+	export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS"
+	export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE vmm"
+	# export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE vmm vmm_snapshot"
+	;;
+esac

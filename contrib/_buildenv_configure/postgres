@@ -1,0 +1,25 @@
+#!/bin/sh
+export USE_DEV_URANDOM=1
+autoreconf -if
+autoreconf -if
+sh ./configure \
+	--host=$CCT \
+	--target=$CCT \
+	--with-sysroot=$SRM \
+	--build=$LT_ARCH \
+	--prefix=/usr \
+	--without-openssl \
+	--without-readline \
+	--with-system-tzdata=/etc/zoneinfo.nano \
+	--with-uuid=bsd \
+	--with-llvm \
+	cross_compiling=yes \
+	ac_cf_file_dev_urandom=yes \
+	ac_cv_c_decl_report=true
+
+#############################################
+# --with-ssl=openssl \
+# --with-openssl \
+#ac_cv_func_random=yes \
+#ac_cv_func_srandom=yes
+#--with-lz4 \

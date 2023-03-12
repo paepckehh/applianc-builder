@@ -1,0 +1,13 @@
+#!/bin/sh
+sh ./configure \
+	--host=$CCT \
+	--prefix=/usr/local \
+	--disable-rpath \
+	--without-bash-malloc \
+	--disable-nls \
+	--enable-threads=posix \
+	--enable-alias \
+	--enable-direxpand-default \
+	--enable-help-builtin \
+	--enable-mem-scramble \
+	>> /tmp/build-bash.log

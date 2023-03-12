@@ -1,0 +1,279 @@
+#!/bin/sh
+. /etc/action/.check.store
+DTS=$(date "+%Y%m%d")
+syntax() {
+	echo ""
+	echo "Usage: BSDwrite <HARDWARE PLATTFORM> <DISTRIBUTION> <DRIVE> [ optional: store | zero | rand | date ]"
+	echo ""
+	echo "Example: BSDwrite rpi2 pnoc da1"
+	echo "Example: BSDwrite amd64 bsrv da2 store"
+	echo "Example: BSDwrite rpi4 base da1 uefi"
+	echo "Example: BSDwrite self"
+	echo "Example: BSDwrite sclient rpi2b64 da1"
+	echo ""
+	echo "CURRENTLY ENABLED SBCS: $(ls -Im $BSD_SBC)"
+	echo "CURRENTLY ENABLED DISTRIBUTIONS: $(ls -Im $BSD_DIST)"
+	echo "CURRENTLY ENABLED HARDWARE PLATTFORMS ALIAS: $(ls -Im $BSD_SBC/.alias)"
+	echo "XBOOTLOADER:		ubldr uefi gptboot"
+	echo "DRIVE:			any bootable virtual or physical target device [/dev/]"
+	echo ""
+	echo "Optional:"
+	echo "zero   -> overwrite the complete media one-time with zeros before os deployment!"
+	echo "rand   -> overwrite the complete media with random data [2-pass] before os deployment!"
+	echo "store  -> rsync your complete current datastore after the os deployment! Only allowed on GPT boot disks!"
+	echo "self   -> self-update kernel/sysroot [only possible for bsrv]"
+	echo ""
+	echo "Available images:"
+	ls $BSD_IMG
+	echo ""
+	exit
+}
+info_exit() {
+	echo "... selfupdate only possible on amd64.bsrv!"
+	exit
+}
+case $1 in
+self)
+	. $BSD_SBC/$SBC
+	if [ "$DISTRIBUTION" = "bsrv" ]; then
+		TARGET_DRIVE=da0 && if [ $2 ]; then TARGET_DRIVE=$2; fi
+		case "$(uname -m)" in
+		amd64)
+			if [ -e /dev/"$TARGET_DRIVE"s1 ]; then
+				PARTITION=s1
+				TARGET_SCHEME=mbrboot
+			elif [ -e /dev/"$TARGET_DRIVE"p2 ]; then
+				PARTITION=p2
+				TARGET_SCHEME=gptboot
+			else
+				info_exit
+			fi
+			;;
+		*) info_exit ;;
+		esac
+
+		TARGET_MOUNT="/tmp/$(uuidgen)" && mkdir -p $TARGET_MOUNT
+		SOURCE_MOUNT="/tmp/$(uuidgen)" && mkdir -p $SOURCE_MOUNT
+		SOURCE_IMG="/tmp/$(uuidgen).img"
+
+		echo "... unpack source image!"
+		zstdcat $BSD_IMG/fbsd.$DISTRIBUTION.$BSD_TARGET_SBC.$TARGET_SCHEME > $SOURCE_IMG
+		SOURCE_DRIVE=$(mdconfig $SOURCE_IMG)
+
+		if [ -c /dev/$SOURCE_DRIVE ]; then
+
+			umount -f /dev/$SOURCE_DRIVE$PARTITION > /dev/null 2>&1
+			mount /dev/$SOURCE_DRIVE$PARTITION $SOURCE_MOUNT
+
+			umount -f /dev/$TARGET_DRIVE$PARTITION > /dev/null 2>&1
+			mount /dev/$TARGET_DRIVE$PARTITION $TARGET_MOUNT
+
+			echo "... copy boot partition content!"
+			rm -rf $TARGET_MOUNT/.hqMAP.*
+			cp -rf $SOURCE_MOUNT/.hqMAP.* $TARGET_MOUNT
+			cp -rf $SOURCE_MOUNT/* $TARGET_MOUNT
+
+			case $TARGET_SCHEME in
+			gptboot)
+				echo "... [re-] write x86_b64 *** GPT *** bootcode:"
+				gpart bootcode -b $SOURCE_MOUNT/boot_recover/pmbr $TARGET_DRIVE
+				gpart bootcode -p $SOURCE_MOUNT/boot_recover/gptboot -i 1 $TARGET_DRIVE
+				gpart set -a bootme -i 1 $TARGET_DRIVE
+				;;
+			mbrboot)
+				echo "... [re-] write x86_b64 *** MBR *** bootcode:"
+				gpart bootcode -b $SOURCE_MOUNT/boot_recover/mbr $TARGETDRIVE
+				gpart set -a bootme -i 1 $TARGET_DRIVE
+				;;
+			esac
+			echo "... done!"
+			cd $TARGET_MOUNT && tree --du -r --sort=size -apChF .
+
+			sync && cd /tmp
+			(umount -f $SOURCE_MOUNT && rm -rf $SOURCE_MOUNT) &
+			(umount -f $TARGET_MOUNT && rm -rf $TARGET_MOUNT) &
+			wait
+			(mdconfig -d -u $SOURCE_DRIVE && rm -rf $SOURCE_IMG) &
+			beep 2 && wait && exit
+		else
+			echo "... unable to mount source image!"
+		fi
+	fi
+	info_exit
+	;;
+sclient)
+	if [ $DISPLAY_ROTATE ]; then export DISPLAY_ROTATE="right"; fi
+	sh $BSD_ACTION/write.SClient.sh $2 $3
+	exit
+	;;
+esac
+if [ $1 ] && [ $2 ] && [ ! $3 ]; then
+	echo "... you need to specify a target DRIVE!"
+	syntax
+fi
+
+if [ ! $1 ] || [ ! $2 ] || [ ! $3 ]; then
+	echo "... you need to specify the PLATTFORM, DISTRIBUTION and the target DRIVE!"
+	syntax
+fi
+
+if [ -e $BSD_SBC/.alias/$1 ]; then
+	. $BSD_SBC/.alias/$1
+else
+	echo "### UNKNOWN SBC: $1 --> EXIT!"
+	echo "... currently supported:"
+	ls -I $BSD_SBC/.alias
+fi
+if [ -e $BSD_DIST/$2 ]; then
+	export BSD_TARGET_DIST=$2
+else
+	echo "### UNKNOWN DIST $2 --> EXIT!"
+	echo "... currently supported:"
+	ls -I $BSD_DIST
+fi
+
+case $4 in
+efi) XBOOT=efi ;;
+uefi) XBOOT=uefi ;;
+ubldr) XBOOT=ublr ;;
+mbrboot) XBOOT=mbrboot ;;
+bsdboot) XBOOT=bsdboot ;;
+gptboot) XBOOT=gptboot ;;
+esac
+
+if [ ! -f $BSD_IMG/fbsd.$BSD_TARGET_DIST.$BSD_TARGET_SBC.$XBOOT ]; then
+	echo "... no available image for $BSD_TARGET_SBC $BSD_TARGET_DIST $XBOOT found!"
+	echo "... missing image: $BSD_IMG/fbsd.$BSD_TARGET_DIST.$BSD_TARGET_SBC.$XBOOT"
+fi
+DRIVE=$3
+if [ ! $3 ]; then
+	echo "... you need to specify a target drive!"
+	syntax
+fi
+
+if [ ! -c /dev/$DRIVE ]; then
+	echo "### TARGET DRIVE  *** /dev/$DRIVE *** does NOT exist! Please insert /dev/$DRIVE!"
+	while $LOOP; do
+		if [ ! -c /dev/$DRIVE ]; then
+			echo -n "."
+			sleep 0.2
+		else
+			beep
+			echo "# HIT"
+			echo "... /dev/$DRIVE found!"
+			break
+		fi
+	done
+fi
+
+OPT1=$4
+if [ ! $4 ]; then OPT1="none"; fi
+OPT2=$5
+if [ ! $5 ]; then OPT2="none"; fi
+
+if [ $OPT1 = rand ] || [ $OPT2 = rand ]; then
+	echo "... as requested overwrite your drive with random data (2pass)!"
+	sh /etc/action/init.random &
+	sh /etc/action/noisedrive $DRIVE 2
+fi
+
+if [ $OPT1 = zero ] || [ $OPT2 = zero ]; then
+	echo "... as requested overwrite your drive with one-set of zeros!"
+	sh /etc/action/zerodrive $DRIVE 2
+fi
+
+if [ $(echo $OPT1 | wc -c) -eq 9 ]; then CDATE=$OPT1 && echo "... going with the predefined date $CDATE!"; fi
+if [ $(echo $OPT2 | wc -c) -eq 9 ]; then CDATE=$OPT2 && echo "... going with the predefined date $CDATE!"; fi
+if [ ! -f $BSD_IMG/fbsd.$BSD_TARGET_DIST.$BSD_TARGET_SBC.$XBOOT ]; then echo "... sorry no image found for $BSD_TARGET_DIST $BSD_TARGET_SBC $XBOOT!" && syntax; fi
+#sysctl kern.geom.part.auto_resize=1
+#sysctl kern.geom.part.check_integrity=1
+#sysctl kern.geom.part.mbr.enforce_chs=1
+gpart commit $DRIVE > /dev/null 2>&1
+gpart destroy -F $DRIVE > /dev/null 2>&1
+while $LOOP; do
+	if [ -c /dev/$DRIVE ]; then break; fi
+done
+echo "... raw write/check your image now [/dev/$DRIVE] now !"
+if [ -x /usr/bin/pv ]; then
+	zstdcat $BSD_IMG/fbsd.$BSD_TARGET_DIST.$BSD_TARGET_SBC.$XBOOT | pv --average-rate --bytes --name "... progress" | dd of=/dev/$DRIVE oflag=direct bs=512k
+else
+	zstdcat $BSD_IMG/fbsd.$BSD_TARGET_DIST.$BSD_TARGET_SBC.$XBOOT | dd of=/dev/$DRIVE oflag=direct bs=512k status=progress
+fi
+while $LOOP; do
+	if [ -c /dev/$DRIVE ]; then break; fi
+done
+gpart recover $DRIVE > /dev/null 2>&1
+gpart commit $DRIVE > /dev/null 2>&1
+while $LOOP; do
+	if [ -c /dev/$DRIVE ]; then break; fi
+done
+# sync store if requested
+if [ "$OPT1" = "store" ] || [ "$OPT2" = "store" ] || [ "$OPT1" = "lts" ] || [ "$OPT2" = "lts" ]; then
+	case $XBOOT in
+	gptboot | ubldr | efi)
+		DUID=$(uuidgen | cut -c 1-8)
+		echo "... store sync request detected! -> Drive unique id: $DUID"
+		case $XBOOT in
+		gptboot)
+			echo "### GPT MODE"
+			export MOPT="-t ufs -o async,noatime"
+			export DRIVE2=$(gpart add -t freebsd-swap -s 3584m -a 512k -l "swap$DUID" $DRIVE | cut -c 1-5)
+			export DRIVE1=$(gpart add -t freebsd-ufs -a 512k -l "store$DUID" $DRIVE | cut -c 1-5)
+			newfs -Utn -L "store$DUID" /dev/$DRIVE1 && fsck_ffs -Efy /dev/$DRIVE1 || exit 1
+			;;
+		ffs-sub)
+			echo "### STORE MBR FFS BSD-SCHEMA-SUB-SLICE MODE"
+			export MOPT="-t ufs -o async,noatime"
+			export DRIVES=$(gpart add -t freebsd $STOREMAX $DRIVE | cut -c 1-5)
+			gpart destroy -F $DRIVES
+			gpart create -s BSD $DRIVES
+			export DRIVE1=$(gpart add -t freebsd-ufs -a 512k $DRIVES | cut -c 1-6)
+			newfs -Utn -L "store$DUID" /dev/$DRIVE1 && fsck_ffs -Efy /dev/$DRIVE1 || exit 1
+			;;
+		ffs | ubldr | efi)
+			echo "### STORE MBR FFS MODE"
+			export MOPT="-t ufs -o async,noatime"
+			export DRIVE1=$(gpart add -t freebsd -a 512k $DRIVE | cut -c 1-5)
+			newfs -Utn -L "store$DUID" /dev/$DRIVE1 && fsck_ffs -Efy /dev/$DRIVE1 || exit 1
+			;;
+		msdos)
+			echo "### STORE MBR MSDOS MODE [no symlinks!]"
+			export MOPT="-t msdosfs -o async,noatime"
+			export DRIVE1=$(gpart add -t fat32lba -a 512k $DRIVE | cut -c 1-5)
+			newfs_msdos -A -F 32 /dev/$DRIVE1 || exit 1
+			;;
+		ext2fs)
+			echo "### STORE MBR EXT2FS MODE"
+			export MOPT="-t ext2fs -o async,noatime"
+			export DRIVE1=$(gpart add -t linux-data -a 512k $DRIVE | cut -c 1-5)
+			BSDlive linuxfs
+			mkfs.ext3 /dev/$DRIVE1 || exit 1
+			;;
+		*) echo "### ERROR: For your plattform are no additional partitions allowed on secure boot device!" ;;
+		esac
+		while $LOOP; do
+			if [ -c /dev/$DRIVE1 ]; then break; fi
+			echo "."
+		done
+		STOREDRIVE="/mnt/store/$(echo $DRIVE1 | cut -c 1-3)"
+		if [ "$OPT1" = "store" ] || [ "$OPT2" = "store" ]; then
+			echo "### STORE -> drive: $DRIVE part: $DRIVE1 [$STOREDRIVE]"
+			sh /etc/action/mount-store $DRIVE
+			mkdir -p /mnt/store/$DRIVE/.lts
+			mkdir -p /mnt/store/$DRIVE/eXchange
+			cp -af /usr/store/.posix-timestamp-zero /mnt/store/$DRIVE/.posix-timestamp-zero
+			sh /etc/action/umount-store $DRIVE
+			sh /etc/action/mount-store $DRIVE sync
+		fi
+		;;
+	*) echo "### ERROR: For your plattform are no additional partitions allowed on secure boot device!" ;;
+	esac
+fi
+gpart recover $DRIVE > /dev/null 2>&1
+while $LOOP; do
+	if [ -c /dev/$DRIVE ]; then break; fi
+done
+gpart list $DRIVE
+cd /tmp && sync && sync && sync && beep 2 && echo "... done!"
+exit
+##############################################################3

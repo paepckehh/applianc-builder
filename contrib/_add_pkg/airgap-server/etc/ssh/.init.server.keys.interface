@@ -1,0 +1,10 @@
+#!/bin/sh
+# ethernet adapter mac/serials
+ssh_mac1="e57fe5713b4a29355d6148a4b055ab557ece7376a23f7a82d49c824a5773d8d9"
+ssh_mac2="ac839ec4af4d04aa725fcae56fd7a22337778b7186478a798f1224672c190aee"
+ssh_ser1="e611d47c1b8081f06f8e507ae158fcefe8e45c5b9ab84dff6767fc341d38471c"
+ssh_ser2="d79fb6abe60c9870bfed4113e87e7fea78f2b1309301038e25fb11a8e79b9759"
+#
+ssh_local_if="ue0"
+ssh_local_if_target="locknic0"
+ssh_local_nm="255.255.255.0"

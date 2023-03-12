@@ -1,0 +1,31 @@
+#!/bin/sh
+. $BSD_DIST/.shared/add.worker
+X='
+# ssh client specifc worker setup 
+jail_enable="NO"
+jail_list=" "		
+jail_conf="/etc/worker/worker.sshclient.conf"
+
+# cssh localhost interface [worker] infrastructure
+ifconfig_lo0_descr="[LOCALHOST] [LOCALNET]"
+
+# cssh private client services interfaces
+ifconfig_ue0_name="private0"
+ifconfig_private0_descr="[PRIVATE] [PRIVATENET]"
+ifconfig_private="inet 10.10.250.11/24"
+pf_rules="/etc/pf.conf.ssh-client"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+X='
+#
+# WORKER
+#
+alias worker.start.sshclient="service jail onestart sshclient"
+alias worker.stop.sshclient="service jail onestop sshclient"
+alias worker.login.sshclient="jexec sshclient"
+'
+export BSD_ALIAS_DISTRIBUTION="$BSD_ALIAS_DISTRIBUTION $X"
+export BSD_ADD_ETC_GROUP="$BSD_ADD_ETC_GROUP
+sshclient:*:3001:"
+export BSD_ADD_ETC_PASSWD="$BSD_ADD_ETC_PASSWD
+sshclient:*:3001:3001::0:0:sshclient user:/home/nobody:/bin/sh"

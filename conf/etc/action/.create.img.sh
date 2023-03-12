@@ -1,0 +1,1 @@
+/usr/store/appliance-builder/bin/action/.create.img.sh

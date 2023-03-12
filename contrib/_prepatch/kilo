@@ -1,0 +1,18 @@
+### ( 2023-03-12 ) ( 1678605360 ) ### DO NOT EDIT ### auto-generated file / patchset by <appliance-builder/enhanced> ###
+--- ./Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./Makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -1,7 +1,13 @@
+ all: kilo
+ 
+ kilo: kilo.c
+-	$(CC) -o kilo kilo.c -Wall -W -pedantic -std=c99
++	$(CC) $(CFLAGS) -o kilo kilo.c -Wall -W -pedantic -std=c99 $(LDFLAGS)
+ 
+ clean:
+ 	rm kilo
++	
++install:
++	ln -fs kilo k
++	mkdir -p      $(DESTDIR)/usr/bin
++	mv -f kilo k  $(DESTDIR)/usr/bin/
++	chmod +x      $(DESTDIR)/usr/bin/kilo

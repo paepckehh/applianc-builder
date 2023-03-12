@@ -1,0 +1,25 @@
+#!/bin/sh
+export GITCHECKOUT_PATCH=true
+sh /etc/action/store gitcheckout openntpd-openbsd
+unset GITCHECKOUT_PATCH
+mv -f openntpd-openbsd openbsd
+sh ./autogen.sh
+sh ./configure \
+	--build=$LT_ARCH \
+	--host=$CCT \
+	--target=$CCT \
+	--prefix=/ \
+	--sysconfdir=/etc/ntp \
+	--with-privsep-user=ntpd \
+	--with-cacert-path=/etc/ssl \
+	--disable-debug \
+	--disable-locale \
+	--disable-debug \
+	--disable-man \
+	--disable-manpages \
+	--disable-doc \
+	--disable-tests \
+	--disable-static \
+	--enable-shared
+
+# --disable-https-constraint \

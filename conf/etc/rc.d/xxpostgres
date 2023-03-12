@@ -1,0 +1,213 @@
+#!/bin/sh
+# PROVIDE: xxpostgres
+# REQUIRE: FILESYSTEMS NETWORKING DAEMON SERVERS LOGIN var tmp jail xxworker
+
+. /etc/rc.subr
+name="xxpostgres"
+desc="Postgres Database Server"
+start_cmd="postgres_start"
+stop_cmd="postgres_stop"
+setupminiflux_cmd="postgres_setupminiflux"
+extra_commands="setupminiflux"
+rcvar="xxpostgres_enable"
+load_rc_config $name
+
+CONF=/.worker/postgres/etc/app/postgres
+PROOT=/.worker/postgres/var/postgres
+WTEMP=/.worker/postgres/tmp
+DB="$PROOT/data"
+BACKUP="$PROOT/backup"
+BACKUPDEV="/dev/gpt/minifluxbackup"
+TARGETDEV="da0"
+
+postgres_token() {
+	if [ ! -f /.worker/postgres/etc/app/postgres/database.token ]; then
+		if [ ! -e /usr/store/eXchange ]; then
+			echo "[POSTGRES] [TOKEN] [ERROR] postgres database token missing, to create please mount store!"
+		fi
+		. /etc/.bsdconf
+		dd if=/dev/random of=$BSD_PNOC/app/postgres/database.token bs=64k count=1
+		sync && sync && sync
+		echo "######### NO PRE-EXISTING POSTGRES DATABASE ENCRYPTION TOKEN FOUND! ##############"
+		echo "... new postgres database encryption token generated!"
+		echo "... please run pnoc backup to secure new token, rebuild pnoc & restart! [EXIT NOW]"
+	fi
+}
+postgres_keyme() {
+	postgres_token
+	PGKEY="$(cat $CONF/database.token | sha256)$(usbconfig dump_all_desc | grep 3734 | sha256)"
+	# echo "[POSTGRES] [TOKEN] $PGKEY"
+}
+postgres_keydrop() {
+	PGKEY="false"
+}
+postgres_mount_backup() {
+	umount -f $BACKUP > /dev/null 2>&1
+	mkdir -p $PROOT $BACKUP
+	chown -R postgres:postgres $PROOT
+	fsck -y $BACKUPDEV > /dev/null 2>&1
+	mount -o noatime,noexec $BACKUPDEV $BACKUP
+	chown -R postgres:postgres $PROOT
+}
+postgres_mount_db() {
+	postgres_mount_backup
+	if [ ! -x $PROOT/data/base ]; then
+		postgres_keyme
+		echo "[postgres] database [$DB]"
+		mkdir -p $DB
+		mount -t tmpfs tmpfs $DB
+		cd $DB && cat $BACKUP/current | openssl aes-128-cbc -d -pbkdf2 -iter 10000 -k $PGKEY | zstd -d | tar -C / -xf -
+		postgres_keydrop
+		chmod -R 750 $PROOT
+		chown -R postgres:postgres $PROOT
+		umount -f $BACKUP
+	else
+		echo "[POSTGRES] [ERROR] [MOUNT_DB] - already mounted"
+	fi
+}
+postgres_umount() {
+	sync && sync && sync
+	/sbin/umount -f $BACKUP $DB $WTEMP > /dev/null 2>&1
+	/sbin/umount -f $WTEMP > /dev/null 2>&1
+	rm -rf /.worker/postgres/var/postgres > /dev/null 2>&1
+}
+postgres_backup_db() {
+	echo "1" > /dev/led/led1
+	echo "0" > /dev/led/led0
+	if [ -x $DB/base ]; then
+		logger "[postgres] database backup"
+		logger "[postgres] database maintenance"
+		/usr/sbin/jexec postgres /usr/bin/su postgres -c "psql miniflux -c 'VACUUM FULL'"
+		logger "[postgres] database shutdown"
+		/usr/sbin/jexec postgres /usr/bin/su postgres -c "pg_ctl -D /var/postgres/data stop -m fast"
+		pkill postgres
+		postgres_mount_backup
+		DAY=$(date "+%a")
+		postgres_keyme
+		tar -cf - $DB | zstd -2cvv | openssl aes-128-cbc -e -pbkdf2 -iter 10000 -k $PGKEY > $BACKUP/$DAY.zst
+		postgres_keydrop
+		(cd $BACKUP && ln -fs $DAY.zst backup_date_$(date "+%Y%m%d-%H%M%S") && ln -fs $DAY.zst current)
+		logger "postgres database backup done, please restart if service is needed"
+		postgres_umount
+	else
+		logger "[postgres] no database found to backup!]"
+	fi
+	echo "0" > /dev/led/led1
+	echo "1" > /dev/led/led0
+}
+postgres_setupminiflux() {
+	/usr/sbin/service devd onestop
+	if [ ! -c /dev/$TARGETDEV ]; then
+		echo "### TARGET DRIVE  *** /dev/$TARGETDEV *** does NOT exist! Please insert /dev/$TARGETDEV!"
+		while $LOOP; do
+			if [ ! -c /dev/$TARGETDEV ]; then
+				echo -n "." && sleep 0.2
+			else
+				echo "# HIT" && echo "... /dev/$TARGETDEV found!"
+				gpart destroy -F $TARGETDEV
+				break
+			fi
+		done
+	fi
+	if [ -e /var/lock.init.postgres ]; then echo "[postgres] already running, exit" && exit 1; fi
+	touch /var/lock.init.postgres
+	if [ -x /.worker/postgres/var/postgres ]; then postgres_stop; fi
+	touch /var/lock.init.postgres
+	/usr/sbin/service jail onestart postgres
+	while [ ! -e /var/lock.worker.postgres ]; do sleep 0.2; done
+	mkdir -p $PROOT $BACKUP
+	chown -R postgres:postgres $PROOT
+	chmod o=rwX /tmp
+	chown -R postgres:postgres $WTEMP
+	postgres_umount
+	echo "... wiping drive /dev/da0 and create encrypted postgres database partition!"
+	echo "... some error messages [hmac] are expected!"
+	mkdir -p $DB $BACKUP
+	mount -t tmpfs tmpfs $DB
+	gpart create -s GPT $TARGETDEV
+	gpart add -t freebsd-ufs -a 4m -s 4G -l minifluxbackup $TARGETDEV
+	newfs -L backup -Un $BACKUPDEV
+	fsck -y $BACKUPDEV
+	mount -o noatime,noexec $BACKUPDEV $BACKUP
+	mkdir -p $BACKUP/backup
+	chmod -R 750 $PROOT
+	chown -R postgres:postgres $PROOT
+	cd $PROOT/data
+	echo "... creating database now!"
+	/usr/bin/su postgres -c "initdb -D $DB"
+	/usr/bin/su postgres -c "pg_ctl -D $DB start"
+	/usr/bin/su postgres -c "pg_ctl -D $DB stop -m fast"
+	#echo "unix_socket_directories = '/var/postgres'" >> postgresql.conf
+	#echo "unix_socket_group = 'miniflux'" >> postgresql.conf
+	#echo "unix_socket_permissions = 0700" >> postgresql.conf
+	echo "listen_addresses=''" >> postgresql.conf
+	echo "password_encryption = 'scram-sha-256'" >> postgresql.conf
+	echo "bonjour = off" >> postgresql.conf
+	echo "timezone = 'UTC'" >> postgresql.conf
+	echo "max_connections = 25" >> postgresql.conf
+	echo "wal_level = replica" >> postgresql.conf
+	echo "fsync = off" >> postgresql.conf
+	echo "synchronous_commit = off" >> postgresql.conf
+	echo "full_page_writes = off" >> postgresql.conf
+	echo "dynamic_shared_memory_type = posix" >> postgresql.conf
+	echo "wal_compression = on" >> postgresql.conf
+	echo "default_toast_compression = 'lz4'" >> postgresql.conf
+	/usr/bin/su postgres -c "pg_ctl -D $DB start"
+	/usr/bin/su postgres -c "createuser miniflux"
+	/usr/bin/su postgres -c "createdb -O miniflux miniflux"
+	/usr/bin/su postgres -c "psql miniflux -c 'alter user miniflux with superuser'"
+	/usr/bin/su postgres -c "psql miniflux -c 'create extension hstore'"
+	/usr/bin/su postgres -c "psql miniflux -c 'alter user miniflux with nosuperuser'"
+	#/usr/bin/su postgres -c "psql miniflux -c 'vacuum full'"
+	#/usr/bin/su postgres -c "psql -c alter role miniflux with password $AUTH_KEY"
+	chmod -R 750 $PROOT
+	chown -R postgres:postgres $PROOT
+	/usr/bin/su postgres -c "psql miniflux -c 'VACUUM FULL'"
+	/usr/bin/su postgres -c "pg_ctl -D $DB stop -m fast"
+	pkill postgres
+	postgres_mount_backup
+	DAY=$(date "+%a")
+	postgres_keyme
+	tar -cf - $DB | zstd -2cvv | openssl aes-128-cbc -e -pbkdf2 -iter 10000 -k $PGKEY > $BACKUP/$DAY.zst
+	postgres_keydrop
+	(cd $BACKUP && ln -fs $DAY.zst backup_date_$(date "+%Y%m%d-%H%M%S") && ln -fs $DAY.zst current)
+	echo "postgres database backup done, please restart if service is needed"
+	postgres_umount
+	/usr/sbin/service jail onestop postgres
+	while [ -e /var/lock.worker.postgres ]; do sleep 0.2; done
+	rm -rf /var/lock.init.postgres
+	touch /var/lock.init.postgres.setup
+}
+postgres_stop_db() {
+	echo "[postgres] database maintenance"
+	/usr/sbin/jexec postgres /usr/bin/su postgres -c "psql miniflux -c 'VACUUM FULL'"
+	echo "[postgres] database shutdown"
+	/usr/sbin/jexec postgres /usr/bin/su postgres -c "pg_ctl -D /var/postgres/data stop -m fast"
+	pkill postgres
+}
+postgres_start() {
+	logger "Starting [xx] postgres [worker:postgres]."
+	if [ -e /var/lock.init.postgres ]; then echo "[postgres] already running, exit" && exit 1; fi
+	touch /var/lock.init.postgres
+	if [ -x /.worker/postgres/var/postgres ]; then postgres_stop; fi
+	touch /var/lock.init.postgres
+	/usr/sbin/service jail onestart postgres
+	while [ ! -e /var/lock.worker.postgres ]; do sleep 0.2; done
+	postgres_mount_db
+	chown -R postgres:postgres $WTEMP
+	sync && sync && sync
+	echo "[postgres] database start"
+	/usr/sbin/jexec postgres /usr/bin/su postgres -c "pg_ctl -D /var/postgres/data start"
+	echo "[postgres] database maintenance"
+	/usr/sbin/jexec postgres /usr/bin/su postgres -c "psql miniflux -c 'VACUUM FULL'"
+}
+postgres_stop() {
+	logger "Stopping [xx] postgres [worker:postgres]."
+	postgres_stop_db | logger
+	postgres_backup_db | logger
+	/usr/sbin/service jail onestop postgres | logger
+	postgres_umount | logger
+	rm -rf /var/lock.init.postgres*
+}
+
+run_rc_command "$1"

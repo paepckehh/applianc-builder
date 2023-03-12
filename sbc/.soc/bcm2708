@@ -1,0 +1,6 @@
+#!/bin/sh
+. $BSD_ARCH/arm.armv6.arm1176jzf-s
+export BSD_TARGET_SOC=bcm2708
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS SOC_BCM2835"
+export BSD_KERNCONF_FILES="$BSD_KERNCONF_FILES ../broadcom/bcm2835/files.bcm2835"
+export BSD_KERNCONF_FILES="$BSD_KERNCONF_FILES ../broadcom/bcm2835/files.bcm283x"

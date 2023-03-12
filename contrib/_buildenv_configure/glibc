@@ -1,0 +1,15 @@
+#!/bin/sh
+mkdir build && cd build
+sh ../configure \
+	--host=$CCT \
+	--build=$LT_ARCH \
+	--prefix=/usr \
+	cross_compiling=yes
+
+#	--enable-netmap \
+#	--extra-cflags=-I${WRKSRC}\ -I${LOCALBASE}/include\ -DPREFIX=\\\"\"${PREFIX}\\\"\" \
+#	--extra-ldflags=-L${LOCALBASE}/lib \
+#	--extra-ldflags=-L/usr/lib \
+#	--localstatedir=/var \
+#	--mandir=${PREFIX}/man \
+#	--python=${PYTHON_CMD}

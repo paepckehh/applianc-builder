@@ -1,0 +1,7 @@
+#!/bin/sh
+find * | grep .pod | xargs rm
+cd /tmp/perl5/usr/local/bin
+ln -s perl5.* perl5
+ln -s perl5.* perl
+rm -rf /tmp/*.0
+cd /tmp

@@ -1,0 +1,20 @@
+#!/bin/sh
+. $BSD_DIST/.base/mini
+. $BSD_DIST/.shared/embedded
+. $BSD_DIST/.shared/add.fbsd.mdroot
+. $BSD_DIST/.shared/add.fbsd.capa
+. $BSD_DIST/.shared/add.fbsd.ip4
+. $BSD_DIST/.shared/add.fbsd.pf
+. $BSD_DIST/.shared/add.fbsd.console.vertical
+. $BSD_DIST/.shared/add.pkg.powerdxx
+. $BSD_DIST/.shared/add.pkg.iperf
+. $BSD_DIST/.shared/add.worker.cssh
+. $BSD_DIST/.shared/add.client.ssh.airgap
+X='
+# xxcssh - prepare the sshclient worker
+xxcssh_enable="YES"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+export BSD_DIST_RC="$BSD_DIST_RC xxcssh"
+export EFI_STAGING_SIZE=64
+export BSD_TARGET_DIST="cssh"

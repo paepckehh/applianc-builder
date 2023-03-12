@@ -1,0 +1,4 @@
+#!/bin/sh
+# alias apple / axe / ASIX Elec. Corp
+. $BSD_SBC/.device/usb
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE ether uether mii miibus axe"

@@ -1,0 +1,117 @@
+#!/bin/sh
+if [ ! $BSD_CONF_VERSION ]; then . /etc/.bsdconf; fi
+export BSD_GENERIC_LOCKDOWN_SBC_KEY="9be36b34d376244c3b2f2c15246d0123e9ef4e53cfabcfcb4e5e84d1d40682e5"
+export BSD_GENERIC_LOCKDOWN_PCI_KEY="ddbf45fb3e6df9403468bb6bfedc2c6d18cdc5e5469ad22200fdc10eb448706f"
+export BSD_GENERIC_LOCKDOWN_USB_KEY="45d6b51725fcc5a019e4129a5324363a288e4ee5d394faec75e3a1d3461324b9"
+KEYSTORE=$BSD_SBC_DEVICE_KEYS
+case $1 in
+all)
+	ALL=$(usbconfig | cut -c 5-7)
+	for ITEM in $ALL; do
+		BUS="$(echo $ITEM | cut -c 1)"
+		DEV="$(echo $ITEM | cut -c 3)"
+		sh /etc/action/usb.profile.gen $BUS $DEV
+	done
+	exit
+	;;
+esac
+if [ ! $2 ]; then
+	echo "USB LOCKDOWN PROFILE GENERATOR"
+	echo "Please specify a specific device to profile - or all!"
+	echo "Example: usb.profile.gen all"
+	echo "Example: usb.profile.gen 1 1"
+	echo ""
+	usbconfig | sed 's/^ugen//'
+	exit
+fi
+if [ -n "$(usbconfig -u $1 -a $2 2>&1 | grep match)" ]; then
+	echo "... invalid device choice!"
+	echo ""
+	usbconfig | sed 's/^ugen//'
+	exit
+fi
+echo ""
+echo ""
+usbconfig -u $1 -a $2
+SERIAL_RAW=$(usbconfig -u $1 -a $2 dump_device_desc | grep iSerial)
+if [ -n "$(echo $SERIAL_RAW | grep 'no string')" ]; then
+	echo "#### FAIL ###"
+	echo "... usb device rom is missing an valid *** INDIVIDUAL *** serial number!"
+	echo "... unable to identify / lockdown to this usb device!"
+fi
+DEVICE_STORAGE=false
+DEVICE_KEYBOARD=false
+RAW="$(usbconfig -u $1 -a $2 dump_all_desc)"
+if [ -n "$(echo $RAW | grep -i 'mass storage')" ]; then DEVICE_STORAGE=true; fi
+if [ -n "$(echo $RAW | grep -i 'keyboard')" ]; then DEVICE_KEYBOARD=true; fi
+DEVICE=$(usbconfig -u $1 -a $2 dump_device_desc)
+SERIAL="$(echo "$DEVICE" | grep Serial | cut -d '<' -f 2 | sed 's/>//')"
+SERIAL_LEN="$(echo "$SERIAL" | wc -m | cut -c 6-)"
+VENDOR="$(echo "$DEVICE" | grep idVendor | cut -c 14-19)"
+PRODUCT="$(echo "$DEVICE" | grep idProduct | cut -c 15-20)"
+OUT="$KEYSTORE/usb.mapping"
+echo "... serial_len:$SERIAL_LEN characters"
+if [ $((SERIAL_LEN)) -lt 12 ] || [ "$(echo $SERIAL | cut -c 1-5)" = "00000" ]; then
+	echo "... serial number quality / enropy test failed!"
+	OUT="$OUT.serialnumber-fail"
+
+else
+	echo "... serial_len is good, please cross-check entropy quality:"
+	OUT="$OUT.serialnumber-ok"
+fi
+echo $SERIAL_RAW
+echo ""
+if [ $USB_LOCKDOWN_KEY ]; then
+	echo "### usb lockdown key found!"
+	OUT="$OUT.individual-keyed.$(date +%Y%m%d)"
+else
+	echo "### no usb lockdown key is specified! [ using generic buildsystem key ]"
+	USB_LOCKDOWN_KEY=$BSD_GENERIC_LOCKDOWN_USB_KEY
+	OUT="$OUT.generic-key"
+fi
+ID="$VENDOR#$PRODUCT#$SERIAL#$USB_LOCKDOWN_KEY"
+SKEY="$VENDOR#$PRODUCT#$(echo $ID | sha224)"
+echo "$SKEY" >> $OUT
+if [ -x /usr/bin/sponge ]; then
+	cat $OUT | sort -u | sponge $OUT
+else
+	cat $OUT | sort -u > x && mv x $OUT
+fi
+SERIAL="$(echo $SERIAL | cut -c 1-32)"
+echo "### DEVICE REPORT"
+echo ""
+echo "VENDOR: $VENDOR"
+echo "PRODUCT: $PRODUCT"
+echo "STORAGE: $DEVICE_STORAGE"
+if [ "$DEVICE_STORAGE" = "true" ]; then
+	echo "STORAGE PROTOCOL DETAILS:"
+	echo "$(echo "$RAW" | grep bInterface)"
+	if [ -n "$(echo $RAW | grep bInterfaceSubClass | grep '0x0006')" ]; then
+		echo "		[BBB] WIRE TRANSPORT 		-> [UQ_MSC_FORCE_WIRE_BBB]"
+	fi
+	if [ -n "$(echo $RAW | grep bInterfaceProtocol | grep '0x0050')" ]; then
+		echo "		[BOT] BULK ONLY SCSI PROTOCOL 	-> [UQ_MSC_FORCE_PROTO_SCSI]"
+	fi
+	if [ -n "$(echo $RAW | grep bInterfaceProtocol | grep '0x0062')" ]; then
+		echo "		[UAS] USB ATACHED SCSI PROTOCOL	-> [NOT SUPPORTED IN *BSD | LINUX KERNEL >4.8]"
+	fi
+else
+	echo "KEYBOARD: $DEVICE_KEYBOARD"
+fi
+echo "SERIAL: $SERIAL"
+echo "KEYSTORE: $OUT"
+echo "FINGERPRINT: $SKEY"
+echo ""
+echo ""
+echo ""
+exit
+###################################################
+echo "##################### DEBUG #################"
+echo "Device Summary Report:"
+echo "$DEVICE"
+echo ""
+echo "DEVICE ID:"
+echo "$ID"
+echo ""
+echo ""
+echo "$RAW"

@@ -1,0 +1,34 @@
+### ( 2023-03-12 ) ( 1678605360 ) ### DO NOT EDIT ### auto-generated file / patchset by <appliance-builder/enhanced> ###
+--- ./src/tools/Makefile.am.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./src/tools/Makefile.am	1970-01-01 00:00:00.000000000 +0000
+@@ -21,7 +21,7 @@
+ 	   -e 's,[@]X509DIR[@],$(X509DIR),g'
+ 
+ MAINTAINERCLEANFILES = $(srcdir)/Makefile.in $(srcdir)/versioninfo-tools.rc $(srcdir)/versioninfo-opensc-notify.rc
+-EXTRA_DIST = Makefile.mak versioninfo-tools.rc.in versioninfo-opensc-notify.rc.in goid-tool.ggo.in npa-tool.ggo.in opensc-notify.ggo.in egk-tool.ggo.in opensc-asn1.ggo.in org.opensc.notify.desktop.in exe.manifest pkcs11-register.desktop.in org.opensc-project.mac.pkcs11-register.plist.in org.opensc-project.mac.opensc-notify.plist.in
++EXTRA_DIST = Makefile.mak versioninfo-tools.rc.in versioninfo-opensc-notify.rc.in goid-tool.ggo.in npa-tool.ggo.in opensc-notify.ggo.in egk-tool.ggo.in opensc-asn1.ggo.in exe.manifest
+ 
+ noinst_HEADERS = util.h fread_to_eof.h \
+ 	egk-tool-cmdline.h goid-tool-cmdline.h npa-tool-cmdline.h \
+@@ -167,9 +167,6 @@
+ opensc_notify_SOURCES += versioninfo-opensc-notify.rc
+ endif
+ 
+-applicationsdir = $(datadir)/applications
+-applications_DATA = org.opensc.notify.desktop
+-
+ if ENABLE_AUTOSTART
+ xdg_autostartdir = $(sysconfdir)/xdg/autostart
+ xdg_autostart_DATA = pkcs11-register.desktop
+@@ -178,10 +175,8 @@
+ %.desktop: %.desktop.in
+ 	$(AM_V_GEN)$(do_subst) < $< > $@
+ 
+-noinst_DATA = org.opensc-project.mac.pkcs11-register.plist org.opensc-project.mac.opensc-notify.plist
+-
+ %.plist: %.plist.in
+ 	$(AM_V_GEN)$(do_subst) < $< > $@
+ 
+ clean-local:
+-	rm -f $(abs_builddir)/npa-tool.ggo $(abs_builddir)/opensc-notify.ggo $(abs_builddir)/opensc-asn1.ggo $(abs_builddir)/goid-tool.ggo $(abs_builddir)/egk-tool.ggo org.opensc.notify.desktop pkcs11-register.desktop org.opensc-project.mac.opensc-notify.plist org.opensc-project.mac.pkcs11-register.plist
++	rm -f $(abs_builddir)/npa-tool.ggo $(abs_builddir)/opensc-notify.ggo $(abs_builddir)/opensc-asn1.ggo $(abs_builddir)/goid-tool.ggo $(abs_builddir)/egk-tool.ggo 

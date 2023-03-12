@@ -1,0 +1,4 @@
+#!/bin/sh
+cd /tmp/zstd/usr/lib
+ln -fs libzstd.so libprivatezstd.so
+ln -fs libzstd.so libprivatezstd.so.5

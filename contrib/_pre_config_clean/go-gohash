@@ -1,0 +1,5 @@
+cmd/coder
+cmd/findhash
+data
+wasm
+Makefile

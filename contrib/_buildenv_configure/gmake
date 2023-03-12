@@ -1,0 +1,14 @@
+#!/bin/sh
+rm -rf /tmp/gnulib-master
+tar -C /tmp -xf $BSD_CONTRIB/___legacy/gnulib
+export GNULIB_SRCDIR="/tmp/gnulib-master"
+sh ./bootstrap --gnulib-srcdir="/tmp/gnulib-master" --skip-po --no-git
+sh ./configure \
+	--host=$CCT \
+	--prefix=/usr/local \
+	--disable-nls \
+	--without-guile \
+	--without-dmalloc \
+	--program-prefix=g
+#--without-libiconv-prefix \
+#--without-libintl-prefix \

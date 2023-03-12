@@ -1,0 +1,28 @@
+commit 89b650872bba2e4bfbc94a200946b461ef69ae22
+Author: Mark Johnston <markj@FreeBSD.org>
+Date:   2021-03-05 18:11:02 +0000
+
+    ktls: Hide initialization message behind bootverbose
+    
+    We don't typically print anything when a subsystem initializes itself,
+    and KTLS is currently disabled by default anyway.
+    
+    Reviewed by:    jhb
+    MFC after:      1 week
+    Sponsored by:   The FreeBSD Foundation
+    Differential Revision:  https://reviews.freebsd.org/D29097
+
+diff --git a/sys/kern/uipc_ktls.c b/sys/kern/uipc_ktls.c
+index 5125061e087..1fd1eca39b5 100644
+--- a/sys/kern/uipc_ktls.c
++++ b/sys/kern/uipc_ktls.c
+@@ -495,7 +495,8 @@ ktls_init(void *dummy __unused)
+ 		}
+ 	}
+ 
+-	printf("KTLS: Initialized %d threads\n", ktls_number_threads);
++	if (bootverbose)
++		printf("KTLS: Initialized %d threads\n", ktls_number_threads);
+ }
+ SYSINIT(ktls, SI_SUB_SMP + 1, SI_ORDER_ANY, ktls_init, NULL);
+ 

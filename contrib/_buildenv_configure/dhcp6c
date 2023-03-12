@@ -1,0 +1,9 @@
+#!/bin/sh
+autoreconf -if
+autoreconf -if
+sh ./configure \
+	--host=$CCT \
+	--target=$CCT \
+	--prefix=/usr \
+	cross_compiling=yes \
+	ac_cv_func_setpgrp_void=no

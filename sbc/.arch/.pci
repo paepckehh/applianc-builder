@@ -1,0 +1,11 @@
+#!/bin/sh
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS NEW_PCIB"
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE pci"
+X='
+
+# PCI SPECIFIC
+##################
+hw.pci.do_power_nodriver=3
+
+'
+export BSD_SYSCTL="$BSD_SYSCTL $X"

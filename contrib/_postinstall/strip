@@ -1,0 +1,6 @@
+#!/bin/sh
+SRCOBJ=/usr/obj/usr/src/$SRC_CHECKOUT/$TARCH_L1.$TARCH_L2/usr.bin/objcopy/objcopy
+$STRIPBIN -s $SRCOBJ
+TARGETDIR=/tmp/strip/usr/bin
+mkdir -p $TARGETDIR
+mv -v $SRCOBJ $TARGETDIR/strip

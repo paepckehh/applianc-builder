@@ -1,0 +1,28 @@
+### ( 2023-03-12 ) ( 1678605360 ) ### DO NOT EDIT ### auto-generated file / patchset by <appliance-builder/enhanced> ###
+--- ./Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./Makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -2,11 +2,11 @@
+ 
+ CGIT_VERSION = v1.2.3
+ CGIT_SCRIPT_NAME = cgit.cgi
+-CGIT_SCRIPT_PATH = /var/www/htdocs/cgit
++CGIT_SCRIPT_PATH = /usr/www/cgit
+ CGIT_DATA_PATH = $(CGIT_SCRIPT_PATH)
+-CGIT_CONFIG = /etc/cgitrc
+-CACHE_ROOT = /var/cache/cgit
+-prefix = /usr/local
++CGIT_CONFIG = /.pnoc/apconf/git/cgitrc
++CACHE_ROOT = /var/tmp
++prefix = /usr
+ libdir = $(prefix)/lib
+ filterdir = $(libdir)/cgit/filters
+ docdir = $(prefix)/share/doc/cgit
+@@ -15,7 +15,7 @@
+ mandir = $(prefix)/share/man
+ SHA1_HEADER = <openssl/sha.h>
+ GIT_VER = 2.32.0
+-GIT_URL = https://www.kernel.org/pub/software/scm/git/git-$(GIT_VER).tar.xz
++GIT_URL = https://fail
+ INSTALL = install
+ COPYTREE = cp -r
+ MAN5_TXT = $(wildcard *.5.txt)

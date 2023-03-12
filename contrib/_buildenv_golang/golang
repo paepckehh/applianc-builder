@@ -1,0 +1,161 @@
+#!/bin/sh
+
+golang_bootstrap_old() {
+	export GOROOT_BOOTSTRAP="/usr/local/go.old" 
+	if [ ! -x "$GOROOT_BOOTSTRAP/bin/go" ]; then 
+	sh /etc/action/store drop.golang 
+	sh /etc/action/store drop.golang 
+	umount -f $GOROOT_BOOTSTRAP
+	umount -f $GOROOT_BOOTSTRAP
+	mkdir -p $GOTMPDIR $GOCACHE $GOMODCACHE
+	if [ -z "$GOHOSTOS" ]; then GOHOSTOS=$(uname -s | tr "[:upper:]" "[:lower:]"); fi
+	if [ -z "$GOHOSTARCH" ]; then GOHOSTARCH="$(uname -m)"; fi
+	export GOROOT=$GOROOT_BOOTSTRAP
+	mkdir -p $GOROOT_FINAL $GOROOT_BOOTSTRAP 
+	MD=$BSD_MD_GO
+	mdconfig -u $BSD_MD_GO -d -o force > /dev/null 2>&1
+	mdconfig -u $BSD_MD_GO -f $BSD_PKG/fbsd.$ARCH_L1.$ARCH_L2.$ARCH_L3/go.img-legacy > /dev/null 2>&1
+	mount -o ro /dev/$BSD_MD_GO.uzip /usr/local/go.old || exit 1
+	fi 
+	echo "BOOTSTRAP TOOLCHAIN: $GOROOT_BOOTSTRAP"
+}
+
+golang_bootstrap_new() {
+	/etc/action/BSDlive goo
+	if [ -z "$GOHOSTOS" ]; then GOHOSTOS=$(uname -s | tr "[:upper:]" "[:lower:]"); fi
+	if [ -z "$GOHOSTARCH" ]; then GOHOSTARCH="$(uname -m)"; fi
+	export GOROOT_BOOTSTRAP="/usr/local/goo/.$GOHOSTOS.$GOHOSTARCH"
+	echo "BOOTSTRAP TOOLCHAIN: $GOROOT_BOOTSTRAP"
+}
+
+golang_build() {
+	golang_bootstrap_new 
+	if [ ! -x "$GOROOT_BOOTSTRAP/bin/go" ]; then golang_bootstrap_old ; fi 
+	umount -f /usr/local/go > /dev/null 2>&1
+	rm -rf /usr/local/go > /dev/null 2>&1
+	mv -f /tmp/golang-master /usr/local/go
+	echo $GOVERSION > /usr/local/go/VERSION
+	cd /usr/local/go/src
+	sh make.bash >> /tmp/build-go.log
+	rm -rf $BSD_ENHANCED/golang/.src.$GOOS.$GOARCH.* $BSD_ENHANCED/golang/.attic/.src.$GOOS.$GOARCH.*
+	cd /usr/local/go && mv src src.changed
+	DIFFSTORE=$BSD_DEV/goo && mkdir -p $DIFFSTORE
+	DIFF="$DIFFSTORE/.stdlib.$GOOS.$GOARCH.diff"
+	echo "### ( $DTS ) ( $(date +%s) ) ### DO NOT EDIT ### auto-generated file / patchset by <goo> ###" > $DIFF
+	/usr/bin/diff -uNr src.orig src.changed >> $DIFF
+	sed -i '' -e 's/+++ src.changed\//+++ /g' $DIFF
+	sed -i '' -e 's/--- src.orig\//--- /g' $DIFF
+}
+
+golang_src_clean() {
+	cd /tmp/golang-master
+	cp -af src src.orig
+	rm -rf misc lib test doc api favicon.ico robots.txt codereview.cfg A* C* L* P* R* S* misc/chrome misc/cgo/test
+}
+
+golang_post_clean() {
+	cd /usr/local/go/bin
+	mv -f "$GOOS"_$GOARCH/* .
+	rm -rf "$GOOS"*
+	cd /usr/local/go
+	mv bin bin.old
+	mkdir -p bin
+	mv bin.old/go bin/go
+	rm -rf go.old
+	cd /usr/local/go/pkg
+	rm -rf "$GOHOSTOS"_* "$GOOS"_* > /dev/null 2>&1 
+	if [ "$GOHOSTARCH" != "$GOARCH" ] || [ "$GOOS" == "linux" ]; then rm -rf tool/"$GOHOSTOS"_"$GOHOSTARCH"; fi
+	cd /usr/local/go/pkg/tool/"$GOOS"_"$GOARCH" && (
+		mkdir -p off
+		mv * off/ > /dev/null 2>&1 
+		cd off && mv -v asm compile link vet ..
+		cd .. && rm -rf off
+	)
+	cd /usr/local
+	mv go go_off && mkdir -p go
+	mv go_off/VERSION go_off/bin go_off/pkg go/
+	rm -rf go_off
+	cd go
+	ln -fs /usr/local/goo/.golang.src.$GOOS.$GOARCH src
+	case $GOOS in 
+	linux) ;;
+	freebsd) 
+		find /usr/local/go/bin -type f -exec $STRIPBIN -s {} \; > /dev/null 2>&1
+		find /usr/local/go/pkg -type f -exec $STRIPBIN -s {} \; > /dev/null 2>&1
+		;;
+	esac
+}
+
+golang_img() {
+	chmod -R o=rX,u=rX,g=rX /usr/local/go
+	chown -R 0:0 /usr/local/go
+	cd /tmp
+	TDIR=$TOS.$TARCH_L1.$TARCH_L2.$TARCH_L3
+	LINK=$TDIR.llvm$LLVM_BASE
+	STORE=$BSD_PKG/.store/$LINK
+	rm -rf $STORE/go.img.*
+	mkdir -p $STORE /usr/local/go/pkg/mod /usr/local/go/pkg/sumdb
+	IMG=$STORE/go.img.$DTS.uzst
+	XCMD="sh $BSD_ACTION/.create.img.sh $IMG /usr/local/go ffs1 zstd golang" && echo $XCMD && $XCMD
+	ln -fs $IMG $BSD_PKG/$TDIR/go.img
+}
+
+golang_nistec() {
+	echo "### GOLANG FIAT NISTEC EXPERIMENTAL UPGRADE ACTIVATED! - DO NOT USE IN PROD"
+	cd /tmp/golang-master/src/crypto/internal
+	sh /etc/action/git.checkout go-github_com_filosottile_nistec patchclean
+	mv -fv nistec nistec.orig
+	mv -fv go-github_com_filosottile_nistec nistec
+	cd nistec && rm -f vendor
+	export GOVERSION="$GOVERSION ( nistec:$(cat .commit)i )"
+	ln -fs internal/fiat fiat
+	sed -i '' -e 's/filippo.io\/nistec\/internal\/fiat/crypto\/internal\/nistec\/fiat/g' *.go
+	cd /tmp/golang-master/src/crypto/internal
+	/usr/bin/diff -ur nistec.orig nistec > $BSD_ENHANCED/golang/.golang-nistec.diff
+	# ... see bundled std-lib goo 
+	# mv -f nistec nistec.enhanced && mv -f nistec.orig nistec
+	cd /tmp/golang-master
+}
+
+golang_rebuild_gootools() {
+	BASE=/usr/local/go/pkg/tool/"$GOOS"_"$GOARCH"
+	mkdir -p $BASE && cd $BASE
+	for TOOL in $TOOLS; do
+		TARGET="$BASE/$TOOL"
+		if [ ! -e $TARGET ] && [ "$TOOL" != "go" ]; then
+			touch $BSD_DEV/goo/goo/go.tool.$TOOL
+			cp -avf $BSD_DEV/goo/goo/go.tool.$TOOL $TOOL
+		fi
+	done
+	cp -rvf $BSD_DEV/goo/goo/gofmt /usr/local/go/bin/gofmt
+}
+
+# config
+unset GOEXPERIMENT
+export DTS=$(date "+%Y%m%d")
+export GOGC=off
+export GO_NISTEC_FIAT=true
+export CGO_ENABLED="0"
+export GOTMPDIR=/var/tmp/.go.build.temp
+export GOCACHE="/root/.temp/gocache" && mkdir $GOCACHE
+export GOROOT_FINAL="/usr/local/goo/.$GOOS.$GOARCH"
+export GOBUILDTIMELOGFILE="/tmp/build-go-$GOOS-$GOARCH.log"
+export GOCOMMIT=$(cat /tmp/golang-master/.commit)
+export LOCKTLS=$(cat /tmp/golang-master/src/crypto/LockTLS)
+export GOVERSION="go1.20 ( COMMIT:$GOCOMMIT ) ( BUILD:$(date "+%Y-%m-%d %H%M") ) ( LockTLS:$LOCKTLS )"
+export TOOLS=$(cd /tmp/golang-master/src/cmd && find . -type d -depth 1 | sed -e 's/vendor//g' | sed -e 's/gofmt//g' | sed -e 's/test2json//g' | sed -e 's/internal//g' | sed -e 's/\.\///g' | sort -u)
+mkdir -p $GOTMPDIR $GOCACHE $GOMODCACHE
+echo "Starting build:"
+echo "### NEW GO VERSION: $GOVERSION"
+
+# main
+cd /tmp/golang-master
+golang_nistec
+golang_src_clean
+golang_build
+golang_post_clean
+golang_rebuild_gootools
+golang_img
+sh /etc/action/store drop.golang
+sh /etc/action/store drop.golang
+cd && rm -rf /tmp/golang* && mkdir -p /tmp/golang

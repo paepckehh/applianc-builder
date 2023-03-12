@@ -1,0 +1,101 @@
+### ( 2023-03-12 ) ( 1678605360 ) ### DO NOT EDIT ### auto-generated file / patchset by <appliance-builder/enhanced> ###
+--- ./Makefile.in.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./Makefile.in	1970-01-01 00:00:00.000000000 +0000
+@@ -19,7 +19,7 @@
+ abs_top_srcdir=@abs_top_srcdir@
+ abs_top_builddir=@abs_top_builddir@
+ 
+-DESTDIR=
++# DESTDIR=
+ VPATH=@srcdir@
+ SSH_PROGRAM=@bindir@/ssh
+ ASKPASS_PROGRAM=$(libexecdir)/ssh-askpass
+@@ -69,7 +69,7 @@
+ 
+ .SUFFIXES: .lo
+ 
+-TARGETS=ssh$(EXEEXT) sshd$(EXEEXT) ssh-add$(EXEEXT) ssh-keygen$(EXEEXT) ssh-keyscan${EXEEXT} ssh-keysign${EXEEXT} ssh-pkcs11-helper$(EXEEXT) ssh-agent$(EXEEXT) scp$(EXEEXT) sftp-server$(EXEEXT) sftp$(EXEEXT) ssh-sk-helper$(EXEEXT)
++TARGETS=ssh$(EXEEXT) sshd$(EXEEXT) ssh-add$(EXEEXT) ssh-keygen$(EXEEXT) ssh-keyscan${EXEEXT} ssh-keysign${EXEEXT} ssh-pkcs11-helper$(EXEEXT) ssh-agent$(EXEEXT) ssh-sk-helper$(EXEEXT)
+ 
+ XMSS_OBJS=\
+ 	ssh-xmss.o \
+@@ -382,7 +382,7 @@
+ 	$(AUTORECONF)
+ 	-rm -rf autom4te.cache .depend.bak
+ 
+-install: $(CONFIGFILES) $(MANPAGES) $(TARGETS) install-files install-sysconf host-key check-config
++install: $(MANPAGES) $(TARGETS) install-files
+ install-nokeys: $(CONFIGFILES) $(MANPAGES) $(TARGETS) install-files install-sysconf
+ install-nosysconf: $(CONFIGFILES) $(MANPAGES) $(TARGETS) install-files
+ 
+@@ -398,7 +398,6 @@
+ 	$(MKDIR_P) $(DESTDIR)$(libexecdir)
+ 	$(MKDIR_P) -m 0755 $(DESTDIR)$(PRIVSEP_PATH)
+ 	$(INSTALL) -m 0755 $(STRIP_OPT) ssh$(EXEEXT) $(DESTDIR)$(bindir)/ssh$(EXEEXT)
+-	$(INSTALL) -m 0755 $(STRIP_OPT) scp$(EXEEXT) $(DESTDIR)$(bindir)/scp$(EXEEXT)
+ 	$(INSTALL) -m 0755 $(STRIP_OPT) ssh-add$(EXEEXT) $(DESTDIR)$(bindir)/ssh-add$(EXEEXT)
+ 	$(INSTALL) -m 0755 $(STRIP_OPT) ssh-agent$(EXEEXT) $(DESTDIR)$(bindir)/ssh-agent$(EXEEXT)
+ 	$(INSTALL) -m 0755 $(STRIP_OPT) ssh-keygen$(EXEEXT) $(DESTDIR)$(bindir)/ssh-keygen$(EXEEXT)
+@@ -407,8 +406,6 @@
+ 	$(INSTALL) -m 4711 $(STRIP_OPT) ssh-keysign$(EXEEXT) $(DESTDIR)$(SSH_KEYSIGN)$(EXEEXT)
+ 	$(INSTALL) -m 0755 $(STRIP_OPT) ssh-pkcs11-helper$(EXEEXT) $(DESTDIR)$(SSH_PKCS11_HELPER)$(EXEEXT)
+ 	$(INSTALL) -m 0755 $(STRIP_OPT) ssh-sk-helper$(EXEEXT) $(DESTDIR)$(SSH_SK_HELPER)$(EXEEXT)
+-	$(INSTALL) -m 0755 $(STRIP_OPT) sftp$(EXEEXT) $(DESTDIR)$(bindir)/sftp$(EXEEXT)
+-	$(INSTALL) -m 0755 $(STRIP_OPT) sftp-server$(EXEEXT) $(DESTDIR)$(SFTP_SERVER)$(EXEEXT)
+ 	$(INSTALL) -m 644 ssh.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh.1
+ 	$(INSTALL) -m 644 scp.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/scp.1
+ 	$(INSTALL) -m 644 ssh-add.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-add.1
+--- ./readconf.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./readconf.c	1970-01-01 00:00:00.000000000 +0000
+@@ -2537,12 +2537,6 @@
+ 	}
+ 	if (options->escape_char == -1)
+ 		options->escape_char = '~';
+-	if (options->num_system_hostfiles == 0) {
+-		options->system_hostfiles[options->num_system_hostfiles++] =
+-		    xstrdup(_PATH_SSH_SYSTEM_HOSTFILE);
+-		options->system_hostfiles[options->num_system_hostfiles++] =
+-		    xstrdup(_PATH_SSH_SYSTEM_HOSTFILE2);
+-	}
+ 	if (options->update_hostkeys == -1) {
+ 		if (options->verify_host_key_dns <= 0 &&
+ 		    (options->num_user_hostfiles == 0 ||
+--- ./sshd.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sshd.c	1970-01-01 00:00:00.000000000 +0000
+@@ -46,6 +46,9 @@
+ 
+ #include <sys/types.h>
+ #include <sys/ioctl.h>
++
++#include <sys/mman.h>
++
+ #include <sys/socket.h>
+ #ifdef HAVE_SYS_STAT_H
+ # include <sys/stat.h>
+@@ -2035,6 +2038,11 @@
+ 	}
+ 	/* Reinitialize the log (because of the fork above). */
+ 	log_init(__progname, options.log_level, options.log_facility, log_stderr);
++
++	/* XXX _BSD OOM patch */
++	/* Avoid killing the process in high-memory-pressure environments. */
++	if (!inetd_flag && madvise(NULL, 0, MADV_PROTECT) != 0)
++		debug("madvise(): %.200s", strerror(errno));
+ 
+ 	/*
+ 	 * Chdir to the root directory so that the current disk can be
+--- ./version.h.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./version.h	1970-01-01 00:00:00.000000000 +0000
+@@ -3,4 +3,5 @@
+ #define SSH_VERSION	"OpenSSH_8.8"
+ 
+ #define SSH_PORTABLE	"p1"
+-#define SSH_RELEASE	SSH_VERSION SSH_PORTABLE
++#define SSH_COMMIT	"-COMMIT_HASH"
++#define SSH_RELEASE	SSH_VERSION SSH_PORTABLE SSH_COMMIT
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ ./version.sh	1970-01-01 00:00:00.000000000 +0000
+@@ -0,0 +1,3 @@
++#!/bin/sh
++COMMIT="$(cat .commit | cut -c 1-8)"
++sed -i '' -e "s/COMMIT_HASH/$COMMIT/" version.h

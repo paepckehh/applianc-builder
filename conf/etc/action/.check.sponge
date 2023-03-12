@@ -1,0 +1,5 @@
+#!/bin/sh
+if [ ! -x /usr/bin/sponge ]; then
+	echo "... action needs [/usr/bin/sponge] [exit]"
+	exit 1
+fi

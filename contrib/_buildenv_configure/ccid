@@ -1,0 +1,47 @@
+#!/bin/sh
+
+# checkout pcsc src into subdir to build ccid driver
+rm -rf pcsc PCSC > /dev/null 2>&1
+sh /etc/action/store gitcheckout pcsc patch
+mv pcsc PCSC
+cd PCSC
+sh ./bootstrap
+sh ./configure \
+	--build=$LT_ARCH \
+	--host=$CCT \
+	--target=$CCT \
+	--prefix=/usr \
+	--disable-libsystemd \
+	--disable-documentation \
+	--enable-ipcdir=/var/run/pcsc \
+	--enable-libusb
+
+echo $CCT
+case $CCT in
+x86*)
+	cd src
+	gmake regen
+	tar -cvf $BSD_CONTRIB/_patch/wirecheck.tar.xz pcsc-wire*
+	cd ..
+	;;
+*)
+	cd src
+	tar -xvf $BSD_CONTRIB/_patch/wirecheck.tar.xz
+	rm -f pcsc-wirecheck-dist.c
+	./pcsc-wirecheck-gen > pcsc-wirecheck-dist.c.tmp
+	mv pcsc-wirecheck-dist.c.tmp pcsc-wirecheck-dist.c
+	cd ..
+	;;
+esac
+
+# back to ccid build
+cd /tmp/ccid-master
+sh ./bootstrap
+sh ./configure \
+	--build=$LT_ARCH \
+	--host=$CCT \
+	--target=$CCT \
+	--prefix=/usr \
+	--enable-usbdropdir=/usr/lib/pcsc/drivers
+touch Makefile
+export PCSC_LIBS=$SRM/usr/lib

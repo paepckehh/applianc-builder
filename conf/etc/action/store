@@ -1,0 +1,704 @@
+#!/bin/sh
+####################################
+### CONFIGURATION SETUP SECTION  ###
+####################################
+store_conf() {
+	export TARGET_DIR=/usr/store
+	export TARGET_SWAP=/dev/gpt/swap*
+}
+####################################
+### INTERNAL FUNCTIONS INTERFACE ###
+####################################
+store_ginteg() {
+	if [ -n "$TARGET_STORE" ]; then
+		sync && sync && sync
+		for GEOM in 0 1 2 3 4 5 6; do
+			if [ -c /dev/da$GEOM ]; then
+				gpart recover da$GEOM &
+			fi
+		done
+		wait
+		case "$(fstyp $TARGET_STORE)" in
+		ufs)
+			if [ $ZERO ]; then
+				fsck_ffs -ZEfyRrz $TARGET_STORE
+			else
+				fsck_ffs -EfyRrz $TARGET_STORE
+			fi
+			;;
+		ext2fs)
+			BSDlive linuxfs
+			fsck.ext3 -f $TARGET_STORE
+			;;
+
+		msdosfs)
+			fsck_msdosfs -f $TARGET_STORE
+			;;
+		esac
+	fi
+}
+store_fastinteg() {
+	if [ -n "$TARGET_STORE" ]; then
+		sync && sync && sync
+		case "$(fstyp $TARGET_STORE)" in
+		ufs) fsck_ffs $TARGET_STORE ;;
+		esac
+	fi
+}
+store_touch() {
+	if [ -e $TARGET_DIR/eXchange ]; then
+		# access rights
+		cd $TARGET_DIR
+		for LINE in .cache-internal-resources .cache-external-resources .datastore; do
+			(
+				chown -R root:wheel $LINE
+				chmod -R u=rwX,g=rwX,o=rX $LINE
+			) &
+		done
+		wait
+		cd $TARGET_DIR/appliance-builder
+		chmod -R 755 bin contrib dist sbc conf/etc/action
+
+		# reset hqx hqs sh executables
+		cd $TARGET_DIR/dev
+		find . -type f | egrep "\.hqx|\.hqs|\.sh" | xargs chmod +x
+
+		# reset pnoc
+		LIST="cgit dnscrypt fastgoproxy httpd miniflux npad postgres rtime rtimesrv squid unbound blockdns dns git goproxy paste proxy rss time gitclient sshclient"
+		for item in $LIST; do
+			chown -RP $item:$item $BSD_PNOC/app/$item
+			chmod -RP u=rwX,g=rwX,o= $BSD_PNOC/app/$item
+		done
+		chmod u=rX,g=rX,o=rX $BSD_PNOC/etc/worker/etc.* $BSD_PNOC/etc/worker/etc.*/app
+		chown -R gitclient:gitclient $BSD_GIT/* $BSD_GIT/.*
+
+		# reset [atime|mtime]
+		sh /etc/action/.reset.date.file $TARGET_DIR
+	fi
+}
+store_cache() {
+	if [ ! $CACHE_DIR ]; then CACHE_DIR=$TARGET_DIR; fi
+	echo "... caching $CACHE_DIR! [ PLEASE WAIT ! ]"
+	find $CACHE_DIR -type d > /dev/null 2>&1
+	find $CACHE_DIR -type f | xargs cat > /dev/null 2>&1
+}
+store_verify() {
+	cd $TARGET_DIR && hq v
+}
+store_swapadd() {
+	echo "... adding store swap $TARGET_SWAP"
+	swapon $TARGET_SWAP > /dev/null 2>&1
+}
+store_find() {
+	if [ -e /dev/ufs/store* ]; then
+		export TARGET_STORE="/dev/ufs/store*"
+	elif [ -e /dev/gpt/store* ]; then
+		export TARGET_STORE="/dev/gpt/store*"
+	else
+		echo "#########################################################################"
+		echo "... no or more than one device with a valid store labeled partition found!"
+		echo "... please mount/umount/verify your store manually!"
+		echo "#########################################################################"
+		export TARGET_STORE=""
+	fi
+	if [ -n "$TARGET_STORE" ]; then
+		case "$(fstyp $TARGET_STORE)" in
+		ufs) export TARGET_STORE_OPT="-t ufs -o async,noatime,untrusted" ;;
+		ext2fs) export TARGET_STORE_OPT="-t ext2fs -o async,noatime" ;;
+		msdosfs) export TARGET_STORE_OPT="-t msdosfs -o async,noatime" ;;
+		*) echo "... unable to find a valid store!" && exit ;;
+		esac
+	fi
+}
+store_mount() {
+	if [ -x $TARGET_DIR/eXchange ]; then
+		echo "... store already mounted!"
+	else
+		store_find
+		if [ -n "$TARGET_STORE" ]; then
+			store_ginteg
+			mount $TARGET_STORE_OPT $TARGET_STORE $TARGET_DIR
+			if [ -x $TARGET_DIR/eXchange ]; then
+				echo "... store available now!"
+			else
+				umount -f /usr/store
+				echo "... unable to find a valid store!"
+				exit
+			fi
+		fi
+		if [ $SWAP ]; then
+			store_swapadd &
+		fi
+	fi
+	if [ $CACHE ]; then
+		store_cache &
+	fi
+	if [ $VERIFY ]; then
+		store_verify &
+	fi
+	if [ $TOUCH ]; then
+		store_touch &
+	fi
+	if [ $PREPCACHE ]; then
+		sh $BSD_BIN/BSDbuild prepcache &
+	fi
+	wait
+	sync && sync && sync
+}
+store_drop_appliance_src() {
+	if [ ! $SRC_CHECKOUT ]; then export SRC_CHECKOUT=HEAD; fi
+	if [ -f /usr/src/$SRC_CHECKOUT/Makefile ]; then umount -f /usr/src/$SRC_CHECKOUT > /dev/null 2>&1; fi
+	if [ -f /usr/src/$SRC_CHECKOUT/Makefile ]; then umount -f /usr/src/$SRC_CHECKOUT > /dev/null 2>&1; fi
+	if [ -x /usr/src/$SRC_CHECKOUT ]; then umount -f /usr/src > /dev/null 2>&1; fi
+	if [ -x /usr/src/$SRC_CHECKOUT ]; then umount -f /usr/src > /dev/null 2>&1; fi
+	if [ -e /dev/$BSD_MD_SRC ]; then mdconfig -d -u $BSD_MD_SRC -o force > /dev/null 2>&1; fi
+}
+store_drop_appliance_obj() {
+	if [ -w /usr/obj ]; then umount -f /usr/obj; fi
+}
+store_drop_appliance_ccache() {
+	if [ -x /usr/ccache ]; then
+		MD=$BSD_MD_CCACHE_START
+		LIST=$(ls -I /usr/ccache)
+		for LINE in $LIST; do
+			umount /usr/ccache/$LINE > /dev/null 2>&1
+			if [ -w /usr/ccache/$LINE/0 ]; then umount -f /usr/ccache/$LINE > /dev/null 2>&1; fi
+			if [ -x /usr/ccache/$LINE/0 ]; then umount -f /usr/ccache/$LINE > /dev/null 2>&1; fi
+			if [ -e /dev/md$MD ]; then mdconfig -d -u $MD -o force > /dev/null 2>&1; fi
+			MD=$((MD + 1))
+		done
+		umount /usr/ccache > /dev/null 2>&1
+	fi
+}
+store_drop_appliance_sysroots() {
+	if [ -x /usr/sysroots/.temp ]; then
+		MD=$BSD_MD_SYSROOTS_START
+		LIST=$(ls -I /usr/sysroots)
+		for LINE in $LIST; do
+			if [ -x /usr/sysroots/$LINE/lib ]; then
+				umount -f /usr/sysroots/$LINE > /dev/null 2>&1
+			fi
+			if [ -e /dev/md$MD ]; then mdconfig -d -u $MD -o force > /dev/null 2>&1; fi
+			MD=$((MD + 1))
+		done
+		umount -f /usr/sysroots
+	fi
+	if [ -x /.worker/gitclient/usr/store/git ]; then umount -f /.worker/gitclient/usr/store/git /.worker/gitclient/usr/store; fi
+}
+store_drop_llvm() {
+	if [ -x /usr/local/llvm16/bin ]; then umount -f /usr/local/llvm16; fi
+	if [ -x /usr/local/llvm15/bin ]; then umount -f /usr/local/llvm15; fi
+	if [ -x /usr/local/llvm14/bin ]; then umount -f /usr/local/llvm14; fi
+	if [ -x /usr/local/llvm13/bin ]; then umount -f /usr/local/llvm13; fi
+	if [ -e /dev/$BSD_MD_LLVM16 ]; then mdconfig -d -u $BSD_MD_LLVM16 -o force > /dev/null 2>&1; fi
+	if [ -e /dev/$BSD_MD_LLVM15 ]; then mdconfig -d -u $BSD_MD_LLVM15 -o force > /dev/null 2>&1; fi
+	if [ -e /dev/$BSD_MD_LLVM14 ]; then mdconfig -d -u $BSD_MD_LLVM14 -o force > /dev/null 2>&1; fi
+	if [ -e /dev/$BSD_MD_LLVM13 ]; then mdconfig -d -u $BSD_MD_LLVM13 -o force > /dev/null 2>&1; fi
+	rm -rf /var/lock.pkg.llvm* /usr/local/llvm* > /dev/null 2>&1
+}
+store_drop_man() {
+	if [ -e /usr/share/man/mandoc.db ]; then (umount -f /usr/share/man > /dev/null 2>&1); fi
+	if [ -e /dev/$BSD_MD_MAN ]; then mdconfig -d -u $BSD_MD_MAN; fi
+	if [ -f /var/lock.pkg.man ]; then rm -rf /var/lock.pkg.man*; fi
+}
+store_drop_swap() {
+	if [ -e /dev/gpt/nvmeswap ]; then
+		swapoff -f /dev/gpt/nvmeswap
+		sh /etc/action/zerodrive gpt/nvmeswap
+	else
+		swapoff -f $TARGET_SWAP > /dev/null 2>&1
+	fi
+}
+store_drop_appliance() {
+	store_drop_appliance_src &
+	store_drop_appliance_obj &
+	store_drop_appliance_ccache &
+	store_drop_appliance_sysroots &
+	store_drop_llvm &
+	wait
+}
+store_drop_golang() {
+	umount -f /usr/local/go /usr/local/goo > /dev/null 2>&1
+	umount -f /usr/local/go /usr/local/goo > /dev/null 2>&1
+	if [ -e /dev/$BSD_MD_GO ]; then ( (mdconfig -d -u $BSD_MD_GO -o force > /dev/null 2>&1) &) fi
+	if [ -e /dev/$BSD_MD_GOV ]; then ( (mdconfig -d -u $BSD_MD_GOV -o force > /dev/null 2>&1) &) fi
+	if [ -x /root/.temp/staticcheck ]; then rm -rf /root/.temp/staticcheck; fi
+	rm -rf $GOCACHE $GOTMPDIR /var/lock.pkg.go* /usr/local/go /usr/local/goo > /dev/null 2>&1
+}
+store_drop_all() {
+	sync && sync && sync
+	store_drop_swap &
+	store_drop_appliance &
+	store_drop_golang &
+	store_drop_man &
+	wait
+	if [ -x /usr/store/eXchange ]; then umount $TARGET_DIR > /dev/null 2>&1; fi
+	if [ -x /usr/store/eXchange ]; then sync && sync && sync && umount -f $TARGET_DIR > /dev/null 2>&1; fi
+}
+store_drop() {
+	if [ -e /dev/led/led1 ]; then echo 1 > /dev/led/led1; fi
+	if [ -x /usr/store/eXchange ]; then store_drop_all; fi
+	if [ -x /usr/store/eXchange ]; then sync && sleep 1 && store_drop_all; fi
+	if [ -x /usr/store/eXchange ]; then sync && sleep 3 && store_drop_all; fi
+	if [ -x /usr/store/eXchange ]; then echo "... unable to drop store! ###" && exit; fi
+	store_find
+	store_fastinteg
+	sh /etc/action/beep
+	if [ -e /dev/led/led1 ]; then echo 0 > /dev/led/led1; fi
+	if [ -e /dev/led/led0 ]; then echo 1 > /dev/led/led0; fi
+}
+rebuild_int_store() {
+	for CUR in $BSD_STORE $BSD_CACHE $BSD_APP $BSD_BIN $BSD_ACTION \
+		$BSD_CONF $BSD_BOOT $BSD_LIVEPKG $BSD_CONTRIB $BSD_DIST $BSD_FOSSIL $BSD_TARBALL; do
+		if [ ! -x $CUR ]; then mkdir -p $CUR; fi
+	done
+}
+rebuild_ext_store() {
+	for CUR in $BSD_CCACHE $BSD_PKG $BSD_IMG $BSD_ROOTFS $BSD_KERNEL; do
+		if [ ! -x $CUR/.store ]; then mkdir -p $CUR/.store; fi
+	done
+	for CUR in $BSD_DEV $BSD_GIT/.repo $BSD_FOSSIL $BSD_TARBALL $BSD_ACTIONLISTS $BSD_EXCHANGE $BSD_BACKUP; do
+		if [ ! -x $CUR ]; then mkdir -p $CUR; fi
+	done
+	chmod -R 770 $BSD_ACTIONLISTS
+}
+rebuild_pkg_buildenv() {
+	for CUR in $BSD_PKG_AVAILABLE_BUILDENV; do
+		X="$BSD_CONTRIB/_buildenv_$CUR"
+		if [ ! -x $X ]; then mkdir -p $X; fi
+	done
+}
+rebuild_store() {
+	rebuild_int_store &
+	rebuild_ext_store &
+	rebuild_pkg_buildenv &
+	wait
+}
+store_syntax() {
+	echo "SYNTAX: /etc/action.hqx/store.hqx [ git* | drop* | src* | mount | verify | touch | sync | label | unmount ]"
+	echo ""
+	exit
+}
+####################################
+###  EXTERNAL COMMAND INTERFACE  ###
+####################################
+store_conf
+if [ ! $BSD_CONF_VERSION ]; then . /etc/.bsdconf; fi
+if [ ! -x /usr/bin/sponge ]; then echo "unable to continue without /usr/bin/sponge support" && exit; fi
+if [ ! $1 ]; then
+	if [ ! -e $TARGET_DIR/eXchange ]; then
+		SWAP="true" && store_mount && exit
+	else
+		exit
+	fi
+fi
+case $1 in
+mount)
+	SWAP="true"
+	store_mount
+	sh /etc/action/beep
+	exit
+	;;
+cache)
+	SWAP="true"
+	time -h /etc/action.hqx/store.hqx excache $2
+	exit
+	;;
+excache)
+	CACHE="true"
+	case $2 in
+	ext*) CACHE_DIR=$TARGET_DIR/.cache-external-resources ;;
+	int*) CACHE_DIR=$TARGET_DIR/.cache-internal-resources ;;
+	*) CACHE_DIR=$TARGET_DIR ;;
+	esac
+	store_mount
+	exit
+	;;
+prepcache)
+	SWAP="true"
+	PREPCACHE="true"
+	echo "... starting appliance-builder src / ccache prep caching!"
+	store_mount
+	exit
+	;;
+verify)
+	SWAP="true"
+	VERIFY="true"
+	store_mount
+	sh /etc/action/beep
+	exit
+	;;
+sign)
+	/usr/bin/hq u
+	store_mount
+	cd $TARGET_DIR && hq s
+	store_touch
+	sh /etc/action/beep
+	exit
+	;;
+sync)
+	if [ $2 ]; then
+		if [ -x $2 ]; then
+			if [ -x $TARGET_DIR/eXchange ]; then
+				# time -h rsync -e /dev/null -Hlhacv --exclude=".lts" --del --hard-links $TARGET_DIR/ $2
+				time -h rsync -e /dev/null -Hlhacv --del --hard-links $TARGET_DIR/ $2
+				time -h rsync -e /dev/null -Hlhacv --del --hard-links $TARGET_DIR/ $2
+			else
+				echo "... no store found!"
+			fi
+			sync && sync && sync
+			umount $2
+			sh /etc/action/beep 2
+			exit
+
+		else
+			echo "... $2 is not a valid mounted target store path!"
+			syntax
+		fi
+
+	else
+		echo "... please specify a target store path to sync!"
+		syntax
+	fi
+	exit
+	;;
+drop.local)
+	rm /var/lock.* > /dev/null 2>&1
+	umount -f /usr/local > /dev/null 2>&1
+	exit
+	;;
+local)
+	rm /var/lock.* > /dev/null 2>&1
+	sh /etc/action/init.arch
+	exit
+	;;
+drop | unmount | umount)
+	store_drop
+	exit
+	;;
+drop.zero)
+	ZERO="true"
+	store_drop
+	;;
+drop.os)
+	store_drop_os
+	exit
+	;;
+drop.golang)
+	store_drop_golang
+	exit
+	;;
+drop.llvm)
+	store_drop_llvm
+	exit
+	;;
+drop.appliance | drop.bsd | drop.bsdbuild)
+	store_drop_appliance
+	exit
+	;;
+drop.sysroots)
+	store_drop_appliance_sysroots
+	exit
+	;;
+drop.src)
+	store_drop_appliance_src
+	exit
+	;;
+src)
+	store_mount && sh $BSD_ACTION/build.src.lib.sh build_src
+	exit
+	;;
+src.rebuild)
+	/usr/bin/hq u
+	store_mount && sh $BSD_ACTION/build.src.rebuild.lib.sh build_src_rebuild
+	exit
+	;;
+codecleanup)
+	store_mount && sh $BSD_DEVOPS/action-code-cleanup.sh
+	exit
+	;;
+checkout)
+	store_mount && sh $BSD_DEVOPS/action-checkout.sh $2
+	exit
+	;;
+testbuild)
+	store_mount && sh $BSD_DEVOPS/action-build-test.sh
+	exit
+	;;
+revendor)
+	store_mount && sh $BSD_DEVOPS/action-local-revendor.sh $2 $3 $5
+	exit
+	;;
+snap)
+	/usr/bin/hq u
+	store_mount && sh $BSD_DEVOPS/action-snap.sh
+	exit
+	;;
+touch) store_touch && exit ;;
+rebuild) rebuild_store && exit ;;
+resign | code.resign) sh /etc/action/code.resign.sh && exit ;;
+git*) ;;
+fossil*) ;;
+*)
+	store_syntax
+	exit
+	;;
+esac
+
+# git store operations group
+store_autoarchive_checkout() {
+	echo "... repo  .autoarchive: $GREPOBALL! ### CHECKOUT $TCHECKOUT "
+	export TGIT=/tmp/GIT
+	mkdir -p $TGIT && tar -C $TGIT -xf $GREPOBALL
+	export GREPO="$TGIT/$(echo $TREPO | sed -e 's/\.git-deflate-tree\.tar\.zst//g')"
+	export USE_GIT=true
+	chown -R gitclient:gitclient $TGIT
+}
+store_git_checkout() {
+	FREPO=$BSD_FOSSIL/$TREPO.fossil
+	GREPO=$BSD_GIT/.repo/$TREPO
+	GREPOBALL1=$BSD_GIT/.repo/.autoarchive/$TREPO.git-deflate-tree.tar.zst
+	GREPOBALL2=$BSD_GIT/.repo/.autoarchive/$TREPO
+	GTAG=$BSD_CONTRIB/_checkout_lock/$TREPO
+	if [ -e "$GTAG" ]; then
+		LOCK_COMMIT="$(cat $GTAG)"
+		if [ -n "$LOCK_COMMIT" ]; then
+			if [ -n "$GITCHECKOUT_PATCH" ] || [ -n "$GITCHECKOUT_USE_TAG" ]; then
+				echo "### GIT-TAG CHECKOUT LOCK DETECTED! [$LOCK_COMMIT] via [$GTAG]"
+				if [ "$TCHECKOUT" != "HEAD" ]; then
+					echo "### ERROR --> CONFLICT GIT-TAG and GIT-CHECKOUT and GITCHECKOUT_PATCH are pecified! ###"
+					echo "### ERROR --> DROPPING GIT-TAG and go with checkout request specific value!"
+					echo "### ERROR --> PLEASE VERIFY IF ERROR OR INTENTIONAL VIOLATION!"
+				fi
+				TCHECKOUT=$LOCK_COMMIT
+
+			else
+				echo "### IGNORED: $LOCK_COMMIT via $GTAG"
+				echo "... git tag checkout defined, but IGNORED because GITCHECKOUT_PATCH/_USE_TAG is **NOT** set!"
+			fi
+		fi
+	fi
+	if [ -e "$FREPO" ]; then
+		echo "... live FOSSIL repo: $FREPO ! ### CHECKOUT $TCHECKOUT"
+		export USE_FOSSIL=true
+		if [ ! -x /usr/local/bin/fossil ]; then
+			if [ -e /var/lock.pkg.fossil ]; then rm /var.lock.pkg.fossil; fi
+			BSDlive fossil
+		fi
+	elif [ -x "$GREPO" ]; then
+		echo "... live repo: $GREPO ! ### CHECKOUT $TCHECKOUT"
+		export USE_GIT=true
+	elif [ -e $GREPOBALL1 ]; then
+		GREPOBALL=$GREPOBALL1 store_autoarchive_checkout
+	elif [ -e $GREPOBALL2 ]; then
+		GREPOBALL=$GREPOBALL2 store_autoarchive_checkout
+	else
+		echo "... no live: $GREPO or .autoarchive: $GREPOBALL found! ### EXIT "
+		exit 1
+	fi
+	rm -rf $TREPO > /dev/null 2>&1
+	mkdir -p $TREPO && chown -R gitclient:gitclient $TREPO && cd $TREPO
+	if [ $USE_GIT ]; then
+		COMMIT=$(su gitclient -c "/usr/bin/git -C $GREPO show $TCHECKOUT | head -n1 | cut -c 8-20")
+		echo "... git checkout REPO: $GREPO via $TCHECKOUT [$COMMIT]"
+		su gitclient -c "/usr/bin/git -C $GREPO archive $TCHECKOUT | tar -xf -"
+		su gitclient -c "echo $COMMIT > .commit"
+		su gitclient -c "touch .checkout.target.$(echo $TCHECKOUT | sed -e 's/\//./g')"
+		su gitclient -c "/usr/bin/git -C $GREPO show $TCHECKOUT | head -n 10 > .checkout.commit.$(echo $COMMIT | sed -e 's/\//./g')"
+		if [ ! -z $GREPOBALL ]; then echo $GREPOBALL > .git.file.repo; fi
+		cp $GREPO/.git/config .git.config
+		cat $GREPO/.git/config | grep 'url' | grep -v '#' | cut -c 8- > .url
+	fi
+	if [ $USE_FOSSIL ]; then
+		cd ..
+		/usr/local/bin/fossil tarball $FCHECKOUT - -R $FREPO --name $TREPO | tar -xf -
+		cd $TREPO
+		echo $TCHECKOUT > .commit
+		touch .checkout.taret.$TCHECKOUT
+	fi
+	if [ $GITCHECKOUT_PATCH ]; then
+		echo "... apply local patches & cleanup! ### GITCHECKOUT_PATCH ENV ACTIVATED #### "
+		if [ -f $BSD_CONTRIB/_pre_config_clean/$TREPO ]; then
+			echo "... pre_config_cleanup checkout files removal:"
+			while read LINE; do
+				rm -rf $LINE
+			done < $BSD_CONTRIB/_pre_config_clean/$TREPO
+		fi
+		if [ -f $BSD_CONTRIB/_prepatch_tree/$TREPO ]; then
+			echo "... prepatch_tree directory structure creation:"
+			while read LINE; do
+				mkdir -p $LINE
+			done < $BSD_CONTRIB/_prepatch_tree/$TREPO
+		fi
+		if [ -f $BSD_CONTRIB/_prepatch_rollback/$TREPO ]; then
+			echo "... prepatch_rollback patches:"
+			patch -V none -Rf -i $BSD_CONTRIB/_prepatch_rollback/$TREPO
+		fi
+		if [ -f $BSD_CONTRIB/_prepatch/$TREPO ]; then
+			echo "... prepatch patches [ENHANCED patchset]:"
+			patch -V none -Nf -i $BSD_CONTRIB/_prepatch/$TREPO
+		fi
+		if [ -f $BSD_CONTRIB/_patch/$TREPO ]; then
+			echo "... patch [manual patchset]:"
+			patch -V none -Nf -i $BSD_CONTRIB/_patch/$TREPO
+		fi
+		if [ -f $BSD_CONTRIB/_sed/$TREPO ]; then
+			REGEX="$(cat $BSD_CONTRIB/_sed/$TREPO)"
+			echo "... search regex & replace via sed [$REGEX]:"
+			find . -type f | xargs sed -i '' -e "$REGEX"
+		fi
+		if [ $TREPO != "golang" ] && [ -e go.mod ] || [ -x cmd ] || [ -e main.go ] || [ ! -z "$(ls -I *.go 2> /dev/null)" ] || [ "$(echo $TREPO | cut -c 1-3)" == "go-" ]; then
+			if [ -e go.mod ]; then
+				cp -f go.mod go.mod.orig
+				sed -i '' -e 's/"//g' go.mod
+				sed -i '' -e '/^module/!d' go.mod
+				if [ "$(cat go.mod | cut -c 1-6)" != "module" ]; then
+					echo "[error] [git.checkout go.mod: unable to find module keyword] [$TREPO]"
+					cat go.mod
+				fi
+			else
+				DO=$(cat .url | cut -d '/' -f 3)
+				G1=$(cat .url | cut -d '/' -f 4 | sed -e 's/\.git//g')
+				G2=$(cat .url | cut -d '/' -f 5 | sed -e 's/\.git//g')
+				echo "module $DO/$G1/$G2" > go.mod
+				echo "missing go.mod module created: $DO/$G1/$G2 created"
+			fi
+			echo "go 1.20" >> go.mod
+			rm -rf go.sum vendor && ln -fs /usr/local/goo vendor
+		fi
+		if [ $GITCHECKOUT_CLEAN ] && [ -x /tmp/GIT/$TREPO ]; then rm -rf /tmp/GIT/$TREPO; fi
+	fi
+}
+if [ ! -x /usr/store/git ]; then
+	. /etc/action/.check.store
+	touch /var/tmp/store.auto
+fi
+case $1 in
+fossil.update) sh /etc/action/.action-fossil-update.sh ;;
+fossil.conf) sh /etc/action/.action-fossil-update.sh config ;;
+fossil.repack) sh /etc/action/.action-fossil-update.sh repack ;;
+git.revendor) sh /etc/action/.action-git-re-vendor.sh $2 $3 $4 ;;
+git.clean) sh /etc/action/.action-git-maintenance.sh $2 $3 ;;
+git.sign) sh /etc/action/.action-git-maintenance.sh $2 sign $3 ;;
+git.githubkeys) sh /etc/action/.action-git-github-keys.sh ;;
+git.daily) sh /etc/action/.action-git-review.sh $2 $3 $4 $5 ;;
+git.unarchive) echo $2 >> $BSD_GIT/.repo/active && exit ;;
+git.activate) echo $2 >> $BSD_GIT/active && exit ;;
+git.clone)
+	rm -f /var/tmp/store.auto > /dev/null 2>&1
+	sh /etc/action/.action-git-clone.sh $2 $3 $4
+	;;
+git.update)
+	if [ $(date +%s) -lt 1659070000 ]; then echo "[git.update] [wrong local systemtime] [$(data +%s)], exit " && exit; fi
+	/usr/sbin/service xxgitclient oneupdate $2
+	;;
+git.checkout)
+	export TCHECKOUT=HEAD
+	export FCHECKOUT=trunk
+	case $3 in
+	patch) export GITCHECKOUT_PATCH=true ;;
+	clean) export GITCHECKOUT_CLEAN=true ;;
+	patchclean)
+		export GITCHECKOUT_PATCH=true
+		export GITCHECKOUT_CLEAN=true
+		;;
+	patchkeep)
+		echo "... go mod patch keep!"
+		export GITCHECKOUT_PATCH=true
+		export GITCHECKOUT_CLEAN=true
+		export GITCHECKOUT_KEEP=true
+		;;
+	*)
+		if [ $3 ]; then
+			export TCHECKOUT=$3
+			export FCHECKOUT=$3
+		fi
+		;;
+	esac
+	case $4 in
+	patch)
+		export GITCHECKOUT_PATCH=true
+		export TCHECKOUT=$3
+		export FCHECKOUT=$3
+		;;
+	clean)
+		export GITCHECKOUT_CLEAN=true
+		export TCHECKOUT=$3
+		export FCHECKOUT=$3
+		;;
+	patchclean)
+		export GITCHECKOUT_PATCH=true
+		export GITCHECKOUT_CLEAN=true
+		export TCHECKOUT=$3
+		export FCHECKOUT=$3
+		;;
+	esac
+	if [ $2 ]; then
+		export TREPO=$2
+		store_git_checkout
+	else
+		echo "... please specify an target repo name!"
+	fi
+	exit
+	;;
+git.patch.checkout)
+	export TCHECKOUT=HEAD
+	export FCHECKOUT=trunk
+	export GITCHECKOUT_PATCH=true
+	export GITCHECKOUT_CLEAN=true
+	if [ $3 ]; then
+		export TCHECKOUT=$3
+		export FCHECKOUT=$3
+	fi
+	if [ $2 ]; then
+		export TREPO=$2
+		store_git_checkout
+	else
+		echo "... please specify an target repo name!"
+	fi
+	exit
+	;;
+git.repack)
+	if [ $2 ]; then
+		sh /etc/action/.action-git-maintenance.sh $2 repack
+	else
+		sh /etc/action/.action-git-maintenance.sh repack
+	fi
+	;;
+git.aggressive)
+	case $2 in
+	!) sh /etc/action/.action-git-maintenance.sh aggressive ;;
+	all) sh /etc/action/.action-git-maintenance.sh aggressive all ;;
+	*) sh /etc/action/.action-git-maintenance.sh $2 aggressive ;;
+	esac
+	;;
+git.rebuild)
+	case $2 in
+	!) sh /etc/action/.action-git-maintenance.sh rebuild ;;
+	all) sh /etc/action/.action-git-maintenance.sh rebuild all ;;
+	*) sh /etc/action/.action-git-maintenance.sh $2 rebuild ;;
+	esac
+	;;
+git.keys)
+	if [ ! $2 ]; then
+		KEYOPT=all
+	else
+		KEYOPT=$2
+	fi
+	sh /etc/action/.action-git-ssh-keys.sh $KEYOPT
+	;;
+git.remove)
+	if [ $2 ]; then
+		if [ -e $BSD_GIT/.repo/.autoarchive/$2.git-deflate-tree.tar.zst ]; then
+			rm -rf $BSD_GIT/.repo/.autoarchive/$2.git-deflate-tree.tar.zst
+		elif [ -e $BSD_GIT/.repo/.autoarchive/$2 ]; then
+			rm -rf $BSD_GIT/.repo/.autoarchive/$2
+		fi
+	fi
+	;;
+esac
+if [ -e /var/tmp/store.auto ]; then
+	rm -f /var/tmp/store.auto
+	store_drop
+fi
+####################################

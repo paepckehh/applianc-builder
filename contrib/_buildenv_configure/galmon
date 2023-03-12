@@ -1,0 +1,2 @@
+#!/bin/sh
+# ... needs protoc on builder and protobuf curl h2o on bsrv sysroot img and some $ENHANCE patches to crosscompile!

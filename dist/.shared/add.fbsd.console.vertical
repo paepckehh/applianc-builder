@@ -1,0 +1,10 @@
+#!/bin/sh
+. $BSD_DIST/.shared/add.fbsd.console
+case $SBC in
+rpi*)
+	X='
+display_rotate=3
+'
+	export BSD_CONFIG_TXT="$BSD_CONFIG_TXT $X"
+	;;
+esac

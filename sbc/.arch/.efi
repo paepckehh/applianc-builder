@@ -1,0 +1,5 @@
+#!/bin/sh
+# export BSD_BOOT_EFICONS=true
+# export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS EFIRT"
+export WITH_EFI=true
+unset WITHOUT_EFI

@@ -1,0 +1,63 @@
+commit bf13db086b84c29ce901145f2800c561dcbf4d1e
+Author: Konstantin Belousov <kib@FreeBSD.org>
+Date:   2022-04-13 00:47:45 +0000
+
+    Mostly revert a5970a529c2d95271: Make files opened with O_PATH to not block non-forced unmount
+    
+    Problem is that open(O_PATH) on nullfs -o nocache is broken then,
+    because there is no reference on the vnode after the open syscall exits.
+    
+    Reported and tested by: ambrisko
+    Reviewed by:    markj
+    Sponsored by:   The FreeBSD Foundation
+    MFC after:      1 week
+
+diff --git a/lib/libc/sys/open.2 b/lib/libc/sys/open.2
+index f6b061079dd..876a4ce1e57 100644
+--- a/lib/libc/sys/open.2
++++ b/lib/libc/sys/open.2
+@@ -28,7 +28,7 @@
+ .\"     @(#)open.2	8.2 (Berkeley) 11/16/93
+ .\" $FreeBSD$
+ .\"
+-.Dd October 9, 2021
++.Dd April 22, 2022
+ .Dt OPEN 2
+ .Os
+ .Sh NAME
+@@ -351,9 +351,6 @@ But operations like
+ and any other that operate on file and not on file descriptor (except
+ .Xr fstat 2 ),
+ are not allowed.
+-File opened with the
+-.Dv O_PATH
+-flag does not prevent non-forced unmount of the volume it belongs to.
+ .Pp
+ A file descriptor created with the
+ .Dv O_PATH
+diff --git a/sys/kern/kern_descrip.c b/sys/kern/kern_descrip.c
+index d88263ddeed..740d777bced 100644
+--- a/sys/kern/kern_descrip.c
++++ b/sys/kern/kern_descrip.c
+@@ -5138,7 +5138,7 @@ path_close(struct file *fp, struct thread *td)
+ {
+ 	MPASS(fp->f_type == DTYPE_VNODE);
+ 	fp->f_ops = &badfileops;
+-	vdrop(fp->f_vnode);
++	vrele(fp->f_vnode);
+ 	return (0);
+ }
+ 
+diff --git a/sys/kern/vfs_syscalls.c b/sys/kern/vfs_syscalls.c
+index 77a9b9c2529..a41a12d08cf 100644
+--- a/sys/kern/vfs_syscalls.c
++++ b/sys/kern/vfs_syscalls.c
+@@ -1219,8 +1219,6 @@ kern_openat(struct thread *td, int fd, const char *path, enum uio_seg pathseg,
+ 		if ((flags & O_PATH) != 0) {
+ 			finit(fp, (flags & FMASK) | (fp->f_flag & FKQALLOWED),
+ 			    DTYPE_VNODE, NULL, &path_fileops);
+-			vhold(vp);
+-			vunref(vp);
+ 		} else {
+ 			finit_vnode(fp, flags, NULL, &vnops);
+ 		}

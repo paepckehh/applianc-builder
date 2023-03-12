@@ -1,0 +1,42 @@
+#!/bin/sh
+. /etc/.bsdconf
+if [ ! $1 ]; then exit; fi
+/usr/bin/hq u
+/etc/action.hqx/store.hqx mount
+case $1 in
+prep)
+	sh /etc/action/code.resign
+	BSDbuild clean
+	BSDbuild core
+	/etc/action.hqx/store.hqx checkout
+	/etc/action.hqx/store.hqx sign
+	;;
+preps)
+	sh /etc/action/code.resign
+	/etc/action.hqx/store.hqx src.rebuild
+	BSDbuild clean
+	BSDbuild core
+	/etc/action.hqx/store.hqx checkout
+	/etc/action.hqx/store.hqx sign
+	;;
+aggressive | prepa)
+	sh /etc/action/code.resign
+	/etc/action.hqx/store.hqx src.rebuild
+	BSDbuild cleanmax
+	BSDbuild clean
+	BSDbuild core
+	/etc/action.hqx/store.hqx checkout
+	/etc/action.hqx/store.hqx git.clean
+	/etc/action.hqx/store.hqx git.aggressive
+	/etc/action.hqx/store.hqx sign
+	;;
+esac
+sh /etc/action/beep INF
+case $2 in
+down | poweroff | off) sh /etc/action/down ;;
+esac
+case $3 in
+down | poweroff | off) sh /etc/action/down ;;
+esac
+exit
+###########################################################

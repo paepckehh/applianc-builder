@@ -1,0 +1,27 @@
+#!/bin/sh
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE ichsmb smbus smb jedec_dimm"
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE pchtherm"
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE ic iic iicbus iicbb iicsmb jedec_dimm"
+export WITH_SMBIOS=true 
+unset WITHOUT_SMBIOS
+export BSD_DEVICE_HINTS="hint.jedec_dimm.0.at=\"smbus0\"
+hint.jedec_dimm.0.addr=\"0x10\"
+hint.jedec_dimm.1.at=\"smbus0\"
+hint.jedec_dimm.1.addr=\"0x40\"
+hint.jedec_dimm.2.at=\"smbus0\"
+hint.jedec_dimm.2.addr=\"0x60\"
+hint.jedec_dimm.3.at=\"smbus0\"
+hint.jedec_dimm.3.addr=\"0x6a\"
+hint.jedec_dimm.4.at=\"smbus0\"
+hint.jedec_dimm.4.addr=\"0x6c\"
+hint.jedec_dimm.5.at=\"smbus0\"
+hint.jedec_dimm.5.addr=\"0x6e\"
+hint.jedec_dimm.6.at=\"smbus0\"
+hint.jedec_dimm.6.addr=\"0x88\"
+hint.jedec_dimm.7.at=\"smbus0\"
+hint.jedec_dimm.7.addr=\"0xa0\"
+hint.jedec_dimm.8.at=\"smbus0\"
+hint.jedec_dimm.8.addr=\"0xa4\"
+"
+
+

@@ -1,0 +1,13 @@
+#!/bin/sh
+X='
+# distcc conf
+xxdistcc_enable="NO"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+export BSD_DIST_PKG="$BSD_DIST_PKG distcc"
+export BSD_DIST_RC="$BSD_DIST_RC xxdistcc"
+export BSD_DIST_RCFW="$BSD_DIST_RCFW client_distcc"
+export BSD_ADD_ETC_GROUP="$BSD_ADD_ETC_GROUP
+distcc:*:2000:"
+export BSD_ADD_ETC_PASSWD="$BSD_ADD_ETC_PASSWD
+distcc:*:2000:2000::0:0:lockdownuser:nologin:/bin/sh"

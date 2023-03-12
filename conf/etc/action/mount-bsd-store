@@ -1,0 +1,17 @@
+#!/bin/sh
+export STORE_FS=ffs
+if [ "$(gpart list $1 | grep scheme | grep GPT)" != "" ]; then
+	if [ -e /dev/$1p4 ]; then
+		export STORE_DEV=/dev/$1p4
+	elif [ -e /dev/$1p3 ]; then
+		export STORE_DEV=/dev/$1p3
+	fi
+elif [ -e /dev/$1p3 ]; then
+	export STORE_DEV=/dev/$1p3
+elif [ -e /dev/$1s2 ]; then
+	export STORE_DEV=/dev/$1s2
+else
+	echo "... unable to finde store partition on $1"
+	exit
+fi
+sh /etc/action/.mount $1 $2 $3

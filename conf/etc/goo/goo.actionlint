@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="github.com/rhysd/actionlint/cmd/actionlint" goo $*

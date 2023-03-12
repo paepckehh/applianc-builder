@@ -1,0 +1,9 @@
+#!/bin/sh
+. $BSD_DIST/.shared/add.server.postgres
+X='
+# xxminiflux
+xxminiflux_enble="NO"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+export BSD_DIST_PKG="$BSD_DIST_PKG go-github_com_miniflux_miniflux"
+export BSD_DIST_RC="$BSD_DIST_RC xxminiflux"

@@ -1,0 +1,97 @@
+### ( 2023-03-12 ) ( 1678605360 ) ### DO NOT EDIT ### auto-generated file / patchset by <appliance-builder/enhanced> ###
+--- ./GIT-VERSION-GEN.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./GIT-VERSION-GEN	1970-01-01 00:00:00.000000000 +0000
+@@ -3,6 +3,10 @@
+ GVF=GIT-VERSION-FILE
+ DEF_VER=v2.36.GIT
+ 
++if [ -e .commit ]; then 
++	DEF_VER=v2.3x.$( cat .commit )
++fi
++
+ LF='
+ '
+ 
+--- ./Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./Makefile	1970-01-01 00:00:00.000000000 +0000
+@@ -4,6 +4,18 @@
+ # Import tree-wide shared Makefile behavior and libraries
+ include shared.mak
+ 
++
++V=1
++NO_OPENSSL=1
++NO_EXPAT=1
++NO_SVN_TESTS=1
++NO_PERL=1
++NO_PYTHON=1
++HAVE_BSD_SYSCTL=1
++HOST_CPU="x86_64"
++INSTALL_STRIP="-s"
++
++
+ # Define V=1 to have a more verbose compile.
+ #
+ # Define SHELL_PATH to a POSIX shell if your /bin/sh is broken.
+@@ -700,7 +712,7 @@
+ 
+ PROGRAM_OBJS += daemon.o
+ PROGRAM_OBJS += http-backend.o
+-PROGRAM_OBJS += imap-send.o
++# PROGRAM_OBJS += imap-send.o
+ PROGRAM_OBJS += sh-i18n--envsubst.o
+ PROGRAM_OBJS += shell.o
+ .PHONY: program-objs
+@@ -3183,7 +3195,7 @@
+ profile-fast-install: profile-fast
+ 	$(MAKE) install
+ 
+-INSTALL_STRIP =
++# INSTALL_STRIP =
+ 
+ install: all
+ 	$(INSTALL) -d -m 755 '$(DESTDIR_SQ)$(bindir_SQ)'
+--- ./git-compat-util.h.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./git-compat-util.h	1970-01-01 00:00:00.000000000 +0000
+@@ -470,23 +470,6 @@
+  * maybe provide you with a patch that would prevent this issue again
+  * in the future.
+  */
+-static inline void extract_id_from_env(const char *env, uid_t *id)
+-{
+-	const char *real_uid = getenv(env);
+-
+-	/* discard anything empty to avoid a more complex check below */
+-	if (real_uid && *real_uid) {
+-		char *endptr = NULL;
+-		unsigned long env_id;
+-
+-		errno = 0;
+-		/* silent overflow errors could trigger a bug here */
+-		env_id = strtoul(real_uid, &endptr, 10);
+-		if (!*endptr && !errno)
+-			*id = env_id;
+-	}
+-}
+-
+ static inline int is_path_owned_by_current_uid(const char *path)
+ {
+ 	struct stat st;
+@@ -495,16 +478,7 @@
+ 	if (lstat(path, &st))
+ 		return 0;
+ 
+-	euid = geteuid();
+-	if (euid == ROOT_UID)
+-	{
+-		if (st.st_uid == ROOT_UID)
+-			return 1;
+-		else
+-			extract_id_from_env("SUDO_UID", &euid);
+-	}
+-
+-	return st.st_uid == euid;
++	return st.st_uid == geteuid();
+ }
+ 
+ #define is_path_owned_by_current_user is_path_owned_by_current_uid

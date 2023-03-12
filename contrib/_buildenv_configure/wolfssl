@@ -1,0 +1,43 @@
+#!/bin/sh
+sh ./autogen.sh \
+	>> /tmp/build-wolfssl.log
+sh ./configure \
+	--host=$CCT \
+	--prefix=/usr/local \
+	--enable-opensslall \
+	--enable-aesgcm \
+	--enable-harden \
+	--enable-rsa \
+	--enable-dh \
+	--enable-asn \
+	--enable-aes \
+	--enable-asm \
+	--enable-tls13 \
+	--enable-ecc \
+	--enable-tlsv12 \
+	--enable-ed25519 \
+	--enable-curve25519 \
+	--enable-poly1305 \
+	--enable-chacha \
+	--enable-alpn \
+	--enable-sni \
+	--enable-trustedca \
+	--enable-tlsx \
+	--enable-sha224 \
+	--enable-sha384 \
+	--enable-sha512 \
+	--enable-blake2 \
+	--enable-blake2s \
+	--enable-sha3 \
+	--disable-sslv3 \
+	--disable-ipv6 \
+	--disable-postauth \
+	--disable-openssh \
+	>> /tmp/build-wolfssl.log
+#--enable-earlydata \
+#--enable-scrypt \
+#--enable-armasm \
+#--disable-oldtls \
+#--enable-maxstrength \
+#--disable-md5 \
+#--disable-sha \

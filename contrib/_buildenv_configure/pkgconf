@@ -1,0 +1,14 @@
+#!/bin/sh
+sh ./autogen.sh
+sh ./configure \
+	--build=$LT_ARCH \
+	--host=$CCT \
+	--target=$CCT \
+	--prefix=/usr \
+	--disable-debug \
+	--disable-locale \
+	--disable-debug \
+	--disable-man \
+	--disable-manpages \
+	--disable-doc \
+	--enable-shared

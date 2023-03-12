@@ -1,0 +1,2 @@
+[source.crates]
+git="git://localhost:9191/rust-crates.io-index"

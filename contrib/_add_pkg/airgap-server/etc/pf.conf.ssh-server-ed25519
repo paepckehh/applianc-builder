@@ -1,0 +1,79 @@
+# pf.conf 
+#
+# [sshd server]
+
+####################
+# INTERFACES & IPs #
+####################
+
+table <localhost> persist const { 127.0.0.1 }
+table <airgap_client> persist const { 10.10.250.11 }
+table <airgap_server> persist const { 10.10.250.10 }
+localhost_if="{ lo0 }"
+internal_if="{ locknic0, em0, re0 }"
+wireguard_if="{ wg0 }"
+
+# timeout tables 
+table <overuse> { }
+
+###########
+# OPTIONS #
+###########
+
+set block-policy drop
+set fail-policy drop
+set state-policy if-bound
+set require-order yes
+set syncookies always
+
+#####################
+# GENERIC SANITIZER #
+#####################
+
+# scrub
+scrub all random-id reassemble tcp fragment reassemble 
+
+# antispoof
+antispoof log quick for $localhost_if
+antispoof log quick for $internal_if
+antispoof log quick for $wireguard_if
+
+# activity detection rules [analysis only]
+# block drop log quick proto icmp
+block drop log quick from any to no-route
+block drop log quick from no-route to any
+block drop log quick from urpf-failed to any
+block drop log quick from any to 255.255.255.255
+block drop log quick from 255.255.255.255 to any
+
+##########
+# FILTER #
+##########
+
+# allow localhost 
+pass quick on $localhost_if all
+pass quick on $wireguard_if all
+
+# drop log ipv6 outside localhost
+# block drop log quick inet6
+
+# drop overuse
+block drop log quick from <overuse> to any
+
+# block all
+block drop log all
+
+# ssproxy 
+# pass in on $internal_if inet proto udp from <airgap_client> to <airgap_server> port 443 keep state
+# pass out on $internal_if inet proto udp from <airgap_server> port 443 to <airgap_client> keep state
+
+# wg
+# pass on $wireguard_if 
+
+# pass udp for wireguard 
+# pass in  on $internal_if inet proto udp from <airgap_client> to <airgap_server> keep state
+# pass out on $internal_if inet proto udp from <airgap_server> to <airgap_client> keep state
+
+# pass ssh direct, restrict max 12 connections [authentication] [attempts] / 1 minute [perm block]
+pass in on $internal_if inet proto tcp from <airgap_client> to <airgap_server> port 8822 flags S/SA keep state \
+( max-src-conn-rate 12/60, overload <overuse> flush global )

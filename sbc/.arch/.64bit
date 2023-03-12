@@ -1,0 +1,12 @@
+#!/bin/sh
+X='# 64bit SPECIFIC
+kern.elf64.allow_wx=0
+kern.elf64.aslr.stack=3
+kern.elf64.aslr.honor_sbrk=0
+kern.elf64.aslr.enable=1
+kern.elf64.aslr.pie_enable=1
+kern.elf64.nxstack=1
+kern.elf64.vdso=1
+'
+export BSD_SYSCTL="$BSD_SYSCTL$X"
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE ossl"

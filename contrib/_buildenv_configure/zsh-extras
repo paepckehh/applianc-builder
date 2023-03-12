@@ -1,0 +1,14 @@
+#!/bin/sh
+FUNCTIONS="Promts"
+COMPLETION="BSD Base Linux Unix Zsh compinit compinstall"
+sh /etc/action/store gitcheckout zsh
+mkdir -p /tmp/zsh-extras/usr/share/zsh/functions
+mkdir -p /tmp/zsh-extras/usr/share/zsh/completion
+mkdir -p /tmp/zsh-extras/usr/share/zsh/examples
+mv -f zsh/StartupFiles /tmp/zsh-extras/usr/share/zsh/examples/
+for SUB in $FUNCTIONS; do
+	mv -f zsh/Functions/$SUB /tmp/zsh-extras/usr/share/zsh/functions/
+done
+for SUB in $COMPLETION; do
+	mv -f zsh/Completion/$SUB /tmp/zsh-extras/usr/share/zsh/completion/
+done

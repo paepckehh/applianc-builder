@@ -1,0 +1,3 @@
+#!/bin/sh
+if [ ! -x /usr/share/man/cheat-sheets ]; then BSDlive manpages; fi
+sh /etc/action/mdview "/usr/share/man/cheat-sheets/$1"

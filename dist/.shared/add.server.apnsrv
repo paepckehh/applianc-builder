@@ -1,0 +1,15 @@
+#!/bin/sh
+. $BSD_SBC/.device/gps.usb
+X='
+# xxapn_server [gps supported]
+# xxapnsrv_oomprotect="YES"
+xxapnsrv_enable="YES"
+xxapnsrv_program="/usr/bin/apnsrv"
+ifconfig_ue0="inet 192.168.10.2"
+ifconfig_ue1="inet 192.168.8.2"
+ifconfig_wait_for_usb="6"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+export BSD_DIST_PKG="$BSD_DIST_PKG apnsrv"
+export BSD_DIST_RC="$BSD_DIST_RC xxapnsrv"
+export BSD_DIST_RCFW="$BSD_DIST_RCFW srv_ntp srv_rt srv_https srv_https_proxy client_dnscrypt_443 client_https"

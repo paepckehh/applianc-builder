@@ -1,0 +1,62 @@
+#!/bin/sh
+X='
+# network tcp
+net.inet.tcp.per_cpu_timers=1
+net.inet.tcp.cc.algorithm=cubic
+net.inet.tcp.rfc3042=1
+net.inet.tcp.rfc3390=1
+net.inet.tcp.rfc1323=1
+net.inet.tcp.sendspace=131072
+net.inet.tcp.recvspace=131072
+net.inet.tcp.always_keepalive=0
+net.inet.tcp.blackhole=2
+net.inet.tcp.syncookies=0
+net.inet.tcp.syncookies_only=0
+net.inet.tcp.log_in_vain=2
+net.inet.tcp.ts_offset_per_conn=1
+net.inet.tcp.udp_tunneling_port=0
+net.inet.tcp.drop_synfin=1
+net.inet.tcp.insecure_rst=0
+net.inet.tcp.insecure_syn=0
+net.inet.tcp.icmp_may_rst=0
+net.inet.tcp.minmss=536
+net.inet.tcp.mssdflt=1280
+net.inet.tcp.isn_reseed_interval=3500
+net.inet.tcp.ecn.enable=1
+net.inet.tcp.ecn.maxretries=2
+net.inet.tcp.sack.enable=1
+net.inet.tcp.sack.maxholes=512
+net.inet.tcp.do_lrd=1
+net.inet.tcp.tolerate_missing_ts=0
+net.inet.tcp.pmtud_blackhole_mss=1200
+net.inet.tcp.pmtud_blackhole_detection=1
+'
+export BSD_SYSCTL="$BSD_SYSCTL$X"
+#
+# XXX @ENHANCED PATCHSET, MAYBE @UPSTREAM: kernel-module-less kernel-options TCP_RACK TCP_BBR]
+if [ $BSD_TCP_BBR ]; then
+	case $TARCH_L1 in
+	# arm) ;; # TCPHPTS broken on arm32
+	amd64 | arm64 | arm)
+		. $BSD_SBC/.arch/.acpi
+		export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS TCPHPTS RATELIMIT TCP_BBR"
+		export BSD_SYSCTL="$BSD_SYSCTL$X
+# alternative tcp stack
+net.inet.tcp.functions_default=bbr
+"
+		;;
+	esac
+fi
+if [ $BSD_TCP_RACK ]; then
+	case $TARCH_L1 in
+	# arm) ;; # TCPHPTS broken on arm32
+	amd64 | arm64 | arm)
+		. $BSD_SBC/.arch/.acpi
+		export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS TCPHPTS RATELIMIT TCP_RACK"
+		export BSD_SYSCTL="$BSD_SYSCTL$X
+# alternative tcp stack
+net.inet.tcp.functions_default=rack
+"
+		;;
+	esac
+fi

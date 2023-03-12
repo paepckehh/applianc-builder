@@ -1,0 +1,7 @@
+#!/bin/sh
+sh ./configure \
+	--host=$CCT \
+	>> /tmp/build-help2man.log
+export DESTDIR=/tmp/help2man
+make
+make DESTDIR=$DESTDIR install

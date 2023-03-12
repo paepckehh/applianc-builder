@@ -1,0 +1,20 @@
+### ( 2023-03-12 ) ( 1678605360 ) ### DO NOT EDIT ### auto-generated file / patchset by <appliance-builder/enhanced> ###
+--- ./configure.ac.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./configure.ac	1970-01-01 00:00:00.000000000 +0000
+@@ -84,13 +84,13 @@
+ 	os="freebsd"
+ 	threads="pthreads"
+ 
+-	CFLAGS="$CFLAGS -I/usr/local/include"
+-	LDFLAGS="$LDFLAGS -L/usr/local/lib"
++	CFLAGS="$CFLAGS"
++	LDFLAGS="$LDFLAGS"
+ 	LIBS="${LIBS}"
+ 	PKG_CHECK_MODULES([libusb], [libusb-1.0 >= 1.0.9], true, [hidapi_lib_error libusb-1.0])
+ 	LIBS_LIBUSB_PRIVATE="${LIBS_LIBUSB_PRIVATE} $libusb_LIBS"
+ 	CFLAGS_LIBUSB="${CFLAGS_LIBUSB} $libusb_CFLAGS"
+-	AC_CHECK_LIB([iconv], [iconv_open], [LIBS_LIBUSB_PRIVATE="${LIBS_LIBUSB_PRIVATE} -liconv"], [hidapi_lib_error libiconv])
++	# AC_CHECK_LIB([iconv], [iconv_open], [LIBS_LIBUSB_PRIVATE="${LIBS_LIBUSB_PRIVATE} -liconv"], [hidapi_lib_error libiconv])
+ 	;;
+ *-kfreebsd*)
+ 	AC_MSG_RESULT([ (kFreeBSD back-end)])

@@ -1,0 +1,3 @@
+#!/bin/sh
+/etc/action.hqx/store.hqx src
+sh /etc/action/make.dir.rw /usr/src/HEAD

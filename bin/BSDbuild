@@ -1,0 +1,205 @@
+#!/bin/sh
+hq u
+hq u
+. /etc/action/.check.store
+if [ ! -x /usr/local/llvm/bin ]; then BSDlive llvm; fi
+. /etc/.bsdconf
+. $BSD_SBC/$SBC > /dev/null 2>&1
+. $BSD_ACTION/build.ccache.lib.sh
+sh /etc/action/store rebuild
+export AUTORECOVER=true
+export AUTORECOVER_RANGE=25
+export VEX=/tmp/veriexec.sha512.hashlog
+export BMODE=default
+export POSTACTION=default
+export BSD_TARGET_SBC=$1
+export BSD_TARGET_DIST=default && if [ $2 ]; then export BSD_TARGET_DIST=$2; fi
+export SRC_CHECKOUT=HEAD
+export TOS=fbsd
+export NO_COLOR=true
+LOCKFILE=/var/lock.BSDbuild
+LOGM=/tmp/log.release.master
+clean_env() {
+	rm -f $LOGM
+	(find /tmp/.build* -type d | xargs rm -rf) > /dev/null 2>&1
+	sh $BSD_ACTION/clean.path /usr/obj TMPFS > /dev/null 2>&1
+	rm -f /var/lock.BSDsign > /dev/null 2>&1
+	rm -f /var/lock.BSDbuild > /dev/null 2>&1
+}
+if [ $3 ]; then
+	case $3 in
+	kernelonly) echo "#### KERNEL ONLY MODE UNLOCKED #######" && export BMODE="kernelonly" ;;
+	esac
+fi
+if [ $2 ]; then
+	case $2 in
+	kernelonly) echo "#### KERNEL ONLY MODE UNLOCKED #######" && export BMODE="kernelonly" && export BSD_TARGET_DIST="default" ;;
+	esac
+fi
+if [ $1 ]; then
+	case $1 in
+	clean)
+		clean_env
+		exit
+		;;
+	clean*) ;;
+	prepcache) sh $BSD_ACTION/build.img.lib.sh prepcache && exit ;;
+	ccache) ccache_rebuild_check && exit ;;
+	checkout) sh $BSD_DEV/action-checkout.sh $2 && exit ;;
+	man*) cd /tmp && mkdir -p .build.logs && sh $BSD_ACTION/build.manpages.sh build > /tmp/.build.logs/manpages && exit ;;
+	esac
+fi
+if [ -f $LOCKFILE ]; then
+	echo "... there is alreade a build/release instance & up and running on this box!"
+	echo "... if there is no other instance running invoke BSDbuild clean" && exit
+fi
+syntax() {
+	echo ""
+	echo "Usage: BSDbuild <HARDARE PLATTFORM | all> [optional: <DISTRIBUTION> | down | clean | ccache ]"
+	echo ""
+	echo "Example: BSDbuild cleancore"
+	echo "Example: BSDbuild P8P67DE bsrv"
+	echo "Example: BSDbuild rpi2b64 pnoc"
+	echo "Example: BSDbuild ccache down"
+	echo "Example: BSDbuild manpages"
+	echo ""
+	echo "AVAILABLE SBCS: $(ls -Im $BSD_SBC)"
+	echo "AVAILABLE DISTRIBUTIONS: $(ls -Im $BSD_DIST)"
+	echo "AVAILABLE SBC ALIAS LIST: $(ls -Im $BSD_SBC/.alias)"
+	echo ""
+	echo "clean       -> buildsystem cleanup [obj] [build.lock]"
+	echo "prepcache   -> mem-cache resources!"
+	echo "man         -> rebuild all manpages of freebsd *AND* and all within the git software repo!"
+	echo "core        -> rebuild only a specific set of core images"
+	echo "kernelonly  -> build kernel only"
+	echo "ccache      -> rebuild, sign & the ccache accelerator dumps for all <PLATTFORM>"
+	echo "bsrv        -> rebuild all-arch bsrv images"
+	echo "minicore    -> rebuild armv7 base, aarch64 pnoc, x64 bsrv!"
+	echo "core        -> rebuild core set of images!"
+	echo "world       -> rebuild ccaches and core imgages"
+	echo ""
+	echo "Already released images in your store:"
+	ls $BSD_IMG
+	echo ""
+	echo ""
+	rm -f $LOCKFILE > /dev/null 2>&1
+	exit
+}
+na_err() {
+	echo "... $BSD_TARGET_DIST is not an supported DISTRIBUTION for $BSD_TARGET_SBC PLATTFORM" && syntax
+}
+step() {
+	case $BSD_TARGET_SBC in
+	INFO) echo "$INFO $(date "+%Y%m%d-%H%M%S")" > /dev/stdout && return ;;
+	manpages) BSDbuild manpages && return ;;
+	esac
+	if [ -e $BSD_DIST/$BSD_TARGET_DIST ] && [ -e $BSD_SBC/.alias/$BSD_TARGET_SBC ]; then
+		echo "... distribution mode: $BSD_TARGET_DIST "
+		echo "... sbc mode: $BSD_TARGET_SBC "
+	else
+		echo "ERROR ... unknow distribution/sbc ! Please checkin $BSD_TARGET_DIST and/or $BSD_TARGET_SBC !"
+		syntax
+	fi
+	cd /tmp
+	touch $LOCKFILE
+	echo "START:  $INFO $(date "+%Y%m%d-%H%M%S") for $BSD_TARGET_SBC $BSD_TARGET_DIST" > /dev/stdout
+	time -h sh $BSD_ACTION/build.img.lib.sh build >> $LOGM 2>&1
+	echo "END:    $INFO $(date "+%Y%m%d-%H%M%S") for $BSD_TARGET_SBC $BSD_TARGET_DIST" > /dev/stdout
+	BSDsign >> $LOGM 2>&1
+}
+all_dist() {
+	for LINE in $BSD_ENABLED_DISTS; do
+		BSD_TARGET_DIST=$LINE && step
+	done
+}
+all_arch_all_dist() {
+	for LINE in $BSD_ENABLED_SBCS; do
+		BSD_TARGET_SBC=$LINE && all_dist
+	done
+}
+all_arch() {
+	for LINE in $BSD_ENABLED_SBCS; do
+		BSD_TARGET_SBC=$LINE && step
+	done
+}
+cleanstore() {
+	clean_env
+	cd /usr/store/.cache-internal-resources && (
+		for ITEM in $CLEANLIST; do
+			rm -rf $ITEM/.store $ITEM/*
+		done
+	)
+	sh /etc/action/store rebuild
+	sh $BSD_ROOTFS/.legacy/.action-re-distribute-legacy-img.sh
+	exit
+}
+# pre-process world meta commands
+unset KERNELONLY
+case $BSD_TARGET_SBC in
+world | cleanworld)
+	echo "####################### CLEAN WORLD  ##################################################"
+	echo "... you have 10 seconds to cancel! [ Cross-Plattform rebuild of all ccaches takes hours!]"
+	sleep 12
+	sh /etc/action/store rebuild
+	BSDbuild clean
+	mv $BSD_CACHE/ccache $BSD_CACHE/ccache_$(date "+%Y%m%d-%H%M%S")
+	(ccache_rebuild_check >> $LOGM 2>&1)
+	sh $BSD_ACTION/build.img.lib.sh prepcache
+	export CACHE_DONE=true && export SBC=core
+	;;
+core | cleancore)
+	echo "############### BSDbuid CORE  ############################################################"
+	sh /etc/action/store rebuild
+	BSDbuild clean
+	(ccache_rebuild_check >> $LOGM 2>&1)
+	sh $BSD_ACTION/build.img.lib.sh prepcache
+	export CACHE_DONE=true && export SBC=core
+	;;
+cleanstore) CLEANLIST="src img kernel rootfs" && cleanstore ;;
+cleanmax) CLEANLIST="src img kernel rootfs ccache" && cleanstore ;;
+esac
+case $BSD_TARGET_SBC in
+rebuild_ccache)
+	touch $LOCKFILE
+	ccache_rebuild_check >> $LOGM 2>&1
+	rm -rf $LOCKFILE
+	beep 2
+	;;
+all)
+	INFO="STARTUP TIME BUILD ALL" && BSD_TARGET_SBC="INFO" && step
+	all_arch_all_dist
+	BSD_TARGET_SBC="manpages" && BSD_TARGET_DIST="base" && step
+	(sh $BSD_BIN/BSDsign)
+	beep
+	;;
+core)
+	INFO="STARTUP TIME BUILD CORE" && BSD_TARGET_SBC="INFO" && step && INFO="BUILD"
+	BSD_TARGET_SBC="rpi2b32" && BSD_TARGET_DIST="pnoc" && step && BSD_TARGET_DIST="cssh" && step
+	BSD_TARGET_DIST="bsrv" && all_arch
+	(sh $BSD_BIN/BSDsign)
+	beep
+	;;
+bsrv)
+	INFO="STARTUP TIME BUILD BSRV" && BSD_TARGET_SBC="INFO" && step && INFO="BUILD"
+	BSD_TARGET_DIST="bsrv" && all_arch
+	(sh $BSD_BIN/BSDsign)
+	beep
+	;;
+*)
+	if [ -e $BSD_SBC/.alias/$BSD_TARGET_SBC ] && [ -e $BSD_DIST/$BSD_TARGET_DIST ]; then
+		echo "STARTUP TIME BUILD: $BSD_TARGET_SBC $BSD_TARGET_DIST: $(date "+%Y%m%d-%H%M%S")" > /dev/stdout
+		step
+	else
+		echo "... you need to specify a valid build target! [ or checkin $BSD_TARGET_SBC $BSD_TARGET_DIST ]" && syntax
+	fi
+	;;
+esac
+cd /tmp
+INFO="END BUILD $1: " && BSD_TARGET_SBC="INFO" && step
+echo "... build time overview:" && cat $LOGM | egrep "START_IMG|real" && echo ""
+echo "... store checkin and sign images now!"
+sh $BSD_BIN/BSDsign >> $LOGM 2>&1
+rm -rf /tmp/.build.temp > /dev/null 2>&1
+rm -f $LOCKFILE > /dev/null 2>&1
+cd /tmp && sync && sync && sync && beep
+if [ $3 ]; then (if [ -c /dev/$3 ]; then BSDwrite $1 $2 $3; fi); fi

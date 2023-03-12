@@ -1,0 +1,7 @@
+#!/bin/sh
+rm -rf /tmp/python/usr/local/lib/python3.9/test/*
+rm -rf /tmp/python/usr/local/share/*
+cd /tmp/python/usr/local/bin
+ln -s python3 python
+cd /tmp/python-master
+echo "... postinstall done!"

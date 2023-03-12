@@ -1,0 +1,53 @@
+#!/bin/sh
+autoreconf -i
+autoreconf -if
+gmake configure
+echo "build $LT_ARCH"
+echo "target $CCT"
+sh ./configure \
+	--build=$LT_ARCH \
+	--target=$CCT \
+	--host=$CCT \
+	--prefix=/usr \
+	--without-tcltk \
+	--without-python \
+	--with-curl \
+	--with-openssl \
+	--enable-pthreads=-pthread \
+	--with-iconv=$SRM/usr/lib/i18n \
+	ac_cv_fread_reads_directories=yes \
+	ac_cv_snprintf_returns_bogus=no \
+	ac_cv_iconv_omits_bom=yes \
+	cross_compiling=yes \
+	NO_GETTEXT=1 \
+	NO_PERL=1 \
+	NO_PYTHON=1 \
+	INSTALL_SYMLINKS=1 \
+	INSTALL_STRIP=-s \
+	HAVE_BSD_SYSCTL=1 \
+	NO_IPV6=1 \
+	OPENSSL_SHA=1 \
+	OPENSSL_SHA256=1
+
+#	NO_ICONV=1 \
+# export NO_ICONV=1
+# export NO_PERL=1
+# --without-perl \
+# --with-expat="no" \
+#	ac_cv_header_libcharset_h=no \
+#	ac_cv_fread_reads_directories=yes \
+#	ac_cv_snprintf_returns_bogus=no \
+#	ac_cv_iconv_omits_bom=yes \
+#	--with-libiconv=$SRM/usr/lib/i18n \
+# export NO_GETTEXT=1
+# export NO_PERL=1
+# export NO_PYTHON=1
+# export INSTALL_SYMLINKS=1
+# export INSTALL_STRIP=-s
+# export HAVE_BSD_SYSCTL=1
+# export NO_IPV6=1
+# export OPENSSL_SHA=1
+# export OPENSSL_SHA256=1
+### @@@UPSTREAM cross-compile configure expat/iconv BSD [ non gcc ] LD $SYSROOT ignore /  BUGREPORT
+# patch -i $CONTRIB/_patch/git-conf
+# patch -i $CONTRIB/_patch/git-make

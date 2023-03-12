@@ -1,0 +1,72 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 3828408508 (0xe430e0bc)
+        Signature Algorithm: md5WithRSAEncryption
+        Issuer: CN = rpi3b64-pnoc
+        Validity
+            Not Before: Apr 26 06:48:28 2021 GMT
+            Not After : Dec  4 06:48:28 2026 GMT
+        Subject: CN = rpi3b64-pnoc
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                RSA Public-Key: (2048 bit)
+                Modulus:
+                    00:bb:a5:04:4e:3f:47:e8:91:43:99:cc:0e:21:3e:
+                    8b:ab:bb:8a:e6:9c:ed:22:d6:07:56:0e:37:97:c0:
+                    db:68:86:3d:83:fb:63:90:08:83:c0:2e:7d:ea:20:
+                    f3:67:45:ad:26:08:55:5f:a9:7e:65:fe:e7:b5:76:
+                    d5:1e:8d:bf:06:fc:02:fc:5c:20:d6:42:40:03:e0:
+                    a6:de:3e:d4:6a:20:aa:e6:a8:b3:42:ae:04:f1:d3:
+                    da:5a:cd:66:40:9e:0e:ba:ac:fd:6d:a7:00:87:d1:
+                    53:88:e9:78:b3:03:9e:04:b9:de:0e:26:d2:c6:85:
+                    ad:5a:75:fc:95:d4:16:fa:93:bf:9f:5c:9f:c4:61:
+                    a4:70:50:75:ff:0c:6e:58:a5:29:1f:d1:d3:3f:5e:
+                    57:c8:46:08:3e:4d:b5:ce:35:ab:9b:2d:52:7b:4d:
+                    f4:2b:24:31:7f:2f:4b:fc:8f:bb:e6:aa:f1:5a:d6:
+                    6c:da:0a:53:31:73:1e:9c:31:0e:69:6c:b1:b0:22:
+                    3b:c8:34:5a:2d:95:0b:e0:96:21:9e:c9:bf:83:9f:
+                    40:8d:1a:46:cc:a9:72:47:31:49:57:2d:19:a9:9f:
+                    10:49:cf:4b:14:41:37:d1:2f:13:8e:0d:3e:c8:21:
+                    57:2f:b6:fa:7f:d2:ea:56:bd:e4:6d:a3:0a:fd:ff:
+                    e6:6d
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints: critical
+                CA:TRUE
+            X509v3 Key Usage: 
+                Digital Signature, Certificate Sign
+    Signature Algorithm: md5WithRSAEncryption
+         1e:d3:97:35:6b:e4:28:16:ee:c0:64:11:6d:b5:71:b9:29:05:
+         ab:ec:c2:7b:72:51:44:16:67:67:c3:84:cb:47:71:c2:2b:0e:
+         93:e4:00:b4:18:21:e8:16:e2:14:79:45:2d:3f:a2:96:62:d3:
+         57:a6:9f:43:b3:d5:bc:c5:f8:32:18:b9:af:da:fc:34:1f:3b:
+         10:54:ef:7a:35:64:3a:9a:9c:52:a0:0c:c1:6e:dd:12:9d:b4:
+         d6:36:45:f1:c5:08:b9:6f:e3:84:2e:5f:de:b3:dd:2f:2c:a5:
+         ec:ec:76:a8:c0:d2:ab:76:e7:90:26:f1:2f:ef:5d:30:13:75:
+         69:ee:92:b1:58:7a:1e:fa:38:bb:91:ee:d6:77:db:92:5a:4d:
+         82:24:a8:25:44:fd:31:7f:e7:db:ef:a8:6d:4c:6c:49:46:ef:
+         71:18:d7:5a:cb:bc:f5:5b:15:65:69:26:e4:1a:96:7e:a5:cd:
+         3d:b3:f9:b8:8b:c2:67:73:30:7b:f2:7b:db:3c:d9:4c:6d:ba:
+         5f:d5:be:7d:d9:20:67:d9:bb:93:0b:8c:96:62:27:91:5a:38:
+         14:62:de:ff:ce:34:ee:0b:fa:8b:9f:0a:61:6b:5f:69:00:10:
+         3e:15:92:20:40:81:a8:89:ad:d4:99:46:2e:98:28:e4:59:da:
+         c6:3b:f3:b2
+-----BEGIN CERTIFICATE-----
+MIICzTCCAbWgAwIBAgIFAOQw4LwwDQYJKoZIhvcNAQEEBQAwFzEVMBMGA1UEAwwM
+cnBpM2I2NC1wbm9jMB4XDTIxMDQyNjA2NDgyOFoXDTI2MTIwNDA2NDgyOFowFzEV
+MBMGA1UEAwwMcnBpM2I2NC1wbm9jMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIB
+CgKCAQEAu6UETj9H6JFDmcwOIT6Lq7uK5pztItYHVg43l8DbaIY9g/tjkAiDwC59
+6iDzZ0WtJghVX6l+Zf7ntXbVHo2/BvwC/Fwg1kJAA+Cm3j7UaiCq5qizQq4E8dPa
+Ws1mQJ4Ouqz9bacAh9FTiOl4swOeBLneDibSxoWtWnX8ldQW+pO/n1yfxGGkcFB1
+/wxuWKUpH9HTP15XyEYIPk21zjWrmy1Se030KyQxfy9L/I+75qrxWtZs2gpTMXMe
+nDEOaWyxsCI7yDRaLZUL4JYhnsm/g59AjRpGzKlyRzFJVy0ZqZ8QSc9LFEE30S8T
+jg0+yCFXL7b6f9LqVr3kbaMK/f/mbQIDAQABoyAwHjAPBgNVHRMBAf8EBTADAQH/
+MAsGA1UdDwQEAwIChDANBgkqhkiG9w0BAQQFAAOCAQEAHtOXNWvkKBbuwGQRbbVx
+uSkFq+zCe3JRRBZnZ8OEy0dxwisOk+QAtBgh6BbiFHlFLT+ilmLTV6afQ7PVvMX4
+Mhi5r9r8NB87EFTvejVkOpqcUqAMwW7dEp201jZF8cUIuW/jhC5f3rPdLyyl7Ox2
+qMDSq3bnkCbxL+9dMBN1ae6SsVh6Hvo4u5Hu1nfbklpNgiSoJUT9MX/n2++obUxs
+SUbvcRjXWsu89VsVZWkm5BqWfqXNPbP5uIvCZ3Mwe/J72zzZTG26X9W+fdkgZ9m7
+kwuMlmInkVo4FGLe/8407gv6i58KYWtfaQAQPhWSIECBqImt1JlGLpgo5Fnaxjvz
+sg==
+-----END CERTIFICATE-----

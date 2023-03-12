@@ -1,0 +1,157 @@
+Using OpenSSL version OpenSSL 1.1.1l-dev  LockSSL ( RELEASE:2021-04-23 ) ( COMMIT:513ead860853 )
+Using host rpi3b64-pnoc group rpi3b64-pnoc
+Generating RSA keys (2048 bits)...
+RSA 0 0 1RSA 0 1 2RSA 0 2 3RSA 0 3 4RSA 0 4 5RSA 0 5 6RSA 0 6 7RSA 0 7 8RSA 0 8 9RSA 0 9 10RSA 0 10 11RSA 0 11 12RSA 0 12 13RSA 0 13 14RSA		1 0 1RSA		1 1 2RSA		1 2 3RSA		1 3 4RSA		1 4 5RSA						3 0 1RSA 0 0 15RSA 0 1 16RSA 0 2 17RSA 0 3 18RSA 0 4 19RSA 0 5 20RSA 0 6 21RSA 0 7 22RSA 0 8 23RSA 0 9 24RSA 0 10 25RSA 0 11 26RSA		1 0 6RSA		1 1 7RSA		1 2 8RSA		1 3 9RSA		1 4 10RSA						3 1 2
+Generating new host file and link
+ntpkey_host_rpi3b64-pnoc->ntpkey_RSAhost_rpi3b64-pnoc.3828408508
+RSA Private-Key: (2048 bit, 2 primes)
+modulus:
+    00:bb:a5:04:4e:3f:47:e8:91:43:99:cc:0e:21:3e:
+    8b:ab:bb:8a:e6:9c:ed:22:d6:07:56:0e:37:97:c0:
+    db:68:86:3d:83:fb:63:90:08:83:c0:2e:7d:ea:20:
+    f3:67:45:ad:26:08:55:5f:a9:7e:65:fe:e7:b5:76:
+    d5:1e:8d:bf:06:fc:02:fc:5c:20:d6:42:40:03:e0:
+    a6:de:3e:d4:6a:20:aa:e6:a8:b3:42:ae:04:f1:d3:
+    da:5a:cd:66:40:9e:0e:ba:ac:fd:6d:a7:00:87:d1:
+    53:88:e9:78:b3:03:9e:04:b9:de:0e:26:d2:c6:85:
+    ad:5a:75:fc:95:d4:16:fa:93:bf:9f:5c:9f:c4:61:
+    a4:70:50:75:ff:0c:6e:58:a5:29:1f:d1:d3:3f:5e:
+    57:c8:46:08:3e:4d:b5:ce:35:ab:9b:2d:52:7b:4d:
+    f4:2b:24:31:7f:2f:4b:fc:8f:bb:e6:aa:f1:5a:d6:
+    6c:da:0a:53:31:73:1e:9c:31:0e:69:6c:b1:b0:22:
+    3b:c8:34:5a:2d:95:0b:e0:96:21:9e:c9:bf:83:9f:
+    40:8d:1a:46:cc:a9:72:47:31:49:57:2d:19:a9:9f:
+    10:49:cf:4b:14:41:37:d1:2f:13:8e:0d:3e:c8:21:
+    57:2f:b6:fa:7f:d2:ea:56:bd:e4:6d:a3:0a:fd:ff:
+    e6:6d
+publicExponent: 65537 (0x10001)
+privateExponent:
+    00:ad:2f:7d:8c:d6:7d:00:da:69:c1:1e:03:80:8d:
+    60:8d:ac:f7:63:27:3c:fa:a4:fd:7a:60:7e:d0:d2:
+    0f:ef:25:ce:ca:ec:8f:94:d5:36:fc:7e:2c:7a:95:
+    d4:f0:e0:ef:11:26:29:dd:b3:ea:d4:2a:73:23:19:
+    bd:53:88:d1:e1:99:61:0c:17:df:ba:c0:c4:a2:8f:
+    8a:93:9e:fb:9f:c3:ec:d8:1c:a5:ee:89:fc:48:52:
+    16:bb:2d:ce:0d:1f:94:4a:98:f5:02:6a:5b:63:ff:
+    40:11:22:22:e3:5e:18:4f:16:59:2b:48:8b:ca:ec:
+    7f:f5:f8:e5:9a:47:78:b9:e5:64:ce:a8:d4:4e:42:
+    f3:4c:54:55:50:4a:7d:cc:dc:20:57:7d:54:b0:c2:
+    44:b6:0a:71:ad:4e:58:0a:4a:37:13:6c:d5:4a:19:
+    19:ae:a5:93:2f:f5:fc:f5:83:6b:e6:19:5f:c6:3f:
+    8e:f6:5b:3c:99:7a:eb:b8:b3:44:b4:b6:96:de:8c:
+    ae:50:ae:1b:76:39:91:7f:90:d9:b6:4d:18:89:d6:
+    f8:05:df:b1:62:f8:51:4a:3a:73:4d:f3:9d:53:12:
+    48:08:8e:d3:d7:09:de:0a:7b:d7:f7:81:7c:b5:b2:
+    5a:84:84:2b:eb:99:8b:fc:15:6a:b9:97:7c:07:03:
+    ca:45
+prime1:
+    00:e4:7a:97:34:d3:2b:78:4e:71:c9:25:43:67:2a:
+    d7:60:7f:2d:df:59:0d:d1:e0:d1:11:dc:20:c1:37:
+    b2:ba:4d:83:97:93:a5:13:6c:cc:d7:09:f0:ce:86:
+    a5:a6:00:69:1e:7f:1b:aa:01:d5:07:93:5b:5c:de:
+    8d:98:2b:48:fb:d8:3b:86:82:b9:61:e6:e4:b5:b7:
+    8d:c1:77:de:65:a2:dd:e3:16:0f:15:40:f7:94:11:
+    8a:50:22:7c:73:15:a8:36:a3:0b:82:f7:68:2b:65:
+    17:4a:77:8e:50:8b:d3:59:27:1b:0d:1d:15:83:e1:
+    dd:7a:94:1e:99:e3:e3:04:cf
+prime2:
+    00:d2:3f:41:19:4b:d8:75:47:38:b8:1d:50:0a:ef:
+    8b:fb:a9:91:59:d7:d1:ac:a4:25:3f:7c:2e:df:06:
+    9d:af:5e:a2:8d:a5:14:59:99:2c:04:f6:84:f7:87:
+    f7:c4:51:c2:cf:fc:75:fa:05:87:fc:8c:f7:76:a0:
+    94:59:ce:4e:cc:0b:a5:ba:dd:70:97:72:a5:3f:c3:
+    26:a5:ed:f7:45:1c:39:c5:52:8b:a2:7c:85:f0:91:
+    2a:18:c5:e0:2d:ac:bf:02:33:b0:50:ca:a7:3f:1d:
+    8b:be:a9:86:45:d3:a6:e6:4e:cd:a7:b6:dd:13:9d:
+    62:fa:19:80:26:df:a1:a8:03
+exponent1:
+    00:86:97:28:a7:77:95:ed:e2:d7:e8:93:c8:e6:e7:
+    37:c4:a2:66:95:61:52:60:c6:3c:a2:76:b7:dc:da:
+    40:b0:ba:a4:c0:0f:bb:78:7b:e9:16:eb:c6:2d:02:
+    e8:65:a7:6c:45:08:bf:75:20:6b:2b:71:44:aa:aa:
+    77:62:a2:6c:f5:de:65:02:51:d3:7e:b6:93:17:f0:
+    ae:d2:bf:18:05:6b:31:a6:6a:02:2c:94:fe:c2:fc:
+    aa:2b:96:85:15:0e:36:ef:28:90:c9:6f:90:af:af:
+    77:4e:e8:aa:af:0c:0f:4e:3f:59:12:1a:85:e8:10:
+    8f:75:7b:f7:a2:d3:b9:91:c5
+exponent2:
+    49:d6:3d:1e:8d:2c:6f:c3:9b:7f:cd:8b:96:cb:99:
+    f5:c0:0f:73:e5:ff:95:09:f0:aa:e3:09:f2:f9:77:
+    d7:66:fc:df:91:e2:1b:b5:57:68:46:cb:5b:c3:3c:
+    98:8d:be:45:1c:fc:b1:d9:cf:70:3a:71:8e:0f:c7:
+    09:e3:12:79:46:7d:e5:aa:6f:28:40:f3:17:f9:89:
+    51:2c:c9:72:53:ff:55:f5:2f:64:d9:26:90:dd:ea:
+    52:d8:eb:6a:1f:08:d5:d5:21:4e:be:5d:0e:25:6a:
+    36:83:82:cc:73:10:62:41:ba:a7:f3:e8:a0:42:dd:
+    c7:c7:bc:e1:ea:17:f3:d1
+coefficient:
+    06:be:3f:b3:bc:9e:7b:fe:44:90:b6:34:6c:4d:b2:
+    73:a9:e2:20:5b:9e:7e:ff:3d:1e:60:27:22:4b:ec:
+    bf:be:66:40:d1:da:6e:c6:88:f7:9f:73:27:6f:7d:
+    e9:83:04:e6:ba:3f:fa:33:33:92:62:ad:7a:0d:fa:
+    a9:7b:ba:d0:a9:c0:53:97:c7:1a:12:3a:07:6a:ad:
+    0e:01:81:7f:25:97:3a:61:14:27:d5:2e:ec:da:b2:
+    b5:8d:f9:72:3c:62:31:63:17:c6:cf:91:32:5e:aa:
+    b5:bd:0d:c1:8e:32:44:0f:8d:29:63:a6:31:6b:bb:
+    1a:8f:a2:f3:90:77:db:45
+Invalid sign key type -T
+Using host key as sign key
+Generating new certificate rpi3b64-pnoc RSA-MD5
+X509v3 Basic Constraints: critical,CA:TRUE
+X509v3 Key Usage: digitalSignature,keyCertSign
+Generating new cert file and link
+ntpkey_cert_rpi3b64-pnoc->ntpkey_RSA-MD5cert_rpi3b64-pnoc.3828408508
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 3828408508 (0xe430e0bc)
+        Signature Algorithm: md5WithRSAEncryption
+        Issuer: CN=rpi3b64-pnoc
+        Validity
+            Not Before: Apr 26 06:48:28 2021 GMT
+            Not After : Dec  4 06:48:28 2026 GMT
+        Subject: CN=rpi3b64-pnoc
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                RSA Public-Key: (2048 bit)
+                Modulus:
+                    00:bb:a5:04:4e:3f:47:e8:91:43:99:cc:0e:21:3e:
+                    8b:ab:bb:8a:e6:9c:ed:22:d6:07:56:0e:37:97:c0:
+                    db:68:86:3d:83:fb:63:90:08:83:c0:2e:7d:ea:20:
+                    f3:67:45:ad:26:08:55:5f:a9:7e:65:fe:e7:b5:76:
+                    d5:1e:8d:bf:06:fc:02:fc:5c:20:d6:42:40:03:e0:
+                    a6:de:3e:d4:6a:20:aa:e6:a8:b3:42:ae:04:f1:d3:
+                    da:5a:cd:66:40:9e:0e:ba:ac:fd:6d:a7:00:87:d1:
+                    53:88:e9:78:b3:03:9e:04:b9:de:0e:26:d2:c6:85:
+                    ad:5a:75:fc:95:d4:16:fa:93:bf:9f:5c:9f:c4:61:
+                    a4:70:50:75:ff:0c:6e:58:a5:29:1f:d1:d3:3f:5e:
+                    57:c8:46:08:3e:4d:b5:ce:35:ab:9b:2d:52:7b:4d:
+                    f4:2b:24:31:7f:2f:4b:fc:8f:bb:e6:aa:f1:5a:d6:
+                    6c:da:0a:53:31:73:1e:9c:31:0e:69:6c:b1:b0:22:
+                    3b:c8:34:5a:2d:95:0b:e0:96:21:9e:c9:bf:83:9f:
+                    40:8d:1a:46:cc:a9:72:47:31:49:57:2d:19:a9:9f:
+                    10:49:cf:4b:14:41:37:d1:2f:13:8e:0d:3e:c8:21:
+                    57:2f:b6:fa:7f:d2:ea:56:bd:e4:6d:a3:0a:fd:ff:
+                    e6:6d
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints: critical
+                CA:TRUE
+            X509v3 Key Usage: 
+                Digital Signature, Certificate Sign
+    Signature Algorithm: md5WithRSAEncryption
+         1e:d3:97:35:6b:e4:28:16:ee:c0:64:11:6d:b5:71:b9:29:05:
+         ab:ec:c2:7b:72:51:44:16:67:67:c3:84:cb:47:71:c2:2b:0e:
+         93:e4:00:b4:18:21:e8:16:e2:14:79:45:2d:3f:a2:96:62:d3:
+         57:a6:9f:43:b3:d5:bc:c5:f8:32:18:b9:af:da:fc:34:1f:3b:
+         10:54:ef:7a:35:64:3a:9a:9c:52:a0:0c:c1:6e:dd:12:9d:b4:
+         d6:36:45:f1:c5:08:b9:6f:e3:84:2e:5f:de:b3:dd:2f:2c:a5:
+         ec:ec:76:a8:c0:d2:ab:76:e7:90:26:f1:2f:ef:5d:30:13:75:
+         69:ee:92:b1:58:7a:1e:fa:38:bb:91:ee:d6:77:db:92:5a:4d:
+         82:24:a8:25:44:fd:31:7f:e7:db:ef:a8:6d:4c:6c:49:46:ef:
+         71:18:d7:5a:cb:bc:f5:5b:15:65:69:26:e4:1a:96:7e:a5:cd:
+         3d:b3:f9:b8:8b:c2:67:73:30:7b:f2:7b:db:3c:d9:4c:6d:ba:
+         5f:d5:be:7d:d9:20:67:d9:bb:93:0b:8c:96:62:27:91:5a:38:
+         14:62:de:ff:ce:34:ee:0b:fa:8b:9f:0a:61:6b:5f:69:00:10:
+         3e:15:92:20:40:81:a8:89:ad:d4:99:46:2e:98:28:e4:59:da:
+         c6:3b:f3:b2

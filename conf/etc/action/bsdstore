@@ -1,0 +1,2 @@
+#!/bin/sh
+BSDwrite rpi3 bsrv $1 store

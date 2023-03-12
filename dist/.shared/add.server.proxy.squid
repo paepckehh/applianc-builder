@@ -1,0 +1,12 @@
+#!/bin/sh
+X='
+# xxsquid
+xxsquid_enable="YES"
+xxsquid_program="/usr/bin/squid"
+xxsquid_cache="api.ooenai.com openai.com plattform.openai.com github.com github.io github.githubassets.com go.googlesource.com git.freebsd.org bugs.freebsd.org lists.freebsd.org teddit.net ipinfo.io rate.sx wttr.in v2.wttr.in lobste.rs reviews.freebsd.org news.ycombinator.com blog.fefe.de www.tagesschau.de git.kernel.org"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+# export BSD_DIST_PKG="$BSD_DIST_PKG squid-stable squidr"
+export BSD_DIST_PKG="$BSD_DIST_PKG squid squidr"
+export BSD_DIST_RC="$BSD_DIST_RC xxsquid"
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS ACCEPT_FILTER_HTTP"

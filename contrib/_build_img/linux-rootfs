@@ -1,0 +1,53 @@
+#!/bin/sh
+DEV=/dev/ext2fs/rootfs
+LINUXMOUNT=/tmp/mount.$(uuidgen)
+LINUXTARGET=/tmp/rootfs.$(uuidgen)
+linux_rootfs_clean() {
+	umount -f $LINUXMOUNT > /dev/null 2>&1
+	umount -f $DEV > /dev/null 2>&1
+	if [ -x $LINUXMOUNT/home ]; then
+		echo "... unable to unmount your linux client drive! Please unmount it manually first!"
+		exit
+	fi
+	rm -rf $LINUXMOUNT
+
+}
+linux_rootfs_mount() {
+	BSDlive linuxfs
+	/usr/local/sbin/fsck.ext3 $DEV
+	mkdir -v -p $LINUXMOUNT
+	mount -v -t ext2fs $DEV $LINUXMOUNT
+	if [ ! -x $LINUXMOUNT/home ]; then
+		echo "... unable to mount your client-drive!"
+		exit
+	fi
+}
+linux_rootfs_create() {
+	mkdir -v -p $LINUXTARGET/usr/lib
+	mkdir -v -p $LINUXTARGET/usr/share
+	cd $LINUXMOUNT/usr
+	cp -af include $LINUXTARGET/usr/
+	cp -af lib/aarch* $LINUXTARGET/usr/lib/
+	cp -af lib/linux* $LINUXTARGET/usr/lib/
+	cp -af share/pkgconfig $LINUXTARGET/usr/share/
+	tree --dirsfirst --du -apCDhF $LINUXTARGET
+
+}
+linux_rootfs_snap() {
+	TOS=linux
+	TARCH_L1=arm64
+	TARCH_L2=aarch64
+	TARCH_L3=cortex-a53
+	NAME=$TOS.$TARCH_L1.$TARCH_L2.$TARCH_L3
+
+	makefs -t ffs -o label=$NAME /tmp/$NAME.img $LINUXTARGET && rm -rf $LINUXTARGET
+	mkuzip -A zstd -C 22 -s 131072 -S /tmp/$NAME.img
+
+	rm /tmp/$NAME.img
+	mv /tmp/$NAME.img.uzst /tmp/$NAME.$(date "+%Y%m%d").img.uzst
+}
+linux_rootfs_clean
+linux_rootfs_mount
+linux_rootfs_create
+linux_rootfs_clean
+linux_rootfs_snap

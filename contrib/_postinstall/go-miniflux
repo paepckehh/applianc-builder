@@ -1,0 +1,3 @@
+#!/bin/sh
+cd /tmp/go-miniflux/usr/bin
+ln -fs miniflux.app miniflux

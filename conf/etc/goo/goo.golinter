@@ -1,0 +1,29 @@
+#!/bin/sh
+if [ -e go.mod ]; then
+	CRITIC=$(REPO="github.com/go-critic/go-critic/cmd/gocritic" goo check 2>&1)
+	SCHECK=$(REPO="honnef.co/go/tools/cmd/staticcheck" goo 2>&1)
+	LINTER=$(REPO="github.com/golangci/golangci-lint/cmd/golangci-lint" goo --color always run 2>&1)
+	if [ "$SCHECK" == "\n" ]; then SCHECK=""; fi
+	if [ "$LINTER" == 'level=warning msg="[linters context] structcheck is disabled because of go1.18. You can track the evolution of the go1.18 support by following the https://github.com/golangci/golangci-lint/issues/2649."' ]; then LINTER=""; fi
+	case $1 in
+	--batch)
+		echo "linter batchmode $PWD"
+		T=".summary.go-lint.txt"
+		if [ -e $T ]; then rm $T; fi
+		if [ "$CRITIC" != "" ]; then echo "-=###   go-critic   ###=-" >> $T && echo "$CRITIC" >> $T; fi
+		if [ "$SCHECK" != "" ]; then echo "-=###  staticcheck  ###=-" >> $T && echo "$SCHECK" >> $T; fi
+		if [ "$LINTER" != "" ]; then echo "-=### golangci-lint ###=-" >> $T && echo "$LINTER" >> $T; fi
+		exit
+		;;
+	esac
+	if [ "$CRITIC" == "" ] && [ "$SCHECK" == "" ] && [ "$LINTER" == "" ]; then
+		echo "No linter error(s)/comment(s) found, stats summary:"
+		REPO="github.com/jondot/goweight" goo $*
+	else
+		if [ "$CRITIC" != "" ]; then echo "-=###   go-critic   ###=-" && echo "$CRITIC"; fi
+		if [ "$SCHECK" != "" ]; then echo "-=###  staticcheck  ###=-" && echo "$SCHECK"; fi
+		if [ "$LINTER" != "" ]; then echo "-=### golangci-lint ###=-" && echo "$LINTER"; fi
+	fi
+else
+	echo "no ./go.mod file found" && exit 1
+fi

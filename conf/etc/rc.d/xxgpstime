@@ -1,0 +1,38 @@
+#!/bin/sh
+#
+# PROVIDE: xxgpstime
+# REQUIRE: devd syslogd var tmp xxdevdname
+# KEYWORD: nojail
+
+. /etc/rc.subr
+name="xxgpstime"
+desc="gps assisted rtc"
+start_cmd="gpstime_start"
+stop_cmd="gpstime_stop"
+rcvar="xxgpstime_enable"
+load_rc_config $name
+
+gpstime_start() {
+	(
+		if [ -e /var/lock.init.gpstime ]; then logger "[gpstime] already running, exit" && exit 1; fi
+		touch /var/lock.init.gpstime
+		startmsg "Starting [xx] gpstime [searching for:$xxgpstime_device]"
+		while [ ! -e "$xxgpstime_device" ]; do sleep 1; done
+		sleep 1
+		/usr/bin/daemon -rS $xxgpstime_program location $xxgpstime_device
+		logger "[xx] gpstime [$xxgpstime_device] started"
+		while [ $(date +%s) -lt 1659070000 ]; do
+			sleep 1
+		done
+		logger "[xx] gpstime [$xxgpstime_device] initial sync done"
+		/usr/bin/sysctl kern.securelevel=1
+	) &
+}
+
+gpstime_stop() {
+	startmsg "Stopping [xx] gpstime."
+	pkill gpstime
+	rm -rf /var/lock.init.gpstime*
+}
+
+run_rc_command "$1"

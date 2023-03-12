@@ -1,0 +1,6 @@
+#!/bin/sh
+. $BSD_ARCH/arm.armv7.cortex-a7
+export BSD_TARGET_SOC=bcm2709
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS SOC_BCM2836"
+export BSD_KERNCONF_FILES="$BSD_KERNCONF_FILES ../broadcom/bcm2835/files.bcm2836"
+export BSD_KERNCONF_FILES="$BSD_KERNCONF_FILES ../broadcom/bcm2835/files.bcm283x"

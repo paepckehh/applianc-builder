@@ -1,0 +1,4 @@
+#!/bin/sh
+. $BSD_SBC/.device/usb
+export BSD_DIST_PKG="$BSD_DIST_PKG galmon protobuf curl h2o"
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS PPS_SYNC"

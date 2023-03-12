@@ -1,0 +1,48 @@
+#!/bin/sh
+if [ ! -c /dev/$1 ] || [ ! -d /mnt/store/$1 ]; then
+	echo "ERROR: $1 is not a valid mount-able character device !"
+	geom -t
+	ls -la /mnt
+	exit
+fi
+MOUNT_POINT=/mnt/store/$1
+MOUNT_OPT="-o async,noatime,noexec"
+case $STORE_FS in
+ext2fs) BSDlive linuxfs && if [ -x /usr/local/bin/e2fsck ]; then FSCK_CMD="/usr/local/bin/e2fsck -pv"; fi ;;
+ffs) FSCK_CMD="fsck_ffs -Efy" && MOUNT_OPT="$MOUNT_OPT,untrusted" ;;
+*) echo "... unknown STORE FS, exit!" ;;
+esac
+umount $STORE_DEV > /dev/null 2>&1
+gpart recover $1
+echo $FSCK_CMD
+if [ -n "$FSCK_CMD" ]; then
+	$FSCK_CMD $STORE_DEV
+fi
+mount -t $STORE_FS $MOUNT_OPT $STORE_DEV $MOUNT_POINT
+df -h && sync && sync && sync
+if [ ! -x $MOUNT_POINT/eXchange ]; then
+	echo "### ERROR! No valid  mount-able store found on $STORE_DEV!"
+	if [ -x $MOUNT_POINT/home ]; then
+		echo "### PIOS TUX PNOC CLIENT media found and mounted!"
+	fi
+	exit 1
+fi
+echo "... external store $MOUNT_POINT is available now!"
+case $2 in
+cache)
+	echo "... starting mem-cache! "
+	time -h find $MOUNT_POINT -type f | xargs cat > /dev/null 2>&1
+	sh /etc/action/beep 2
+	;;
+sync)
+	echo "... starting sync! "
+	time -h sh /etc/action/store sync $MOUNT_POINT
+	sh /etc/action/beep 2
+	;;
+verify)
+	echo "... starting integrity verification! "
+	time -h sh /etc/action/store verify $MOUNT_POINT
+	sh /etc/action/beep 2
+	;;
+esac
+###########################################################################

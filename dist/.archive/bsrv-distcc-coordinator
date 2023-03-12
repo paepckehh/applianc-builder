@@ -1,0 +1,5 @@
+#!/bin/sh
+# bsrv distcc controller
+. $BSD_DIST/bsrv
+. $BSD_DIST/.shared/add.server.distcc
+export BSD_NIC=true

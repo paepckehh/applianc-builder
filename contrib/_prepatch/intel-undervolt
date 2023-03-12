@@ -1,0 +1,25 @@
+--- configure.orig	2021-07-13 05:04:11.657620000 +0000
++++ configure	2021-07-13 05:06:05.808858000 +0000
+@@ -65,7 +65,7 @@
+   printf '%s' "s,^\($1 =\).*$,\1 $2,"
+ }
+ 
+-sed Makefile.in \
++cat Makefile.in | sed \
+ -e "`sedcond SYSTEMD "$enable_systemd"`" \
+ -e "`sedcond ELOGIND "$enable_elogind"`" \
+ -e "`sedcond OPENRC "$enable_openrc"`" \
+--- Makefile.in.orig	2021-07-13 05:19:54.637651000 +0000
++++ Makefile.in	2021-07-13 05:20:20.345811000 +0000
+@@ -1,7 +1,7 @@
+-CC = gcc
+-CFLAGS =
+-EXTRA_CFLAGS = -Wall -Wextra
+-DESTDIR =
++#CC = gcc
++#CFLAGS =
++#EXTRA_CFLAGS = -Wall -Wextra
++#DESTDIR =
+ 
+ ENABLE_SYSTEMD =
+ ENABLE_ELOGIND =

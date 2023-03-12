@@ -1,0 +1,5 @@
+#!/bin/sh
+. $BSD_DIST/.os/bsd
+export SRC_CHECKOUT=STABLE
+export GTAG="release/13.0.0"
+export TOS=fbsd

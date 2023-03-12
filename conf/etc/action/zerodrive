@@ -1,0 +1,5 @@
+#!/bin/sh
+export SOURCE_DEV=/dev/zero
+LOOPS=3
+if [ $2 ]; then LOOPS=$2; fi
+sh /etc/action/.drive $1 $LOOPS

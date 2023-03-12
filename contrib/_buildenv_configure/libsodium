@@ -1,0 +1,10 @@
+#!/bin/sh
+sh ./autogen.sh -s
+autoreconf -if
+autoupdate
+sh ./configure \
+	--host=$CCT \
+	--prefix=/usr \
+	--enable-static=no \
+	--enable-shared=yes \
+	--enable-retpoline=yes

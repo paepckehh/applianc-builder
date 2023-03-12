@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="github.com/denis-tingaikin/go-header/cmd/go-header" goo $*

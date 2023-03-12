@@ -1,0 +1,59 @@
+#!/bin/sh
+#
+export WITHOUT_LLVM_TARGET_BPF=true
+export WITHOUT_LLVM_TARGET_MIPS=true
+export WITHOUT_LLVM_TARGET_POWERPC=true
+export WITHOUT_LLVM_TARGET_RISCV=true
+export WITHOUT_LLVM_TARGET_SPARC=true
+export WITHOUT_LLVM_TARGET_ARM=true
+export WITHOUT_LLVM_TARGET_X86=true
+export WITHOUT_LLVM_TARGET_AARCH64=true
+export WITHOUT_CLANG_FORMAT=true
+export WITHOUT_CLANG_EXTRAS=true
+export WITHOUT_LLVM_COV=true
+#
+export WITH_CLANG=true
+export WITH_MAKE=true
+export WITH_TOOLCHAIN=true
+export WITH_LLVM_BINUTILS=true
+#
+unset WITHOUT_CLANG
+unset WITHOUT_MAKE
+unset WITHOUT_TOOLCHAIN
+unset WITHOUT_LLVM_BINUTILS
+#
+case $TARCH_L1 in
+amd64)
+	export WITH_CLANG_FORMAT=true
+	export WITH_LLVM_TARGET_AARCH64=true
+	export WITH_LLVM_TARGET_ARM=true
+	export WITH_LLVM_TARGET_X86=true
+	unset WITHOUT_CLANG_FORMAT
+	unset WITHOUT_LLVM_TARGET_AARCH64
+	unset WITHOUT_LLVM_TARGET_ARM
+	unset WITHOUT_LLVM_TARGET_X86
+	;;
+arm)
+	export WITH_LLVM_TARGET_ARM=true
+	unset WITHOUT_LLVM_TARGET_ARM
+	;;
+arm64)
+	case $SBC in
+	rpi4)
+		# unlock rpi4 with 2/4/8/16GB option as full-size cross-build-bsrv
+		export WITH_CLANG_FORMAT=true
+		export WITH_LLVM_TARGET_AARCH64=true
+		export WITH_LLVM_TARGET_ARM=true
+		export WITH_LLVM_TARGET_X86=true
+		unset WITHOUT_CLANG_FORMAT
+		unset WITHOUT_LLVM_TARGET_AARCH64
+		unset WITHOUT_LLVM_TARGET_ARM
+		unset WITHOUT_LLVM_TARGET_X86
+		;;
+	*)
+		export WITH_LLVM_TARGET_AARCH64=true
+		unset WITHOUT_LLVM_TARGET_AARCH64
+		;;
+	esac
+	;;
+esac

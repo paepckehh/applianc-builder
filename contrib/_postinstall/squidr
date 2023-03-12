@@ -1,0 +1,4 @@
+#!/bin/sh
+mkdir -p /tmp/squidr/usr/libexec
+cp /tmp/squidr/usr/bin/squidr /tmp/squidr/usr/libexec/squidr1
+mv /tmp/squidr/usr/bin/squidr /tmp/squidr/usr/libexec/squidr

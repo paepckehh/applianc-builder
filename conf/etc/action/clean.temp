@@ -1,0 +1,5 @@
+#!/bin/sh
+(find /tmp -type d | xargs umount -f) > /dev/null 2>&1
+umount -f /tmp > /dev/null 2>&1
+mount -t tmpfs tmpfs /tmp
+#############################################

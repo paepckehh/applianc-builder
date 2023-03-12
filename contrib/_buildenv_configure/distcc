@@ -1,0 +1,24 @@
+#!/bin/sh
+sh ./autogen.sh
+# autoreconf -i 	>>/tmp/build-$PTARGET.log
+# autoreconf -i 	>>/tmp/build-$PTARGET.log
+sh ./configure \
+	--host=$CCT \
+	--with-sysroot=$SYSROOTMOUNT \
+	--build=$LT_ARCH \
+	--target=$CCT \
+	--prefix=$PREFIX \
+	--disable-debug \
+	--disable-locale \
+	--disable-doc \
+	--disable-man \
+	--disable-manual \
+	--disable-nls \
+	--disable-pump-mode \
+	--without-libiberty \
+	--without-avahi \
+	--sysconfdir=/etc
+################################
+# --enable-rfc2553
+# --enable-profile
+# --with-auth

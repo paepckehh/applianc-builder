@@ -1,0 +1,2 @@
+#!/bin/sh
+/usr/bin/grep -OIir --exclude='*hqx' --exclude='*hqs' $*

@@ -1,0 +1,33 @@
+#!/bin/sh
+. $BSD_DIST/.base/bare
+# export BSD_TCP_BBR=true
+# export BSD_TCP_RACK=true
+# . $BSD_DIST/.shared/add.server.goproxy
+# . $BSD_DIST/.shared/add.server.rss.miniflux
+. $BSD_DIST/.shared/embedded
+# . $BSD_DIST/.shared/add.fbsd.wireguard
+. $BSD_DIST/.shared/add.fbsd.console.minimal.vertical
+. $BSD_DIST/.shared/add.fbsd.uplink
+. $BSD_DIST/.shared/add.fbsd.devdname
+. $BSD_DIST/.shared/add.fbsd.dhcp
+. $BSD_DIST/.shared/add.fbsd.fib
+. $BSD_DIST/.shared/add.fbsd.ipc
+. $BSD_DIST/.shared/add.fbsd.tcpdump
+. $BSD_DIST/.shared/add.fbsd.ipfw
+. $BSD_DIST/.shared/add.pkg.gitclient
+# . $BSD_DIST/.shared/add.pkg.bmake
+. $BSD_DIST/.shared/add.pkg.ugrep
+. $BSD_DIST/.shared/add.pkg.curl
+. $BSD_DIST/.shared/add.pkg.iperf
+. $BSD_DIST/.shared/add.pkg.mtr
+. $BSD_DIST/.shared/add.pkg.ftp
+. $BSD_DIST/.shared/add.pkg.ssh.openssh-smartcard-fido2
+. $BSD_DIST/.shared/add.server.proxy.squid
+# . $BSD_DIST/.shared/add.server.time.rtimesrv
+. $BSD_DIST/.shared/add.server.dns.unbound
+. $BSD_DIST/.shared/add.server.npad
+. $BSD_DIST/.shared/add.client.dns.dnscrypt
+. $BSD_DIST/.shared/add.client.time.gpstime
+. $BSD_DIST/.shared/add.worker.pnoc
+export EFI_STAGING_SIZE=64
+export BSD_TARGET_DIST="pnoc" # personal network operation center

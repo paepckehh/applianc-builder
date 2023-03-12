@@ -1,0 +1,6 @@
+#!/bin/sh
+if [ -z "$GOO" ]; then GOO=/usr/local/goo; fi
+if [ -z "$GOHOSTOS" ]; then GOHOSTOS=$(uname -s | tr "[:upper:]" "[:lower:]"); fi
+if [ -z "$GOHOSTARCH" ]; then GOHOSTARCH="$(uname -m)"; fi
+export GOROOT=$GOO/.$GOHOSTOS.$GOHOSTARCH
+$GOROOT/bin/go $*

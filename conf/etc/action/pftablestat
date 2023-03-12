@@ -1,0 +1,2 @@
+#!/bin/sh
+/usr/bin/pfctl -s Tables | xargs -I % pfctl -t % -vTshow | grep -v 'Packets: 0 ' | grep -v 'Clear' | grep -B 1 'Packet'

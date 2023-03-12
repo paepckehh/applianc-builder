@@ -1,0 +1,8 @@
+#!/bin/sh
+sh ./autogen.sh
+sh ./configure \
+	--host=$CCT \
+	--build=$LT_ARCH \
+	--target=$CCT \
+	--prefix=/usr \
+	cross_compiling=yes

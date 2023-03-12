@@ -1,0 +1,4 @@
+#!/bin/sh
+case $TARCH_L1 in
+arm64 | amd64) export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE crypto ossl" ;;
+esac

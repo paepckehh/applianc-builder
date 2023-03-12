@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="github.com/shazow/ssh-chat/cmd/ssh-chat" goo $*

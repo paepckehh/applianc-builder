@@ -1,0 +1,6 @@
+contrib
+test
+scripts
+.github
+.circleci
+docker*

@@ -1,0 +1,2 @@
+#!/bin/sh
+/usr/bin/doas -u gitclient /usr/bin/git $*

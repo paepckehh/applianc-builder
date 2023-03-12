@@ -1,0 +1,3 @@
+#!/bin/sh
+cd /tmp/distcc-master
+cp -rf distcc* lsdistcc /tmp/distcc/usr/bin

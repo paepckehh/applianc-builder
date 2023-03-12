@@ -1,0 +1,4 @@
+etc/ssh/*
+etc/ssl/*
+usr/sbin/sshd
+usr/share/misc

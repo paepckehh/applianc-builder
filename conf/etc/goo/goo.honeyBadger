@@ -1,0 +1,2 @@
+#!/bin/sh
+CGO_ENABLED="1" REPO="github.com/david415/HoneyBadger/cmd/honeyBadger" goo $*

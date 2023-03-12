@@ -1,0 +1,31 @@
+#!/bin/sh
+sh ./bootstrap
+sh ./configure \
+	--with-sysroot=$SYSROOTMOUNT \
+	--build=$LT_ARCH \
+	--host=$CCT \
+	--target=$CCT \
+	--prefix=/usr \
+	--disable-libsystemd \
+	--disable-documentation \
+	--enable-ipcdir=/var/run/pcsc \
+	--enable-libusb
+
+echo $CCT
+case $CCT in
+x86*)
+	cd src
+	gmake regen
+	tar -cvf $BSD_CONTRIB/_patch/wirecheck.tar.xz pcsc-wire*
+	cd ..
+	;;
+*)
+	cd src
+	tar -xvf $BSD_CONTRIB/_patch/wirecheck.tar.xz
+	rm -f pcsc-wirecheck-dist.c
+	rm -rf *.o
+	./pcsc-wirecheck-gen > pcsc-wirecheck-dist.c.tmp
+	mv pcsc-wirecheck-dist.c.tmp pcsc-wirecheck-dist.c
+	cd ..
+	;;
+esac

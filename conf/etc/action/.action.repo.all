@@ -1,0 +1,12 @@
+#!/bin/sh
+case $1 in
+"" | .)
+	if [ ! -z "$FZF_CMD" ]; then
+		REPO_LIVE=$(cd $BSD_GIT/.repo && ls -I)
+		REPO_ARCH=$(cd $BSD_GIT/.repo/.autoarchive && ls -I | sed -e 's/\.git-deflate-tree\.tar\.zst//g')
+		$ACTION $(echo "$REPO_LIVE $REPO_ARCH" | $FZF_CMD)
+		exit
+	fi
+	;;
+esac
+$ACTION $*

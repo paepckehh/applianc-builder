@@ -1,0 +1,2 @@
+#!/bin/sh
+go build -o /tmp/go-roughtime-server/usr/bin -mod vendor -ldflags="-s" -ldflags="-w" -trimpath -buildmode $GOBUILDMODE cmd/server/server.go

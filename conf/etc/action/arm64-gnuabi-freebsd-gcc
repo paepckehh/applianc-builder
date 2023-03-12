@@ -1,0 +1,2 @@
+#!/bin/sh
+exec clang -target arm64-freebsd-eabi --sysroot /usr/sysroots/fbsd.bsrv.arm64.aarch64.cortex-a53 "$@"

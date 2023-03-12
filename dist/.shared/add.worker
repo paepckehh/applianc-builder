@@ -1,0 +1,26 @@
+#!/bin/sh
+# export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS VIMAGE NULLFS"
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS NULLFS UNIONFS"
+export BSD_DIST_RC="$BSD_DIST_RC xxworker jail"
+export BSD_DIST_PKG="$BSD_DIST_PKG worker"
+export WITH_JAIL=true
+unset WITHOUT_JAIL
+X='
+# xxworker - thin stateless [fbsdjails|container] 
+xxworker_enable="NO"
+jail_enable="NO"
+jail_conf=""
+jail_confwarn="YES"
+jail_parallel_start="YES"
+jail_list=" "		
+jail_reverse_stop="NO"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+X='#
+# WORKER [generic]
+#
+alias wls="/usr/sbin/jls -dN"
+alias wexec="/usr/sbin/jexec"
+
+'
+export BSD_ALIAS_DISTRIBUTION="$BSD_ALIAS_DISTRIBUTION $X"

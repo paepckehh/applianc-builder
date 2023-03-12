@@ -1,0 +1,3 @@
+#!/bin/sh
+export BSD_DIST_PKG="$BSD_DIST_PKG libfuse"
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS FUSEFS"

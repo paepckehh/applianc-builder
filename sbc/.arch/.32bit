@@ -1,0 +1,10 @@
+#!/bin/sh
+X='# 32bit SPECIFIC
+kern.elf32.allow_wx=0
+kern.elf32.aslr.stack=3
+kern.elf32.aslr.honor_sbrk=0
+kern.elf32.aslr.enable=1
+kern.elf32.aslr.pie_enable=1
+kern.elf32.nxstack=1
+'
+export BSD_SYSCTL="$BSD_SYSCTL$X"

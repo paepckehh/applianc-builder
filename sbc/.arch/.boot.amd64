@@ -1,0 +1,34 @@
+#!/bin/sh
+. $BSD_ARCH/.boot
+case $BOOT_ENFORCE_FS in
+msdos)
+	export BOOT_FBSD_FS=msdos16
+	export BOOT_ENFORCE_SCHEME=mbr
+	;;
+ffs | *)
+	export BOOT_FBSD_FS=ffs1
+	;;
+esac
+
+case $BOOT_ENFORCE_SCHEME in
+mbr)
+	export XBOOT=mbrboot
+	export BOOT_FBSD_SCHEME=mbr
+	export BOOT_FBSD_BOOTPARTS="-b $BOOT_R/mbr"
+	;;
+bsd)
+	export XBOOT=bsdboot
+	export BOOT_FBSD_SCHEME=bsd
+	export BOOT_FBSD_BOOTPARTS="-b $BOOT_R/boot"
+	;;
+kboot)
+	export XBOOT=kboot
+	export BOOT_FBSD_SCHEME=gpt
+	;;
+gpt | *)
+	export XBOOT=gptboot
+	export BOOT_FBSD_SCHEME=gpt
+	export BOOT_FBSD_BOOTPARTS="-b $BOOT_R/pmbr -p freebsd-boot:=$BOOT_R/gptboot"
+	;;
+esac
+BSD_BOOT_LOADER_CONFIG="-n"

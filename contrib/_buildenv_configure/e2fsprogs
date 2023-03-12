@@ -1,0 +1,99 @@
+#!/bin/sh
+export STRIP=$STRIPBIN
+autoupdate -f
+autoreconf -i
+autoreconf -i -f
+# patch -i $BSD_CONTRIB/_patch/e2fsprogs.man
+sh ./configure \
+	--host=$CCT \
+	--target=$CCT \
+	--build=$LT_ARCH \
+	--prefix=/usr/local \
+	--enable-symlink-install \
+	--disable-fuse2fs \
+	--enable-libblkid \
+	--enable-elf-shlibs \
+	--enable-libuuid \
+	--disable-testio-debug \
+	--disable-backtrace \
+	--disable-debugfs \
+	--disable-imager \
+	--disable-resizer \
+	--disable-defrag \
+	--disable-uuidd \
+	--disable-mmp \
+	--disable-tdb \
+	--disable-bmap-stats \
+	--disable-nls \
+	--disable-fuse2fs \
+	--disable-verbose-makecmds \
+	cross_compiling=yes
+
+#	USE_NLS=no \
+#	MKDIR_P="/bin/mkdir -p" \
+
+#########################################
+# --with-sysroot=$SYSROOTMOUNT \
+# --enable-relative-symlinks \
+# --without-included-gettext \
+# --enable-verbose-makecmds \
+# --enable-lto \
+# --disable-rpath  \
+# --enable-symlink-build \
+# --enable-bsd-shlibs
+# --disable-testio-debug \
+# --disable-fuse2fs \
+# --disable-e2initrd-helper \
+# --disable-uuidd \
+# --disable-mmp \
+# --disable-tdb \
+# --disable-bmap-stats \
+# --enable-elf-shlibs
+# --disable-fsck \
+# --disable-libuuid \
+# --disable-tls \
+# --disable-uuidd \
+# --enable-elf-shlibs \
+# --libdir='${PREFIX}/lib/e2fsprogs/'\
+# --includedir='${PREFIX}/include/e2fsprogs/' \
+# --with-root-prefix='${PREFIX}' \
+#  --enable-symlink-install
+#  --enable-relative-symlinks
+#  --enable-symlink-build  use symlinks while building instead of hard links
+#  --enable-verbose-makecmds
+#  --enable-elf-shlibs     select ELF shared libraries
+#  --enable-bsd-shlibs     select BSD shared libraries
+#  --enable-profile        build profiling libraries
+#  --enable-gcov           build for coverage testing using gcov
+#  --enable-hardening      build for coverage testing using gcov
+#  --enable-jbd-debug      enable journal debugging
+#  --enable-blkid-debug    enable blkid debugging
+#  --disable-testio-debug  disable the use of the test I/O manager for
+#  --enable-libuuid        build and use private uuid library
+#  --enable-libblkid       build and use private blkid library
+#  --enable-subset         enable subset-only build
+#  --disable-backtrace     disable use backtrace
+#  --disable-debugfs       disable support of debugfs program
+#  --disable-imager        disable support of e2image program
+#  --disable-resizer       disable support of e2resize program
+#  --disable-defrag        disable support of e4defrag program
+#  --enable-fsck           build fsck wrapper program
+#  --enable-e2initrd-helper
+#  --disable-tls           disable use of thread local support
+#  --disable-uuidd         disable building the uuid daemon
+#  --disable-mmp           disable support mmp, Multi Mount Protection
+#  --disable-tdb           disable tdb support
+#  --disable-bmap-stats    disable collection of bitmap stats
+#  --enable-bmap-stats-ops enable collection of additional bitmap stats
+#  --disable-fuse2fs       do not build fuse2fs
+#  --enable-lto            enable link time optimization
+#  --enable-ubsan          enable undefined behavior sanitizer
+#  --enable-addrsan        enable address sanitizer
+#  --enable-threadsan      enable thread sanitizer
+#  --with-diet-libc        use diet libc
+#  --with-root-prefix=PREFIX
+#  --without-pthread       disable use of pthread support
+#  --with-multiarch=ARCH   specify the multiarch triplet
+#  --with-udev-rules-dir[=DIR]
+#  --with-crond-dir[=DIR]  Install system crontabs into DIR.
+#  --with-systemd-unit-dir[=DIR]

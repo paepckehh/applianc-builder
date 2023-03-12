@@ -1,0 +1,5 @@
+#!/bin/sh
+cd /tmp/autoconf/usr/local/bin
+ln -s autoconf autoconf-2.69
+ln -s autom4ate autom4ate-2.69
+cd /tmp

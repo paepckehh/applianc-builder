@@ -1,0 +1,28 @@
+#!/bin/sh
+#
+# PROVIDE: xxnetfix
+# REQUIRE: netif
+
+. /etc/rc.subr
+name="xxnetfix"
+desc="network interfaces fix [@UPSTREAM merge network.subr}"
+start_cmd="netfix_start"
+stop_cmd=":"
+rcvar="xxnetfix_enable"
+load_rc_config $name
+
+netfix_start() {
+	(
+		startmsg 'Starting [xx] netfix .'
+		if [ "$(/sbin/sysctl -n net.inet6.ip6.forwarding 2>&1)" = "0" ]; then
+			for loif in $(ifconfig -g lo); do
+				ifconfig $loif inet6 ifdisabled > /dev/null 2>&1
+				ifconfig $loif inet6 ::1 delete > /dev/null 2>&1
+				ifconfig $loif inet6 fe80::1 delete > /dev/null 2>&1
+			done
+			touch /var/lock.init.netfix
+		fi
+	) &
+}
+
+run_rc_command "$1"

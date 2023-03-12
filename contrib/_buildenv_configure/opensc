@@ -1,0 +1,19 @@
+#!/bin/sh
+export enable_pcsc=yes
+sh ./bootstrap
+sh ./configure \
+	--with-sysroot=$SYSROOTMOUNT \
+	--build=$LT_ARCH \
+	--host=$CCT \
+	--target=$CCT \
+	--prefix=/usr/local \
+	--disable-strict \
+	--disable-assert \
+	--disable-man \
+	--disable-doc \
+	--enable-notify="no" \
+	--disable-autostart-items \
+	--disable-openpace \
+	--disable-openct \
+	--disable-ctapi \
+	--disable-sm

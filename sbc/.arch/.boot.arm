@@ -1,0 +1,6 @@
+#!/bin/sh
+. $BSD_ARCH/.boot
+export XBOOT=efi
+export BOOT_FBSD_FS=ffs1
+export BOOT_FBSD_SCHEME=gpt
+export BOOT_FBSD_BOOTPARTS=

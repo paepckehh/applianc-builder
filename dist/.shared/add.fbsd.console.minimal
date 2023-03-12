@@ -1,0 +1,8 @@
+#!/bin/sh
+. $BSD_DIST/.shared/add.fbsd.console
+export BSD_ETC_TTYS='#
+ttyv0	"/usr/libexec/getty Pc"		xterm	onifexists secure
+ttyv1	"/usr/libexec/getty Pc"		xterm	onifexists secure
+ttyv2	"/usr/libexec/getty Pc"		xterm	onifexists secure
+ttyv3	"/usr/libexec/getty Pc"		xterm	onifexists secure
+'

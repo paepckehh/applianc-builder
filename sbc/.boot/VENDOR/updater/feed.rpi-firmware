@@ -1,0 +1,5 @@
+bootcode.bin
+fixup.dat
+fixup4.dat
+start.elf
+start4.elf

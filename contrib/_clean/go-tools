@@ -1,0 +1,8 @@
+usr/local/bin/gogrep
+usr/local/bin/structlayout-optimize
+usr/local/bin/keyify
+usr/local/bin/irdump
+usr/local/bin/structlayout
+usr/local/bin/ast-to-pattern
+usr/local/bin/structlayout-pretty
+usr/local/bin/gosmith

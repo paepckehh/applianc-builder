@@ -1,0 +1,177 @@
+#!/bin/sh
+# PROVIDE: xxminiflux
+# REQUIRE: LOGIN
+
+. /etc/rc.subr
+name="xxminiflux"
+desc="Miniflux RSS WebApplication"
+start_cmd="miniflux_start"
+stop_cmd="miniflux_stop"
+setup_cmd="miniflux_setup"
+toggle_cmd="miniflux_toggle"
+extra_commands="setup toggle"
+rcvar="xxminiflux_enable"
+load_rc_config $name
+
+worker="rss"
+workerDB="postgres"
+WROOT="/.worker/rss"
+WROOTDB="/.worker/postgres"
+CONF="/.worker/$worker/etc/app/miniflux"
+TOKEN="$WROOT/etc/app/miniflux/credential.token"
+
+miniflux_token() {
+	if [ ! -f $TOKEN ]; then
+		. /etc/.bsdconf
+		dd if=/dev/random bs=4096 count=1 | openssl enc -A > $BSD_PNOC/app/miniflux/credential.token
+		echo "########### NO EXISTING MINIFLUX POSTGRES AUTH TOKEN FOUND! ############"
+		echo "... new miniflux postgres user credential token generated!"
+		echo "... please rebuild pnoc & restart!"
+		exit
+
+	fi
+	AUTH_KEY="$(cat $TOKEN | /sbin/sha224)"
+}
+miniflux_conf() {
+	echo "[xx] [miniflux] [conf] "
+	MINIFLUXSSL=true
+	MINIFLUXMTLS=true
+	miniflux_token
+	# POSTGRES_SERVER="127.0.0.222"
+	POSTGRES_SERVER="127.0.0.1"
+	POSTGRES_SSL=false
+	case $POSTGRES_SERVER in
+	127.0.0.1)
+		export MINIFLUX_DATABASE="127.0.0.1/miniflux?sslmode=disable"
+		echo "miniflux <-> postgres local unix socket mode unlocked"
+		;;
+	*)
+		export MINIFLUX_DATABASE="$POSTGRES_SERVER/miniflux?sslmode=enable"
+		export POSTGRES_SSL=true
+		;;
+
+	esac
+	export DATABASE_URL="postgresql://miniflux:$AUTH_KEY@/miniflux?host=/tmp&sslmode=disable"
+	echo "###############################################################"
+	echo $DATABASE_URL
+	export LISTEN_ADDR="rss.paepcke.de:80"
+	export BASE_URL="http://rss.paepcke.de"
+	export ROOT_URL="http://rss.paepcke.de"
+	export BASE_PATH=""
+	export DATABASE_MAX_CONN="25"
+	export DATABASE_MIN_CONN="2"
+	export CLEANUP_FREQUENCY_HOURS="1"
+	export CLEANUP_ARCHIVE_READ_DAYS="90"
+	export CLEANUP_REMOVE_SESSIONS_DAYS="90"
+	export WORKER_POOL_SIZE="3"
+	export POLLING_FREQUENCY="1"
+	export BATCH_SIZE="2"
+	export POLLING_SCHEDULER="entry_frequency"
+	export SCHEDULER_ENTRY_FREQUENCY_MAX_INTERVAL="1440"
+	export SCHEDULER_ENTRY_FREQUENCY_MIN_INTERVAL="5"
+	export SSL_CERT_FILE="/etc/ssl/rootCA.pem"
+	export SSL_CERT_DIR="/etc/ssl"
+	export HTTPS_PROXY="http://127.0.0.80:8080"
+	export HTTP_CLIENT_PROXY="http://127.0.0.80:8080"
+	export PROXY_IMAGES="none"
+	export NO_PROXY="git.paepcke.de"
+	export LOG_DATE_TIME="true"
+	export DEBUG="false"
+	export CREATE_ADMIN="false"
+	export OAUTH_USER_CREATION="false"
+	export MINIFLUX_CHROOT="/var/miniflux"
+	export MINIFLUX_UID="2007"
+	export MINIFLUX_GID="2007"
+	if [ $MINIFLUXSSL = true ]; then
+		export HTTPS="true"
+		export DISABLE_HSTS="true"
+		export LISTEN_ADDR="rss.paepcke.de:443"
+		export CERT_FILE="/etc/app/miniflux/rss.pem"
+		export KEY_FILE="/etc/app/miniflux/rss.key"
+		export BASE_URL="https://rss.paepcke.de"
+		export ROOT_URL="https://rss.paepcke.de"
+	fi
+	if [ $MINIFLUXMTLS = true ]; then
+		export MTLS_CA_FILE="/etc/ssl/clientCA.pem"
+	fi
+}
+miniflux_setup() {
+	echo "[miniflux] [setup] [phase one]"
+	if [ -e /var/lock.init.miniflux ]; then echo "[miniflux] already running, exit" && exit 1; fi
+	/usr/sbin/service jail onestart rss
+	while [ ! -e /var/lock.worker.rss ]; do sleep 0.2; done
+	/usr/sbin/service xxpostgres onesetupminiflux
+	while [ ! -e /var/lock.init.postgres.setup ]; do sleep 0.2; done
+	/usr/sbin/service xxpostgres onestop
+	while [ -e /var/lock.worker.postgres ]; do sleep 0.2; done
+	/usr/sbin/service jail onestop rss
+	while [ -e /var/lock.worker.rss ]; do sleep 0.2; done
+	rm -f /var/lock.init.miniflux
+	echo "[miniflux] [setup] [phase two] [prep]"
+	miniflux_prep
+	echo "[miniflux] [setup] [phase two] [conf]"
+	miniflux_conf
+	echo "[miniflux] [setup] [phase two] [schema migrate]"
+	/usr/sbin/jexec rss /usr/bin/miniflux -migrate
+	echo "[miniflux] [setup] [phase two] [add admin]"
+	export CREATE_ADMIN=true
+	export ADMIN_USERNAME="miniflux"
+	export ADMIN_PASSWORD="miniflux"
+	/usr/sbin/jexec rss /usr/bin/miniflux -create-admin
+	unset CREATE_ADMIN
+	unset ADMIN_USERNAME
+	unset ADMIN_PASSWORD
+	/usr/sbin/jexec rss /usr/bin/miniflux -config-dump
+	echo "[miniflux] [setup] [done]"
+	miniflux_stop
+}
+miniflux_prep() {
+	echo "[xx] [miniflux] [prep] "
+	if [ -e /var/lock.init.miniflux ]; then echo "[miniflux] already running, exit" && exit 1; fi
+	touch /var/lock.init.miniflux
+	/usr/sbin/service jail onestart rss
+	mkdir -p $WROOT/var/miniflux/tmp
+	mkdir -p $WROOT/var/miniflux/etc/ssl
+	cp -af /etc/ssl/rootCA.pem $WROOT/var/miniflux/etc/ssl
+	chown -R miniflux:miniflux $WROOT/var/miniflux
+	echo "[xx] [miniflux] [prep] [rss] [worker] [started]"
+	while [ ! -e /var/lock.worker.rss ]; do sleep 0.2; done
+	/usr/sbin/service xxpostgres onestart
+	while [ ! -e /var/lock.worker.postgres ]; do sleep 0.2; done
+	echo "[xx] [miniflux] [prep] [postgres] [worker] [started]"
+	mount -t nullfs $WROOTDB/tmp $WROOT/var/miniflux/tmp
+	mount -t nullfs $WROOTDB/tmp $WROOT/tmp
+}
+miniflux_stop_main() {
+	echo "Stopping [xx] miniflux [worker:rss] ."
+	pkill miniflux
+	umount -f $WROOT/var/miniflux/tmp > /dev/null 2>&1
+	umount -f $WROOT/tmp > /dev/null 2>&1
+	/usr/sbin/service xxpostgres onestop
+	/usr/sbin/service jail onestop rss | logger
+	rm -rf /var/lock.init.miniflux*
+}
+miniflux_start_main() {
+	miniflux_prep
+	miniflux_conf
+	echo "[xx] [miniflux] [migrate] "
+	/usr/sbin/jexec rss /usr/bin/miniflux -migrate
+	/usr/sbin/jexec rss /usr/bin/miniflux -config-dump
+	echo "[xx] [miniflux] [run]"
+	/usr/sbin/jexec rss /usr/bin/miniflux &
+	sync
+}
+miniflux_toggle() {
+	if [ -e /var/lock.init.miniflux ]; then
+		miniflux_stop
+		exit
+	fi
+	miniflux_start
+}
+miniflux_stop() {
+	miniflux_stop_main
+}
+miniflux_start() {
+	miniflux_start_main
+}
+run_rc_command "$1"

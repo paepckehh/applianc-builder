@@ -1,0 +1,8 @@
+#!/bin/sh
+autoreconf -fi
+sh ./configure \
+	--host=$CCT \
+	--with-sysroot=$SYSROOTMOUNT \
+	--prefix=/usr \
+	--disable-debug \
+	--disable-locale

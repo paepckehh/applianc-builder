@@ -1,0 +1,10 @@
+#!/bin/sh
+sh ./bootstrap
+# patch --batch -i $BSD_CONTRIB/_patch/hidapi.configure
+sh ./configure \
+	--host=$CCT \
+	--target=$CCT \
+	--with-sysroot=$SRM \
+	--prefix=/usr \
+	--enable-shared \
+	cross_compiling=yes

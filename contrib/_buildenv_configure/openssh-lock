@@ -1,0 +1,31 @@
+#!/bin/sh
+cd /tmp
+rm -rf openssh-lock-master
+/etc/action/store gitcheckout openssh-portable patchclean
+mv -vf openssh-portable openssh-lock-master
+cd openssh-lock-master
+cp -rvf $ENHANCED/openssh-locked25519/myproposal.h .
+cp -rvf $ENHANCED/openssh-locked25519/version.sh .
+cp -rvf $ENHANCED/openssh-locked25519/version.h .
+autoreconf -i -f
+autoreconf -i -f
+sh ./configure \
+	--prefix=/usr \
+	--sysconfdir=/etc/ssh \
+	--with-sysroot=$SYSROOTMOUNT \
+	--build=$LT_ARCH \
+	--host=$CCT \
+	--target=$CCT \
+	--with-pie \
+	--with-sandbox=capsicum \
+	--with-mantype=man \
+	--with-ipaddr-display \
+	--with-security-keybuiltin \
+	cross_compiling=yes
+#--with-privsep-user=ss
+#--with-privsep-path=/var/ss
+#--with-pam
+#--with-pam-service=ssh
+#--with-ldns
+#--with-audit
+sh ./version.sh

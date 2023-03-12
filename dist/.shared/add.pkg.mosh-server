@@ -1,0 +1,5 @@
+#!/bin/sh
+# ... needs $ENHANCED patchset to allow an static key from env [to get rid of ssh/kex vector]
+. $BSD_DIST/.shared/add.fbsd.devd
+export BSD_DIST_PKG="$BSD_DIST_PKG mosh-server protobuf"
+export BSD_SSH="$BSD_SSH airgap-server-mosh .init.server*"

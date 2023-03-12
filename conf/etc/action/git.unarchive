@@ -1,0 +1,2 @@
+#!/bin/sh
+ACTION="sh /etc/action/store git.unarchive" sh /etc/action/.action.repo.archive $*

@@ -1,0 +1,10 @@
+#!/bin/sh
+sh ./configure \
+	--host=$CCT \
+	--build=$LT_ARCH \
+	--prefix=/usr/local \
+	--disable-ipv6 \
+	--without-dtrace \
+	--with-ssl-default-suites=openssl \
+	--enable-optimizations \
+	--with-lto

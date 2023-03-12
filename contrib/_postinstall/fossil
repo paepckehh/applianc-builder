@@ -1,0 +1,3 @@
+#!/bin/sh
+elfctl -e +noaslrstkgap /tmp/fossil/usr/local/bin/fossil
+elfctl /tmp/fossil/usr/local/bin/fossil

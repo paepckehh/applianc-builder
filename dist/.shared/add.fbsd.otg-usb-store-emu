@@ -1,0 +1,12 @@
+#!/bin/sh
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE usb usb_template pass ctl cfumass"
+export BSD_DIST_RC="$BSD_DIST_RC cfumass"
+X='
+# otg usb host storage device mode
+cfumass_enable="YES"
+cfumass_dir="/var/cfumass"	
+cfumass_image="/var/tmp/cfumass.img"
+cfumass_vendor="FreeBSD"
+cfumass_product="usbdrive"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"

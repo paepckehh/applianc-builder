@@ -1,0 +1,16 @@
+#!/bin/sh
+. $BSD_ARCH/.arm.armv6
+export TARCH_L3="arm1176jzf-s"
+export TARCH_L4="vfpv2"
+export TARGET=$TARCH_L1
+export TARGETARCH=$TARCH_L2
+export BUILDARCH=$TARCH_L3
+export TCPUTYPE=$TARCH_L3
+export CCO="-Oz -mcpu=$TARCH_L3 -mfpu=$TARCH_L4"
+export CCT="$TARCH_L2-gnueabihf-$BSD_BASE"
+export LCT="$TARCH_L2-gnueabihf-linux"
+export CFLAGS=$CCO
+export FBSD_CFLAGS=$CCO
+export BSD_KERNCONF_CPU="CPU_ARM1176"
+export BSD_KERNCONF_MAKEOPTIONS_CONF_CFLAGS="-mcpu=$TARCH_L3"
+. $BSD_ARCH/.boot.arm

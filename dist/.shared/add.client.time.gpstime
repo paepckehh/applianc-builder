@@ -1,0 +1,10 @@
+#!/bin/sh
+X='
+# xxgpstime
+xxgpstime_enable="YES" 
+xxgpstime_program="/usr/bin/gpstime"
+xxgpstime_device="/dev/gps0"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+export BSD_DIST_RC="$BSD_DIST_RC xxgpstime"
+export BSD_DIST_PKG="$BSD_DIST_PKG gpstime"

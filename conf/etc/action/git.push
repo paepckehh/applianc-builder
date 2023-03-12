@@ -1,0 +1,3 @@
+#!/bin/sh
+GITACTION="push --tag" sh /etc/action/.action-git-repo-updates.sh
+GITACTION="push --all --prune" sh /etc/action/.action-git-repo-updates.sh

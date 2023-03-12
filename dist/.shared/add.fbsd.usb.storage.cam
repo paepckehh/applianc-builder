@@ -1,0 +1,5 @@
+#!/bin/sh
+# export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE ctl"
+. $BSD_DIST/.shared/add.fbsd.usb.storage
+export BSD_KERNCONF_DEVICE="$BSD_KERNCONF_DEVICE pass"
+export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS MMCCAM"

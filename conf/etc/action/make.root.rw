@@ -1,0 +1,2 @@
+#!/bin/sh
+sh /etc/action/make.dir.rw /root

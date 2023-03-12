@@ -1,0 +1,4 @@
+usr/bin/c_rehash
+usr/lib/*.a
+usr/share
+usr/ssl

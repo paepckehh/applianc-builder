@@ -1,0 +1,7 @@
+#!/bin/sh
+. $BSD_DIST/.shared/add.pkg.ssh.openssh-locked25519-smartcard-fido2
+export BSD_DIST_PKG="$BSD_DIST_PKG airgap-client"
+export BSD_NIC=true
+export BSD_ADD_ETC_PASSWD="$BSD_ADD_ETC_PASSWD
+ss::0:0::0:0:ssh jailed jump user:/root:/etc/ssh/airgap-client-ed25519/.init.sh"
+export BSD_SSH="$BSD_SSH airgap-client-ed25519"

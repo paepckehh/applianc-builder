@@ -1,0 +1,13 @@
+#!/bin/sh
+case $TARCH_L1 in
+arm*)
+	export BSD_DIST_PKG="$BSD_DIST_PKG powerdxx"
+	X='
+## powermgmt 
+powerdxx_enable="YES"
+powerdxx_flags="-a adaptive -b adaptive -n adaptive -p 250"
+'
+	export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+	export BSD_DIST_RC="$BSD_DIST_RC powerdxx"
+	;;
+esac

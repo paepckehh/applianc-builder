@@ -1,0 +1,29 @@
+#!/bin/sh
+cd ..
+# rm -rf stubby
+# sh /etc/action/store gitcheckout getdns-stubby
+# mv -f getdns-stubby stubby
+cd src
+rm -rf yxml jsmn
+sh /etc/action/store gitcheckout getdns-yxml
+sh /etc/action/store gitcheckout getdns-jsmn
+mv -f getdns-yxml yxml
+mv -f getdns-jsmn jsmn
+cd ../build
+cmake $CMAKE_CONFIG \
+	-DUSE_LIBIDN2=OFF \
+	-DENABLE_DEBUG_ALL=OFF \
+	-DENABLE_UNBOUND_EVENT_API=OFF \
+	-DENABLE_DRAFT_MDNS_SUPPORT=OFF \
+	-DBUILD_TESTING=OFF \
+	-DBUILD_GETDNS_QUERY=OFF \
+	-DBUILD_GETDNS_SERVER_MON=OFF \
+	-DBUILD_LIBEV=OFF \
+	-DBUILD_LIBEVENT2=OFF \
+	-DBUILD_LIBUV=OFF \
+	-DUSE_GNUTLS=OFF \
+	..
+#	-DENABLE_STUB_ONLY=ON \
+#	-DENABLE_NATIVE_STUB_DNSSEC=OFF \
+#	-DENABLE_TCP_FAST_OPEN=OFF \
+#	-DBUILD_STUBBY=ON \

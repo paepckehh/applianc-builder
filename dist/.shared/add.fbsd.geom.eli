@@ -1,0 +1,24 @@
+#!/bin/sh
+. $BSD_DIST/.shared/add.fbsd.hw.crypto
+. $BSD_DIST/.shared/add.fbsd.sw.crypto
+echo "... geom.eli, needs patch 103 to fix aes-xts"
+# XXX ... needs patch 103 to fix aes-xts! But still flaky! XXX AVOID IF POSSIBLE!
+# ... plain geli needs OpenSSL base! LockGeli Libressl in base!
+if [ $WITHOUT_OPENSSL ] && [ ! $WITH_LIBRESSL ]; then
+	echo "### ERROR GEOM ELI  ... please define  OpenSSL or LibreSSL in base before ELI!"
+else
+	X='
+
+# geom eli setup
+kern.geom.eli.debug=1
+kern.geom.eli.batch=1
+kern.geom.eli.threads=0
+kern.geom.eli.overwrites=64
+kern.geom.eli.visible_passphrase=0
+
+'
+
+	export BSD_SYSCTL="$BSD_SYSCTL $X"
+	export BSD_KERNCONF_GEOM_ELI=true
+	export BSD_KERNCONF_OPTIONS="$BSD_KERNCONF_OPTIONS GEOM_ELI"
+fi

@@ -1,0 +1,33 @@
+#!/bin/sh
+# PROVIDE: xxlocal
+# REQUIRE: LOGIN
+# KEYWORD: nojail shutdown
+
+. /etc/rc.conf
+name="xxlocal"
+desc="provide tmpfs based local!"
+rcvar="xxlocal_enable"
+start_cmd="local_start"
+stop_cmd="local_stop"
+load_rc_config $name
+
+local_start() {
+	(
+		startmsg 'Starting [xx] local .'
+		LOG=$(sh /etc/action/create.fs.ram /usr/local 0M exec 2>&1)
+		cd /usr/local && (
+			mkdir -p bin lib libexexc libdata/pkgconfig
+			ln -fs bin sbin
+		)
+		touch /var/lock.init.local
+		logger '[xx] local done'
+	) &
+}
+
+local_stop() {
+	startmsg 'Stopping [xx] local .'
+	umount -f /usr/local 2>&1 > /dev/null
+	rm -rf /var/lock.init.local
+}
+
+run_rc_command "$1"

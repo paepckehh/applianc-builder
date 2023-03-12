@@ -1,0 +1,3 @@
+#!/bin/sh
+export WITH_FTP=true
+unset WITHOUT_FTP

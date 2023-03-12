@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="src.elv.sh/cmd/elvish" goo $*

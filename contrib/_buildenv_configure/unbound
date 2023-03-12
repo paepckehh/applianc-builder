@@ -1,0 +1,119 @@
+#!/bin/sh
+#autoreconf -i
+#autoreconf -i
+echo $LT_ARCH
+echo $CCT
+# patch -i $BSD_CONTRIB/_prepatch/unbound.config
+sh ./configure \
+	--prefix=/usr \
+	--host=$CCT \
+	--with-sysroot=$SYSROOTMOUNT \
+	--disable-debug \
+	--disable-locale \
+	--disable-largefile \
+	--with-ssl=/usr \
+	--localstatedir=/var/unbound \
+	--enable-pie \
+	--disable-largefile \
+	--disable-systemd \
+	--disable-sha1 \
+	--disable-gost \
+	--disable-dsa \
+	--disable-event-api \
+	--disable-subnet \
+	--disable-dnstap \
+	--disable-cachedb \
+	--disable-ipsecmod \
+	--disable-ipset \
+	--without-dynlibmodule \
+	--without-pyunbound \
+	--without-pythonmodule \
+	--with-username=unbound \
+	--with-run-dir=/var/unbound \
+	--with-pthreads \
+	--with-libexpat=$SRM/usr \
+	--disable-libsodium \
+	--with-deprecate-rsa-1024
+--enable-shared \
+	--disable-static
+#--disable-explicit-port-randomisation
+#--with-libevent
+#--with-libexpat=/usr \
+#--with-pthreads=/usr \
+#--enable-dnscrypt \
+#--enable-tfo-server \
+#--enable-tfo-client \
+#################################################
+#sh ./configure \
+#	--build=$LT_ARCH \
+#	--host=$CCT \
+#	--target=$CCT \
+#	--prefix=/usr \
+#	--with-sysroot=$SYSROOTMOUNT \
+#	--with-pthreads \
+#	--disable-debug \
+#	--disable-locale \
+#	--disable-largefile \
+#	--disable-libsodium \
+#	--disable-libevent \
+#	--with-ssl=/usr \
+#	--disable-libtool-lock \
+#	--localstatedir=/var/unbound \
+#	--enable-pie \
+#	--enable-tfo-server \
+#	--enable-tfo-client \
+#	--disable-largefile \
+#	--disable-systemd \
+#	--disable-sha1 \
+#	--disable-gost \
+#	--disable-dsa \
+#	--disable-event-api \
+#	--disable-subnet \
+#	--disable-dnstap \
+#	--disable-flto \
+#	--disable-cachedb \
+#	--disable-ipsecmod \
+#	--disable-ipset \
+#	--without-dynlibmodule \
+#	--without-pyunbound \
+#	--without-pythonmodule \
+#     	cross_compiling=yes
+#
+#exit
+######################################
+#
+#--enable-pie \
+#--enable-tfo-server \
+#--enable-tfo-client \
+#--enable-dnstap \ #protobuf-c
+#--with-nettle
+#--with-pthreads=/usr \
+#--with-libexpat=/usr \
+#--with-libevent \
+#--target=$CCT \
+#	--enable-dnscrypt \
+#
+#	--with-libevent \
+# fbsd dflt
+#--with-ssl=/usr
+#--with-libexpat=/usr
+#--with-pthreads--prefix=/usr
+#--localstatedir=/var/unbound
+#--build=freebsd
+#
+#  --with-libexpat=path    specify explicit path for libexpat.
+#  --with-libhiredis=path  specify explicit path for libhiredis.
+#  --with-libnghttp2=path  specify explicit path for libnghttp2.
+#  --with-dnstap-socket-path=pathname
+#                          set default dnstap socket path
+#  --with-protobuf-c=path  Path where protobuf-c is installed, for dnstap
+#  --with-libsodium=path   Path where libsodium is installed, for dnscrypt
+#  --with-libmnl=path      specify explicit path for libmnl.
+#Linked libs: mini-event internal (it uses select), OpenSSL 1.1.1k  25 Mar 2021
+#Linked modules: dns64 respip validator iterator
+#
+#
+#	--enable-ecdsa \
+#	--enable-ed25519 \
+#	--enable-ed448 \
+# --disable-explicit-port-randomisation \

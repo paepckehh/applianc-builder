@@ -1,0 +1,9 @@
+#!/bin/sh
+X='
+# xxrtime_server [gps supported]
+xxrtimesrv_enable="YES"
+xxrtimesrv_program="/usr/bin/rtimesrv"
+'
+export BSD_ADD_ETC_RC_CONF="$BSD_ADD_ETC_RC_CONF $X"
+export BSD_DIST_PKG="$BSD_DIST_PKG rtimesrv"
+export BSD_DIST_RC="$BSD_DIST_RC xxrtimesrv"

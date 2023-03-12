@@ -1,0 +1,31 @@
+#!/bin/sh
+
+export SBC=applem1
+export SBC_ALIAS_LIST="m1 apple apple-silicon apple-latest"
+. $BSD_SOC/t8103-j274
+export BSD_DTB_FILES="t8103-j274.dtb"
+#
+# ... add optional devices 
+# [-> define all components here , DISTRIBUTION will define if used or not! ]
+# [=> see also pre-defined-valus in $BSD_SBC/.vendor $BSD_SBC/.soc ... ]
+#
+# network interfaces 
+# export BSD_KERNCONF_DEVICE_NIC="$BSD_KERNCONF_DEVICE_NIC"
+#
+# Wireless Network Devices
+# export BSD_KERNCONF_DEVICE_WNIC="$BSD_KERNCONF_DEVICE_WNIC"
+#
+# storage devices
+# export BSD_KERNCONF_DEVICE_STO="$BSD_KERNCONF_DEVICE_STO"
+#
+# gpu
+# export BSD_KERNCONF_DEVICE_GFX="$BSD_KERNCONF_DEVICE_GFX"
+#
+# sound
+# export BSD_KERNCONF_DEVICE_SND="$BSD_KERNCONF_DEVICE_SND"
+#
+# usb controller 
+# export BSD_KERNCONF_DEVICE_USB_CONTROLLER="$BSD_KERNCONF_DEVICE_USB_CONTROLLER" 
+#
+# IO Devices 
+# export BSD_KERNCONF_DEVICE_IOD="$BSD_KERNCONF_DEVICE_IOD"

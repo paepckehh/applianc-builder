@@ -1,0 +1,2 @@
+#!/bin/sh
+REPO="github.com/martinlindhe/gogost/cmd/streebog512" goo $*

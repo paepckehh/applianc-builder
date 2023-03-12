@@ -1,0 +1,8 @@
+#/bin/sh
+mkdir downloads
+chown curl:curl downloads
+cat $1 | while read line; do
+	echo "# DOWNLOAD: $line"
+	(cd downloads && $CURL_CMD -OL $line)
+	echo
+done

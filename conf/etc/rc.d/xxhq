@@ -1,0 +1,28 @@
+#!/bin/sh
+# PROVIDE: xxhq
+# REQUIRE: LOGIN
+# KEYWORD: nojail shutdown
+
+. /etc/rc.conf
+name="xxhq"
+desc="provide tmpfs based ~/hq/.unlocked for root"
+rcvar="xxhq_enable"
+start_cmd="hq_start"
+stop_cmd="hq_stop"
+load_rc_config $name
+
+hq_start() {
+	(
+		startmsg 'Starting [xx] hq .'
+		LOG=$(sh /etc/action/create.fs.ram /root/.hq/.unlocked 32M 2>&1)
+		touch /var/lock.init.hq
+	) &
+}
+
+hq_stop() {
+	startmsg 'Stopping [xx]hq .'
+	umount -f /root/.hq 2>&1 > /dev/null
+	rm -rf /var/lock.init.hq
+}
+
+run_rc_command "$1"
