@@ -10,7 +10,7 @@ Works best by booting an existing FreeBSD BSRV (Build Server) Image,
 If not possible, manual bootstrap:
 
 1. Configure 'appliance-builder/conf/etc/action/.bsdconf'
-	- set at least BSD_STORE root for root 
+	- set at least BSD_STORE file path root
 2. Configure Env
 	- . appliance-builder/conf/etc/action/.bsdconf 
 	- export PATH=$PATH:appliance-builder/bin
