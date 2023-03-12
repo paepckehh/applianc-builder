@@ -6,7 +6,7 @@ Cross Plattform FreeBSD Appliance Builder (Explorative Lab Env!)
 
 # CONFIGURE
 
-Works best by booting an existing FreeBSD BSRV (Build Server) Image,
+Works best by booting an existing FreeBSD BSRV (Build Server) Image.
 If not possible, manual bootstrap:
 
 1. Configure 'appliance-builder/conf/etc/action/.bsdconf'
