@@ -2,7 +2,7 @@
 
 [paepcke.de/appliance-builder](https://paepcke.de/appliance-builder) 
 
-Cross Plattform FreeBSD Appliance Builder (Lab, not Prod!)
+Cross Plattform FreeBSD Appliance Builder (Explorative Lab Env!)
 
 # CONFIGURE
 
