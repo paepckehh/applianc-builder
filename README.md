@@ -32,6 +32,8 @@ If not possible, manual bootstrap:
 
 # TODO
 
+[ ] Upate Bootstrap Env Documentation 
+
 # DOCS
 
 # CONTRIBUTION
