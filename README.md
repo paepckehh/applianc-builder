@@ -12,7 +12,7 @@ If not possible, manual bootstrap:
 1. Configure 'appliance-builder/conf/etc/action/.bsdconf'
 	- set at least BSD_STORE file path root
 2. Configure Env
-	- . appliance-builder/conf/etc/action/.bsdconf 
+	- . appliance-builder/conf/etc/action/.bsdconf  (source)
 	- export PATH=$PATH:appliance-builder/bin
 3. cd $BSD_SBC
 	- create a sbc/workstation/server hardware definition
@@ -26,9 +26,9 @@ If not possible, manual bootstrap:
 	- BSDpkg cc  
 	- opt: check appliance-builder/bin/action/.buildenv.sh for bootstrap toolchain
 6. Build Appliance image
-	- BSDbuild SBC DIST (Example: amd64 bsrv)
+	- BSDbuild SBC DIST (Example: BSDbuild amd64 bsrv)
 7. Write Appliance image
-	- BSDwrite SBC DIST DEVICE (Example: amd64 bsrv da1)
+	- BSDwrite SBC DIST DEVICE (Example: BSDwrite amd64 bsrv da1)
 
 # TODO
 
