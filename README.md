@@ -12,7 +12,7 @@ If not possible, manual bootstrap:
 1. Configure 'appliance-builder/conf/etc/action/.bsdconf'
 	- set at least BSD_STORE file path root
 2. Configure Env
-	- . appliance-builder/conf/etc/action/.bsdconf  (source)
+	- . bin/.bsdconf  (source/include/env/vars)
 	- export PATH=$PATH:appliance-builder/bin
 3. cd $BSD_SBC
 	- create a sbc/workstation/server hardware definition

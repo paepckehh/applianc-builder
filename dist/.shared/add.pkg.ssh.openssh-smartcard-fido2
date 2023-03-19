@@ -1,4 +1,5 @@
 #!/bin/sh
 # export BSD_DIST_PKG="$BSD_DIST_PKG openssh-portable ccid hidapi libcbor libfido2 pcsc"
+export BSD_DIST_PKG="$BSD_DIST_PKG ccid hidapi pcsc libu2f"
 unset WITHOUT_OPENSSH
 export WITH_OPENSSH=true
