@@ -9,10 +9,10 @@ Cross Plattform FreeBSD Appliance Builder (Explorative Lab Env!)
 Works best by booting an existing FreeBSD BSRV (Build Server) Image.
 If not possible, manual bootstrap:
 
-1. Configure 'appliance-builder/conf/etc/action/.bsdconf'
+1. Configure bin/.bsdconf
 	- set at least BSD_STORE file path root
 2. Configure Env
-	- . bin/.bsdconf  (source/include/env/vars)
+	- . bin/.bsdconf 
 	- export PATH=$PATH:appliance-builder/bin
 3. cd $BSD_SBC
 	- create a sbc/workstation/server hardware definition

@@ -25,7 +25,7 @@ src_rebuild_setup() {
 	export TMP=/tmp/.build.temp && TMPDIR=$TMP && mkdir -p $TMP
 	export LOGSRC=/tmp/.src.patchlog && mkdir -p $LOGSRC
 	export REPO=$BSD_GIT/.repo/$TARGETOS/.git
-	# export CHECKOUT_FBSD="98c666c"
+	export CHECKOUT_FBSD="366da717deda"
 }
 ####################################
 ### INTERNAL FUNCTIONS INTERFACE ###
