@@ -151,3 +151,4 @@ buildenv_conf_toolchain() {
 	unset LD XLD LINK XLINK LLVM_LINK
 	echo "### [$TOOLCHAIN] ELF binutils OS [built-in|native] toolchain activated ######################"
 }
+buildenv_activate_llvm15
