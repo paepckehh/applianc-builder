@@ -1,0 +1,5 @@
+#!/bin/sh
+. $BSD_SBC/.device/usb
+export BSD_KERNCONF_DEVICE_NIC="$BSD_KERNCONF_DEVICE_NIC mii miibus uether ipheth"
+# DEBUG 
+# export BSD_DIST_PKG="$BSD_DIST_PKG lteinfo usb_modeswitch"

@@ -1,7 +1,12 @@
 #!/bin/sh headless / console-less bsrv build server [ components in powersave/switched off mode: vga/pci/kbd/hid/usb patches needed ]
 . $BSD_DIST/.base/bare
-. $BSD_DEVICE/storage.nvme
-# . $BSD_DIST/.shared/add.fbsd.vm.host.bhyve
+case $SBC in
+amd64)
+	. $BSD_DEVICE/storage.nvme
+	# . $BSD_DIST/.shared/add.fbsd.vm.host.bhyve
+	;;
+esac
+# . $BSD_DIST/.shared/add.fbsd.uplink
 . $BSD_DIST/.shared/add.fbsd.tcpdump
 . $BSD_DIST/.shared/add.fbsd.ipc
 . $BSD_DIST/.shared/add.pkg.git

@@ -1,5 +1,7 @@
 #!/bin/sh
 . $BSD_DEVICE/huawei.lte.usb
+. $BSD_DEVICE/apple.lte.usb
+. $BSD_DEVICE/android.lte.usb
 X='
 # xxuplink
 xxuplink_enable="NO"

@@ -1,4 +1,4 @@
-### ( 2023-03-25 ) ( 1679733033 ) ### DO NOT EDIT ### auto-generated file / patchset by <appliance-builder/enhanced> ###
+### ( 2023-03-26 ) ( 1679820628 ) ### DO NOT EDIT ### auto-generated file / patchset by <appliance-builder/enhanced> ###
 --- ./bin/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
 +++ ./bin/Makefile	1970-01-01 00:00:00.000000000 +0000
 @@ -5,13 +5,11 @@
@@ -1059,17 +1059,6 @@
  	if (code & ~0x7f) {
  		return (EINVAL);
  	}
---- ./sys/dev/usb/net/if_cdce.c.orig	1970-01-01 00:00:00.000000000 +0000
-+++ ./sys/dev/usb/net/if_cdce.c	1970-01-01 00:00:00.000000000 +0000
-@@ -266,7 +266,7 @@
- static const STRUCT_USB_HOST_ID cdce_switch_devs[] = {
- 	{USB_VPI(USB_VENDOR_HUAWEI, USB_PRODUCT_HUAWEI_E3272_INIT, MSC_EJECT_HUAWEI2)},
- 	{USB_VPI(USB_VENDOR_HUAWEI, USB_PRODUCT_HUAWEI_E3372v153_INIT, MSC_EJECT_HUAWEI2)},
--	{USB_VPI(USB_VENDOR_HUAWEI, USB_PRODUCT_HUAWEI_E3372_INIT, MSC_EJECT_HUAWEI4)},
-+	{USB_VPI(USB_VENDOR_HUAWEI, USB_PRODUCT_HUAWEI_E3372_INIT, MSC_EJECT_HUAWEI3)},
- 	{USB_VPI(USB_VENDOR_HUAWEI, USB_PRODUCT_HUAWEI_E5573Cs322_ECM, MSC_EJECT_HUAWEI3)},
- };
- 
 --- ./sys/dev/vkbd/vkbd.c.orig	1970-01-01 00:00:00.000000000 +0000
 +++ ./sys/dev/vkbd/vkbd.c	1970-01-01 00:00:00.000000000 +0000
 @@ -1305,12 +1305,6 @@
