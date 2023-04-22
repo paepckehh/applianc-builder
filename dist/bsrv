@@ -2,7 +2,7 @@
 . $BSD_DIST/.base/bare
 case $SBC in
 amd64)
-	. $BSD_DEVICE/storage.nvme
+	# . $BSD_DEVICE/storage.nvme
 	# . $BSD_DIST/.shared/add.fbsd.vm.host.bhyve
 	;;
 esac
