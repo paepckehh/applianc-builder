@@ -9,6 +9,7 @@ esac
 # . $BSD_DIST/.shared/add.fbsd.uplink
 . $BSD_DIST/.shared/add.fbsd.tcpdump
 . $BSD_DIST/.shared/add.fbsd.ipc
+. $BSD_DIST/.shared/add.fbsd.devdname
 . $BSD_DIST/.shared/add.pkg.git
 . $BSD_DIST/.shared/add.pkg.curl
 . $BSD_DIST/.shared/add.pkg.iperf

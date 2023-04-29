@@ -1,6 +1,6 @@
-### ( 2023-04-16 ) ( 1681644482 ) ### DO NOT EDIT ### auto-generated file / patchset by <appliance-builder/enhanced> ###
---- ./bin/Makefile.orig	2023-04-16 08:33:24.108559000 +0000
-+++ ./bin/Makefile	2023-04-16 08:33:23.445435000 +0000
+### ( 2023-04-25 ) ( 1682434165 ) ### DO NOT EDIT ### auto-generated file / patchset by <appliance-builder/enhanced> ###
+--- ./bin/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./bin/Makefile	1970-01-01 00:00:00.000000000 +0000
 @@ -5,13 +5,11 @@
  
  SUBDIR= cat \
@@ -32,8 +32,8 @@
  
  SUBDIR_PARALLEL=
  
---- ./etc/mtree/BSD.include.dist.orig	2023-04-16 08:33:24.112039000 +0000
-+++ ./etc/mtree/BSD.include.dist	2023-04-16 08:33:23.463694000 +0000
+--- ./etc/mtree/BSD.include.dist.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./etc/mtree/BSD.include.dist	1970-01-01 00:00:00.000000000 +0000
 @@ -3,7 +3,7 @@
  # Please see the file src/etc/mtree/README before making changes to this file.
  #
@@ -43,8 +43,8 @@
  .
      arpa
      ..
---- ./etc/mtree/BSD.root.dist.orig	2023-04-16 08:33:24.115494000 +0000
-+++ ./etc/mtree/BSD.root.dist	2023-04-16 08:33:23.469747000 +0000
+--- ./etc/mtree/BSD.root.dist.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./etc/mtree/BSD.root.dist	1970-01-01 00:00:00.000000000 +0000
 @@ -3,7 +3,7 @@
  # Please see the file src/etc/mtree/README before making changes to this file.
  #
@@ -72,8 +72,8 @@
      ..
      sbin
      ..
---- ./etc/mtree/BSD.usr.dist.orig	2023-04-16 08:33:24.119181000 +0000
-+++ ./etc/mtree/BSD.usr.dist	2023-04-16 08:33:23.476314000 +0000
+--- ./etc/mtree/BSD.usr.dist.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./etc/mtree/BSD.usr.dist	1970-01-01 00:00:00.000000000 +0000
 @@ -3,7 +3,7 @@
  # Please see the file src/etc/mtree/README before making changes to this file.
  #
@@ -83,8 +83,8 @@
  .
      bin
      ..
---- ./lib/libc/regex/engine.c.orig	2023-04-16 08:33:24.123247000 +0000
-+++ ./lib/libc/regex/engine.c	2023-04-16 08:33:23.483752000 +0000
+--- ./lib/libc/regex/engine.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./lib/libc/regex/engine.c	1970-01-01 00:00:00.000000000 +0000
 @@ -607,8 +607,8 @@
      (sp < m->endp && *sp == '\n' &&			\
      (m->g->cflags&REG_NEWLINE)) ||			\
@@ -96,8 +96,8 @@
  /*
   - backref - figure out what matched what, figuring in back references
   == static const char *backref(struct match *m, const char *start, \
---- ./lib/libpam/modules/modules.inc.orig	2023-04-16 08:33:24.126627000 +0000
-+++ ./lib/libpam/modules/modules.inc	2023-04-16 08:33:23.489824000 +0000
+--- ./lib/libpam/modules/modules.inc.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./lib/libpam/modules/modules.inc	1970-01-01 00:00:00.000000000 +0000
 @@ -17,17 +17,17 @@
  MODULES		+= pam_lastlog
  MODULES		+= pam_login_access
@@ -120,8 +120,8 @@
 -MODULES		+= pam_tacplus
 +#MODULES	+= pam_tacplus
  MODULES		+= pam_unix
---- ./lib/Makefile.orig	2023-04-16 08:33:24.130148000 +0000
-+++ ./lib/Makefile	2023-04-16 08:33:23.495970000 +0000
+--- ./lib/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./lib/Makefile	1970-01-01 00:00:00.000000000 +0000
 @@ -29,15 +29,11 @@
  
  SUBDIR=	${SUBDIR_BOOTSTRAP} \
@@ -239,8 +239,8 @@
  
  .if ${MACHINE_CPUARCH} == "aarch64"
  SUBDIR.${MK_PMC}+=	libopencsd
---- ./libexec/rc/rc.d/NETWORKING.orig	2023-04-16 08:33:24.133476000 +0000
-+++ ./libexec/rc/rc.d/NETWORKING	2023-04-16 08:33:23.517656000 +0000
+--- ./libexec/rc/rc.d/NETWORKING.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./libexec/rc/rc.d/NETWORKING	1970-01-01 00:00:00.000000000 +0000
 @@ -4,7 +4,7 @@
  #
  
@@ -250,8 +250,8 @@
  # REQUIRE: defaultroute route6d resolv bridge
  # REQUIRE: static_arp static_ndp
  
---- ./libexec/rc/rc.d/devd.orig	2023-04-16 08:33:24.136884000 +0000
-+++ ./libexec/rc/rc.d/devd	2023-04-16 08:33:23.523769000 +0000
+--- ./libexec/rc/rc.d/devd.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./libexec/rc/rc.d/devd	1970-01-01 00:00:00.000000000 +0000
 @@ -4,8 +4,7 @@
  #
  
@@ -262,8 +262,8 @@
  # KEYWORD: nojail shutdown
  
  . /etc/rc.subr
---- ./libexec/rc/rc.d/jail.orig	2023-04-16 08:33:24.140530000 +0000
-+++ ./libexec/rc/rc.d/jail	2023-04-16 08:33:23.530459000 +0000
+--- ./libexec/rc/rc.d/jail.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./libexec/rc/rc.d/jail	1970-01-01 00:00:00.000000000 +0000
 @@ -450,7 +450,7 @@
  	if [ $# = 0 ]; then
  		return
@@ -282,8 +282,8 @@
  	case $1 in
  	_ALL)
  		command=$jail_program
---- ./libexec/rc/rc.d/ldconfig.orig	2023-04-16 08:33:24.143881000 +0000
-+++ ./libexec/rc/rc.d/ldconfig	2023-04-16 08:33:23.536548000 +0000
+--- ./libexec/rc/rc.d/ldconfig.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./libexec/rc/rc.d/ldconfig	1970-01-01 00:00:00.000000000 +0000
 @@ -23,7 +23,7 @@
  	ldconfig=${ldconfig_command}
  	checkyesno ldconfig_insecure && _ins="-i"
@@ -293,8 +293,8 @@
  		for i in ${ldconfig_local_dirs}; do
  			if [ -d "${i}" ]; then
  				_files=`find ${i} -type f`
---- ./libexec/rc/rc.d/pf.orig	2023-04-16 08:33:24.147258000 +0000
-+++ ./libexec/rc/rc.d/pf	2023-04-16 08:33:23.542641000 +0000
+--- ./libexec/rc/rc.d/pf.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./libexec/rc/rc.d/pf	1970-01-01 00:00:00.000000000 +0000
 @@ -42,13 +42,12 @@
  
  pf_start()
@@ -310,8 +310,8 @@
  }
  
  pf_stop()
---- ./libexec/rc/rc.d/sysctl.orig	2023-04-16 08:33:24.150634000 +0000
-+++ ./libexec/rc/rc.d/sysctl	2023-04-16 08:33:23.548633000 +0000
+--- ./libexec/rc/rc.d/sysctl.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./libexec/rc/rc.d/sysctl	1970-01-01 00:00:00.000000000 +0000
 @@ -4,6 +4,7 @@
  #
  
@@ -351,8 +351,8 @@
  		fi
  	done
  }
---- ./libexec/rc/rc.d/var.orig	2023-04-16 08:33:24.154014000 +0000
-+++ ./libexec/rc/rc.d/var	2023-04-16 08:33:23.554762000 +0000
+--- ./libexec/rc/rc.d/var.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./libexec/rc/rc.d/var	1970-01-01 00:00:00.000000000 +0000
 @@ -44,11 +44,7 @@
  {
  	/usr/sbin/mtree -deiU -f /etc/mtree/BSD.var.dist -p /var > /dev/null
@@ -366,8 +366,8 @@
  	esac
  }
  
---- ./sbin/mount/Makefile.orig	2023-04-16 08:33:24.157302000 +0000
-+++ ./sbin/mount/Makefile	2023-04-16 08:33:23.560890000 +0000
+--- ./sbin/mount/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sbin/mount/Makefile	1970-01-01 00:00:00.000000000 +0000
 @@ -15,5 +15,6 @@
  MLINKS+= mntopts.3 rmslashes.3
  
@@ -434,8 +434,8 @@
 +mkdir -p $TARGET
 +test_mount
 +echo "... unable to use/create $TARGET as target!"
---- ./sbin/reboot/Makefile.orig	2023-04-16 08:33:24.161202000 +0000
-+++ ./sbin/reboot/Makefile	2023-04-16 08:33:23.568031000 +0000
+--- ./sbin/reboot/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sbin/reboot/Makefile	1970-01-01 00:00:00.000000000 +0000
 @@ -18,6 +18,6 @@
  LINKS=	${BINDIR}/reboot ${BINDIR}/halt ${BINDIR}/reboot ${BINDIR}/fastboot \
  	${BINDIR}/reboot ${BINDIR}/fasthalt
@@ -444,8 +444,8 @@
 +#SCRIPTS=	nextboot.sh
  
  .include <bsd.prog.mk>
---- ./sbin/Makefile.orig	2023-04-16 08:33:24.164568000 +0000
-+++ ./sbin/Makefile	2023-04-16 08:33:23.574118000 +0000
+--- ./sbin/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sbin/Makefile	1970-01-01 00:00:00.000000000 +0000
 @@ -4,37 +4,22 @@
  .include <src.opts.mk>
  
@@ -540,8 +540,8 @@
  .include <bsd.prog.mk>
 -
  .include <bsd.subdir.mk>
---- ./secure/lib/libcrypto/Makefile.orig	2023-04-16 08:33:24.168335000 +0000
-+++ ./secure/lib/libcrypto/Makefile	2023-04-16 08:33:23.580724000 +0000
+--- ./secure/lib/libcrypto/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./secure/lib/libcrypto/Makefile	1970-01-01 00:00:00.000000000 +0000
 @@ -126,7 +126,7 @@
  # Full of strict aliasing violations that LLVM has been seen to break with
  # optimisations, which can lead to ECDSA signatures not working. See
@@ -551,8 +551,8 @@
  
  # buffer
  SRCS+=	buf_err.c buffer.c
---- ./secure/lib/libcrypto/opensslconf.h.in.orig	2023-04-16 08:33:24.171756000 +0000
-+++ ./secure/lib/libcrypto/opensslconf.h.in	2023-04-16 08:33:23.586622000 +0000
+--- ./secure/lib/libcrypto/opensslconf.h.in.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./secure/lib/libcrypto/opensslconf.h.in	1970-01-01 00:00:00.000000000 +0000
 @@ -204,6 +204,16 @@
  
  #define RC4_INT unsigned int
@@ -570,8 +570,8 @@
  #ifdef  __cplusplus
  }
  #endif
---- ./share/man/man4/vt.4.orig	2023-04-16 08:33:24.175339000 +0000
-+++ ./share/man/man4/vt.4	2023-04-16 08:33:23.592670000 +0000
+--- ./share/man/man4/vt.4.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./share/man/man4/vt.4	1970-01-01 00:00:00.000000000 +0000
 @@ -39,6 +39,7 @@
  .Cd "options VT_FB_MAX_WIDTH=X"
  .Cd "options VT_FB_MAX_HEIGHT=Y"
@@ -589,8 +589,8 @@
  .It VT_FB_MAX_WIDTH=X
  Set the maximum width to
  .Fa X .
---- ./share/mk/src.opts.mk.orig	2023-04-16 08:33:24.179033000 +0000
-+++ ./share/mk/src.opts.mk	2023-04-16 08:48:49.067340000 +0000
+--- ./share/mk/src.opts.mk.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./share/mk/src.opts.mk	1970-01-01 00:00:00.000000000 +0000
 @@ -59,6 +59,7 @@
      ACPI \
      APM \
@@ -672,8 +672,8 @@
  
  # LEFT/RIGHT. Left options which default to "yes" unless their corresponding
  # RIGHT option is disabled.
---- ./share/Makefile.orig	2023-04-16 08:33:24.182428000 +0000
-+++ ./share/Makefile	2023-04-16 08:33:23.604322000 +0000
+--- ./share/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./share/Makefile	1970-01-01 00:00:00.000000000 +0000
 @@ -12,20 +12,16 @@
  	${_dtrace} \
  	${_examples} \
@@ -719,8 +719,8 @@
  
  SUBDIR.${MK_TESTS}+= tests
  
---- ./stand/efi/boot1/Makefile.orig	2023-04-16 08:33:24.185846000 +0000
-+++ ./stand/efi/boot1/Makefile	2023-04-16 08:33:23.609983000 +0000
+--- ./stand/efi/boot1/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./stand/efi/boot1/Makefile	1970-01-01 00:00:00.000000000 +0000
 @@ -97,7 +97,7 @@
  		exit 1; \
  	fi
@@ -730,8 +730,8 @@
  		-j .dynamic -j .dynsym -j .rel.dyn \
  		-j .rela.dyn -j .reloc -j .eh_frame \
  		--output-target=${EFI_TARGET} ${.ALLSRC} ${.TARGET}
---- ./stand/efi/loader/Makefile.orig	2023-04-16 08:33:24.189251000 +0000
-+++ ./stand/efi/loader/Makefile	2023-04-16 08:33:23.615641000 +0000
+--- ./stand/efi/loader/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./stand/efi/loader/Makefile	1970-01-01 00:00:00.000000000 +0000
 @@ -115,7 +115,7 @@
  		exit 1; \
  	fi
@@ -741,8 +741,8 @@
  		-j .dynamic -j .dynsym -j .rel.dyn \
  		-j .rela.dyn -j .reloc -j .eh_frame -j set_Xcommand_set \
  		-j set_Xficl_compile_set \
---- ./stand/userboot/Makefile.orig	2023-04-16 08:33:24.192587000 +0000
-+++ ./stand/userboot/Makefile	2023-04-16 08:33:23.621296000 +0000
+--- ./stand/userboot/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./stand/userboot/Makefile	1970-01-01 00:00:00.000000000 +0000
 @@ -2,7 +2,7 @@
  
  .include <bsd.init.mk>
@@ -752,8 +752,8 @@
  SUBDIR.${MK_FORTH}+= userboot_4th
  SUBDIR.${MK_LOADER_LUA}+= userboot_lua
  
---- ./sys/arm/arm/pmu.c.orig	2023-04-16 08:33:24.195985000 +0000
-+++ ./sys/arm/arm/pmu.c	2023-04-16 08:33:23.627075000 +0000
+--- ./sys/arm/arm/pmu.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/arm/arm/pmu.c	1970-01-01 00:00:00.000000000 +0000
 @@ -70,12 +70,11 @@
  #ifdef HWPMC_HOOKS
  	struct trapframe *tf;
@@ -789,8 +789,8 @@
  	return (FILTER_HANDLED);
  }
  
---- ./sys/conf/files.orig	2023-04-16 08:33:24.204230000 +0000
-+++ ./sys/conf/files	2023-04-16 08:33:23.640904000 +0000
+--- ./sys/conf/files.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/conf/files	1970-01-01 00:00:00.000000000 +0000
 @@ -3275,6 +3275,7 @@
  					 cdceem | cue | ipheth | kue | mos | \
  					 rue | smsc | udav | ure | urndis | muge
@@ -799,8 +799,8 @@
  #
  # USB WLAN drivers
  #
---- ./sys/conf/files.x86.orig	2023-04-16 08:33:24.207925000 +0000
-+++ ./sys/conf/files.x86	2023-04-16 08:33:23.647042000 +0000
+--- ./sys/conf/files.x86.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/conf/files.x86	1970-01-01 00:00:00.000000000 +0000
 @@ -303,11 +303,11 @@
  x86/acpica/acpi_apm.c		optional	acpi
  x86/acpica/srat.c		optional	acpi
@@ -817,8 +817,8 @@
  x86/iommu/intel_ctx.c		optional	acpi iommu pci
  x86/iommu/intel_drv.c		optional	acpi iommu pci
  x86/iommu/intel_fault.c		optional	acpi iommu pci
---- ./sys/crypto/skein/skein_block.c.orig	2023-04-16 08:33:24.211900000 +0000
-+++ ./sys/crypto/skein/skein_block.c	2023-04-16 08:33:23.653541000 +0000
+--- ./sys/crypto/skein/skein_block.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/crypto/skein/skein_block.c	1970-01-01 00:00:00.000000000 +0000
 @@ -115,12 +115,12 @@
  
          blkPtr += SKEIN_256_BLOCK_BYTES;
@@ -853,8 +853,8 @@
  
  #if SKEIN_UNROLL_1024 == 0                      
  #define R1024(p0,p1,p2,p3,p4,p5,p6,p7,p8,p9,pA,pB,pC,pD,pE,pF,ROT,rn) \
---- ./sys/dev/adb/adb_kbd.c.orig	2023-04-16 08:33:24.215713000 +0000
-+++ ./sys/dev/adb/adb_kbd.c	2023-04-16 08:33:23.659688000 +0000
+--- ./sys/dev/adb/adb_kbd.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/dev/adb/adb_kbd.c	1970-01-01 00:00:00.000000000 +0000
 @@ -688,14 +688,7 @@
  static int
  set_typematic(keyboard_t *kbd, int code)
@@ -871,8 +871,8 @@
  	if (code & ~0x7f)
  		return EINVAL;
  	kbd->kb_delay1 = delays[(code >> 5) & 3];
---- ./sys/dev/atkbdc/atkbd.c.orig	2023-04-16 08:33:24.219975000 +0000
-+++ ./sys/dev/atkbdc/atkbd.c	2023-04-16 08:33:23.665276000 +0000
+--- ./sys/dev/atkbdc/atkbd.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/dev/atkbdc/atkbd.c	1970-01-01 00:00:00.000000000 +0000
 @@ -1571,12 +1571,6 @@
  	return ((id2 << 8) | id1);
  }
@@ -886,8 +886,8 @@
  static int
  typematic_delay(int i)
  {
---- ./sys/dev/gpio/gpiokeys.c.orig	2023-04-16 08:33:24.223863000 +0000
-+++ ./sys/dev/gpio/gpiokeys.c	2023-04-16 08:33:23.670400000 +0000
+--- ./sys/dev/gpio/gpiokeys.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/dev/gpio/gpiokeys.c	1970-01-01 00:00:00.000000000 +0000
 @@ -975,12 +975,6 @@
  static int
  gpiokeys_set_typematic(keyboard_t *kbd, int code)
@@ -901,8 +901,8 @@
  	if (code & ~0x7f) {
  		return (EINVAL);
  	}
---- ./sys/dev/hid/hkbd.c.orig	2023-04-16 08:33:24.228354000 +0000
-+++ ./sys/dev/hid/hkbd.c	2023-04-16 08:33:23.676337000 +0000
+--- ./sys/dev/hid/hkbd.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/dev/hid/hkbd.c	1970-01-01 00:00:00.000000000 +0000
 @@ -1832,12 +1832,6 @@
  #ifdef EVDEV_SUPPORT
  	struct hkbd_softc *sc = kbd->kb_data;
@@ -916,8 +916,8 @@
  	if (code & ~0x7f) {
  		return (EINVAL);
  	}
---- ./sys/dev/igc/if_igc.c.orig	2023-04-16 08:33:24.233616000 +0000
-+++ ./sys/dev/igc/if_igc.c	2023-04-16 08:33:23.683304000 +0000
+--- ./sys/dev/igc/if_igc.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/dev/igc/if_igc.c	1970-01-01 00:00:00.000000000 +0000
 @@ -263,10 +263,11 @@
      "Maximum number of received packets to process "
      "at a time, -1 means unlimited");
@@ -933,8 +933,8 @@
  
  /*
  ** Tuneable Interrupt rate
---- ./sys/dev/kbdmux/kbdmux.c.orig	2023-04-16 08:33:24.237728000 +0000
-+++ ./sys/dev/kbdmux/kbdmux.c	2023-04-16 08:33:23.688748000 +0000
+--- ./sys/dev/kbdmux/kbdmux.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/dev/kbdmux/kbdmux.c	1970-01-01 00:00:00.000000000 +0000
 @@ -963,17 +963,6 @@
  static int
  kbdmux_ioctl(keyboard_t *kbd, u_long cmd, caddr_t arg)
@@ -953,8 +953,8 @@
  	kbdmux_state_t	*state = (kbdmux_state_t *) kbd->kb_data;
  	kbdmux_kbd_t	*k;
  	keyboard_info_t	*ki;
---- ./sys/dev/speaker/spkr.c.orig	2023-04-16 08:33:24.241452000 +0000
-+++ ./sys/dev/speaker/spkr.c	2023-04-16 08:33:23.693492000 +0000
+--- ./sys/dev/speaker/spkr.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/dev/speaker/spkr.c	1970-01-01 00:00:00.000000000 +0000
 @@ -88,7 +88,7 @@
  	 * This is so other processes can execute while the tone is being
  	 * emitted.
@@ -973,8 +973,8 @@
  	if (timo > 0)
  		tsleep(&endrest, SPKRPRI | PCATCH, "spkrrs", timo);
  }
---- ./sys/dev/usb/input/ukbd.c.orig	2023-04-16 08:33:24.246011000 +0000
-+++ ./sys/dev/usb/input/ukbd.c	2023-04-16 08:33:23.699430000 +0000
+--- ./sys/dev/usb/input/ukbd.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/dev/usb/input/ukbd.c	1970-01-01 00:00:00.000000000 +0000
 @@ -2002,12 +2002,6 @@
  #ifdef EVDEV_SUPPORT
  	struct ukbd_softc *sc = kbd->kb_data;
@@ -988,8 +988,8 @@
  	if (code & ~0x7f) {
  		return (EINVAL);
  	}
---- ./sys/dev/vkbd/vkbd.c.orig	2023-04-16 08:33:24.250118000 +0000
-+++ ./sys/dev/vkbd/vkbd.c	2023-04-16 08:33:23.704773000 +0000
+--- ./sys/dev/vkbd/vkbd.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/dev/vkbd/vkbd.c	1970-01-01 00:00:00.000000000 +0000
 @@ -1305,12 +1305,6 @@
   * Local functions
   */
@@ -1003,8 +1003,8 @@
  static int
  typematic_delay(int i)
  {
---- ./sys/geom/eli/g_eli.h.orig	2023-04-16 08:33:24.254062000 +0000
-+++ ./sys/geom/eli/g_eli.h	2023-04-16 08:33:23.724450000 +0000
+--- ./sys/geom/eli/g_eli.h.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/geom/eli/g_eli.h	1970-01-01 00:00:00.000000000 +0000
 @@ -428,6 +428,8 @@
  		return (CRYPTO_AES_CBC);
  	else if (strcasecmp("aes-xts", name) == 0)
@@ -1116,8 +1116,8 @@
  	}
  	return (0);
  }
---- ./sys/geom/eli/g_eli_crypto.c.orig	2023-04-16 08:33:24.257556000 +0000
-+++ ./sys/geom/eli/g_eli_crypto.c	2023-04-16 08:33:23.731173000 +0000
+--- ./sys/geom/eli/g_eli_crypto.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/geom/eli/g_eli_crypto.c	1970-01-01 00:00:00.000000000 +0000
 @@ -115,12 +115,7 @@
  	u_char iv[G_ELI_IVKEYLEN];
  	int outsize;
@@ -1183,8 +1183,8 @@
  
  	return (g_eli_crypto_cipher(algo, 0, data, datasize, key, keysize));
  }
---- ./sys/geom/eli/g_eli_integrity.c.orig	2023-04-16 08:33:24.261354000 +0000
-+++ ./sys/geom/eli/g_eli_integrity.c	2023-04-16 08:33:23.738583000 +0000
+--- ./sys/geom/eli/g_eli_integrity.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/geom/eli/g_eli_integrity.c	1970-01-01 00:00:00.000000000 +0000
 @@ -528,7 +528,8 @@
  			if (bp->bio_cmd == BIO_WRITE)
  				memset(data + sc->sc_alen + data_secsize, 0,
@@ -1208,8 +1208,8 @@
  		}
  
  		if (bp->bio_cmd == BIO_WRITE) {
---- ./sys/kern/kern_linker.c.orig	2023-04-16 08:33:24.266026000 +0000
-+++ ./sys/kern/kern_linker.c	2023-04-16 08:33:23.747528000 +0000
+--- ./sys/kern/kern_linker.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/kern/kern_linker.c	1970-01-01 00:00:00.000000000 +0000
 @@ -434,6 +434,9 @@
  	linker_file_t lf;
  	int foundfile, error, modules;
@@ -1220,8 +1220,8 @@
  	/* Refuse to load modules if securelevel raised */
  	if (prison0.pr_securelevel > 0)
  		return (EPERM);
---- ./sys/modules/cpufreq/Makefile.orig	2023-04-16 08:33:24.269463000 +0000
-+++ ./sys/modules/cpufreq/Makefile	2023-04-16 08:33:23.754103000 +0000
+--- ./sys/modules/cpufreq/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/modules/cpufreq/Makefile	1970-01-01 00:00:00.000000000 +0000
 @@ -11,7 +11,7 @@
  .PATH:	${SRCTOP}/sys/x86/cpufreq
  
@@ -1231,8 +1231,8 @@
  .endif
  
  .if ${MACHINE} == "i386"
---- ./sys/sys/kbio.h.orig	2023-04-16 08:33:24.273054000 +0000
-+++ ./sys/sys/kbio.h	2023-04-16 08:33:23.760967000 +0000
+--- ./sys/sys/kbio.h.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/sys/kbio.h	1970-01-01 00:00:00.000000000 +0000
 @@ -70,6 +70,13 @@
  };
  typedef struct keyboard_info keyboard_info_t;
@@ -1247,8 +1247,8 @@
  /* add/remove keyboard to/from mux */
  #define KBADDKBD	_IOW('K', 68, keyboard_info_t)	/* add keyboard */
  #define KBRELKBD	_IOW('K', 69, keyboard_info_t)	/* release keyboard */
---- ./sys/sys/tree.h.orig	2023-04-16 08:33:24.277237000 +0000
-+++ ./sys/sys/tree.h	2023-04-16 08:33:23.769018000 +0000
+--- ./sys/sys/tree.h.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/sys/tree.h	1970-01-01 00:00:00.000000000 +0000
 @@ -1013,7 +1013,7 @@
  		return (RB_INSERT(name, head, elm));			\
  	}								\
@@ -1258,8 +1258,8 @@
  
  #define RB_NEGINF	-1
  #define RB_INF	1
---- ./sys/tools/fdt/make_dtb.sh.orig	2023-04-16 08:33:24.280592000 +0000
-+++ ./sys/tools/fdt/make_dtb.sh	2023-04-16 08:33:23.775618000 +0000
+--- ./sys/tools/fdt/make_dtb.sh.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/tools/fdt/make_dtb.sh	1970-01-01 00:00:00.000000000 +0000
 @@ -18,7 +18,7 @@
  
  : "${DTC:=dtc}"
@@ -1269,8 +1269,8 @@
  
  for d in ${dts}; do
      dtb="${dtb_path}/$(basename "$d" .dts).dtb"
---- ./sys/tools/fdt/make_dtbo.sh.orig	2023-04-16 08:33:24.283968000 +0000
-+++ ./sys/tools/fdt/make_dtbo.sh	2023-04-16 08:33:23.782224000 +0000
+--- ./sys/tools/fdt/make_dtbo.sh.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/tools/fdt/make_dtbo.sh	1970-01-01 00:00:00.000000000 +0000
 @@ -18,7 +18,7 @@
  
  : "${DTC:=dtc}"
@@ -1280,8 +1280,8 @@
  
  for d in ${dtso}; do
      dtb="${dtbo_path}/$(basename "$d" .dtso).dtbo"
---- ./sys/Makefile.orig	2023-04-16 08:33:24.287398000 +0000
-+++ ./sys/Makefile	2023-04-16 08:33:23.788749000 +0000
+--- ./sys/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./sys/Makefile	1970-01-01 00:00:00.000000000 +0000
 @@ -8,7 +8,7 @@
  		rpc security sys ufs vm xdr xen ${CSCOPE_ARCHDIR}
  .if !defined(CSCOPE_ARCHDIR)
@@ -1315,8 +1315,8 @@
 @@ -0,0 +1,2 @@
 +.\" $FreeBSD$
 +Build Wireguard tools: wg
---- ./tools/build/Makefile.orig	2023-04-16 08:33:24.294054000 +0000
-+++ ./tools/build/Makefile	2023-04-16 08:33:23.802900000 +0000
+--- ./tools/build/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./tools/build/Makefile	1970-01-01 00:00:00.000000000 +0000
 @@ -296,7 +296,7 @@
  
  # basic commands: It is fine to use the host version for all of these even on
@@ -1382,8 +1382,8 @@
  .endif
  
  # Create all the directories that are needed during the legacy, bootstrap-tools
---- ./usr.bin/drill/Makefile.orig	2023-04-16 08:33:24.297446000 +0000
-+++ ./usr.bin/drill/Makefile	2023-04-16 08:33:23.808209000 +0000
+--- ./usr.bin/drill/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.bin/drill/Makefile	1970-01-01 00:00:00.000000000 +0000
 @@ -14,4 +14,7 @@
  
  LIBADD=	ldns crypto
@@ -1392,8 +1392,8 @@
 +LINKS=	${BINDIR}/drill ${BINDIR}/dig
 +
  .include <bsd.prog.mk>
---- ./usr.bin/mkuzip/mkuz_zstd.c.orig	2023-04-16 08:33:24.300844000 +0000
-+++ ./usr.bin/mkuzip/mkuz_zstd.c	2023-04-16 08:33:23.813336000 +0000
+--- ./usr.bin/mkuzip/mkuz_zstd.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.bin/mkuzip/mkuz_zstd.c	1970-01-01 00:00:00.000000000 +0000
 @@ -63,6 +63,13 @@
  	if (cctx == NULL)
  		errx(1, "could not allocate Zstd context");
@@ -1408,8 +1408,8 @@
  	rc = ZSTD_CCtx_setParameter(cctx, ZSTD_c_compressionLevel,
  	    *comp_level);
  	if (ZSTD_isError(rc))
---- ./usr.bin/mkuzip/mkuzip.8.orig	2023-04-16 08:33:24.304331000 +0000
-+++ ./usr.bin/mkuzip/mkuzip.8	2023-04-16 08:33:23.818417000 +0000
+--- ./usr.bin/mkuzip/mkuzip.8.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.bin/mkuzip/mkuzip.8	1970-01-01 00:00:00.000000000 +0000
 @@ -121,12 +121,13 @@
  .Pp
  For
@@ -1427,8 +1427,8 @@
  .It Fl d
  Enable de-duplication.
  When the option is enabled
---- ./usr.bin/xinstall/Makefile.orig	2023-04-16 08:33:24.307721000 +0000
-+++ ./usr.bin/xinstall/Makefile	2023-04-16 08:33:23.823487000 +0000
+--- ./usr.bin/xinstall/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.bin/xinstall/Makefile	1970-01-01 00:00:00.000000000 +0000
 @@ -8,7 +8,7 @@
  PROG=		xinstall
  PROGNAME=	install
@@ -1448,8 +1448,8 @@
 +#SUBDIR.${MK_TESTS}+= tests
  
  .include <bsd.prog.mk>
---- ./usr.bin/Makefile.orig	2023-04-16 08:33:24.311216000 +0000
-+++ ./usr.bin/Makefile	2023-04-16 08:33:23.828577000 +0000
+--- ./usr.bin/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.bin/Makefile	1970-01-01 00:00:00.000000000 +0000
 @@ -7,20 +7,12 @@
  	apply \
  	asa \
@@ -1711,8 +1711,8 @@
 -
  .include <bsd.subdir.mk>
 +
---- ./usr.sbin/bhyve/Makefile.orig	2023-04-16 08:33:24.314597000 +0000
-+++ ./usr.sbin/bhyve/Makefile	2023-04-16 08:33:23.833581000 +0000
+--- ./usr.sbin/bhyve/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.sbin/bhyve/Makefile	1970-01-01 00:00:00.000000000 +0000
 @@ -104,11 +104,11 @@
  CFLAGS+=-DNETGRAPH
  LIBADD+=    netgraph
@@ -1729,8 +1729,8 @@
  
  CFLAGS+= -I${BHYVE_SYSDIR}/sys/dev/e1000
  CFLAGS+= -I${BHYVE_SYSDIR}/sys/dev/mii
---- ./usr.sbin/kbdcontrol/kbdcontrol.1.orig	2023-04-16 08:33:24.318149000 +0000
-+++ ./usr.sbin/kbdcontrol/kbdcontrol.1	2023-04-16 08:33:23.838767000 +0000
+--- ./usr.sbin/kbdcontrol/kbdcontrol.1.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.sbin/kbdcontrol/kbdcontrol.1	1970-01-01 00:00:00.000000000 +0000
 @@ -104,10 +104,10 @@
  .Xc
  Set keyboard
@@ -1755,8 +1755,8 @@
  or
  .Cm normal
  (500.126).
---- ./usr.sbin/kbdcontrol/kbdcontrol.c.orig	2023-04-16 08:33:24.322211000 +0000
-+++ ./usr.sbin/kbdcontrol/kbdcontrol.c	2023-04-16 08:33:23.844744000 +0000
+--- ./usr.sbin/kbdcontrol/kbdcontrol.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.sbin/kbdcontrol/kbdcontrol.c	1970-01-01 00:00:00.000000000 +0000
 @@ -107,13 +107,8 @@
  /* 93-96 */	""      , ""      , ""      , ""      ,
  	};
@@ -1807,8 +1807,8 @@
  		if (ioctl(0, KDSETRAD, (d << 5) | r))
  			warn("setting keyboard rate");
  	}
---- ./usr.sbin/makefs/ffs/mkfs.c.orig	2023-04-16 08:33:24.326146000 +0000
-+++ ./usr.sbin/makefs/ffs/mkfs.c	2023-04-16 08:33:23.850586000 +0000
+--- ./usr.sbin/makefs/ffs/mkfs.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.sbin/makefs/ffs/mkfs.c	1970-01-01 00:00:00.000000000 +0000
 @@ -451,10 +451,8 @@
  	sblock.fs_cstotal.cs_nifree = 0;
  	sblock.fs_cstotal.cs_nffree = 0;
@@ -1831,8 +1831,8 @@
  	/*
  	 * Dump out summary information about file system.
  	 */
---- ./usr.sbin/makefs/makefs.8.orig	2023-04-16 08:33:24.329836000 +0000
-+++ ./usr.sbin/makefs/makefs.8	2023-04-16 08:33:23.856027000 +0000
+--- ./usr.sbin/makefs/makefs.8.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.sbin/makefs/makefs.8	1970-01-01 00:00:00.000000000 +0000
 @@ -219,6 +219,8 @@
  This option only applies to the
  .Sy ffs
@@ -1842,8 +1842,8 @@
  .It Fl S Ar sector-size
  Set the file system sector size to
  .Ar sector-size .
---- ./usr.sbin/makefs/makefs.c.orig	2023-04-16 08:33:24.333436000 +0000
-+++ ./usr.sbin/makefs/makefs.c	2023-04-16 08:33:23.861312000 +0000
+--- ./usr.sbin/makefs/makefs.c.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.sbin/makefs/makefs.c	1970-01-01 00:00:00.000000000 +0000
 @@ -130,7 +130,7 @@
  		err(1, "Unable to get system time");
  
@@ -1873,8 +1873,8 @@
  "\t[-F mtree-specfile] [-f free-files] [-M minimum-size] [-m maximum-size]\n"
  "\t[-N userdb-dir] [-O offset] [-o fs-options] [-R roundup-size]\n"
  "\t[-S sector-size] [-s image-size] [-T <timestamp/file>] [-t fs-type]\n"
---- ./usr.sbin/makefs/makefs.h.orig	2023-04-16 08:33:24.336987000 +0000
-+++ ./usr.sbin/makefs/makefs.h	2023-04-16 08:33:23.866763000 +0000
+--- ./usr.sbin/makefs/makefs.h.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.sbin/makefs/makefs.h	1970-01-01 00:00:00.000000000 +0000
 @@ -162,6 +162,7 @@
  	int	needswap;	/* non-zero if byte swapping needed */
  	int	sectorsize;	/* sector size */
@@ -1883,16 +1883,16 @@
  
  	void	*fs_specific;	/* File system specific additions. */
  	option_t *fs_options;	/* File system specific options */
---- ./usr.sbin/Makefile.aarch64.orig	2023-04-16 08:33:24.340429000 +0000
-+++ ./usr.sbin/Makefile.aarch64	2023-04-16 08:33:23.888337000 +0000
+--- ./usr.sbin/Makefile.aarch64.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.sbin/Makefile.aarch64	1970-01-01 00:00:00.000000000 +0000
 @@ -3,4 +3,4 @@
  .if ${MK_ACPI} != "no"
  SUBDIR+=	acpi
  .endif
 -SUBDIR+=	ofwdump
 +# SUBDIR+=	ofwdump
---- ./usr.sbin/Makefile.amd64.orig	2023-04-16 08:33:24.343812000 +0000
-+++ ./usr.sbin/Makefile.amd64	2023-04-16 08:33:23.895273000 +0000
+--- ./usr.sbin/Makefile.amd64.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.sbin/Makefile.amd64	1970-01-01 00:00:00.000000000 +0000
 @@ -17,8 +17,11 @@
  .if ${MK_TOOLCHAIN} != "no"
  SUBDIR+=	btxld
@@ -1909,14 +1909,14 @@
 -SUBDIR+=	zzz
 +#SUBDIR+=	spkrtest
 +#SUBDIR+=	zzz
---- ./usr.sbin/Makefile.arm.orig	2023-04-16 08:33:24.347167000 +0000
-+++ ./usr.sbin/Makefile.arm	2023-04-16 08:33:23.902055000 +0000
+--- ./usr.sbin/Makefile.arm.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.sbin/Makefile.arm	1970-01-01 00:00:00.000000000 +0000
 @@ -1,3 +1 @@
  # $FreeBSD$
 -
 -SUBDIR+=	ofwdump
---- ./usr.sbin/Makefile.orig	2023-04-16 08:33:24.350848000 +0000
-+++ ./usr.sbin/Makefile	2023-04-16 08:33:23.908888000 +0000
+--- ./usr.sbin/Makefile.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./usr.sbin/Makefile	1970-01-01 00:00:00.000000000 +0000
 @@ -1,228 +1,184 @@
 -#	From: @(#)Makefile	5.20 (Berkeley) 6/12/93
 +# From: @(#)Makefile	5.20 (Berkeley) 6/12/93
@@ -2282,8 +2282,8 @@
 +#SUBDIR.${MK_AUDIT}+=		auditdistd
 +#SUBDIR.${MK_CAROOT}+=		certctl
 +#.endif
---- ./Makefile.inc1.orig	2023-04-16 08:33:24.357173000 +0000
-+++ ./Makefile.inc1	2023-04-16 08:33:23.920626000 +0000
+--- ./Makefile.inc1.orig	1970-01-01 00:00:00.000000000 +0000
++++ ./Makefile.inc1	1970-01-01 00:00:00.000000000 +0000
 @@ -706,7 +706,7 @@
  # bootstrap-tools stage
  BMAKEENV=	INSTALL="sh ${.CURDIR}/tools/install.sh" \
