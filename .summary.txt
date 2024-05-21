@@ -1,0 +1,32 @@
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Language                              Files     Lines   Blanks  Comments     Code Complexity Complexity/Lines
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Shell                                   343     14051      334      1574    12143       1737          2375.39
+Plain Text                               13       371       29         0      342          0             0.00
+Markdown                                  5       105       27         0       78          0             0.00
+Systemd                                   3        59        0         0       59          0             0.00
+CMake                                     3         0        0         0        0          0             0.00
+Zsh                                       2        46        3         2       41          5            13.51
+Vim Script                                2        65        5        15       45          2            18.18
+INI                                       2        14        2         0       12          0             0.00
+ReasonML                                  1         4        0         0        4          0             0.00
+Assembly                                  1         2        0         0        2          0             0.00
+gitignore                                 1        26        0         0       26          0             0.00
+C++                                       1       741       38        71      632        126            19.94
+Fish                                      1         5        0         1        4          0             0.00
+Autoconf                                  1       224       31        43      150         34            22.67
+C                                         1         7        0         0        7          2            28.57
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Total                                   380     15720      469      1706    13545       1906          2478.26
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Total Physical Source Lines of Code (SLOC)                     = 13,545
+Development Effort Estimate, Person-Years (Person-Months)      = 3.09 (37.03)
+ (Basic COCOMO model, Person-Months = 2.40*(KSLOC**1.05)*1.00)
+Schedule Estimate, Years (Months)                              = 0.82 (9.86)
+ (Basic COCOMO model, Months = 2.50*(person-months**0.38))
+Estimated Average Number of Developers (Effort/Schedule)       = 3.75
+Total Estimated Cost to Develop                                = $416,834
+ (average salary = $56,286/year, overhead = 2.40)
+Processed 475669 bytes, 0.476 megabytes (SI)
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
